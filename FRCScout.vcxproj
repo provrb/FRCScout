@@ -73,6 +73,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)\out\release\</OutDir>
     <IntDir>$(SolutionDir)\.intermediate\</IntDir>
+    <IncludePath>C:\Users\ethan\Desktop\FRCScout\api;C:\Users\ethan\Desktop\FRCScout\ext;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -132,7 +133,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="ext\shell.c" />
+    <ClCompile Include="ext\sqlite3.c" />
+    <ClCompile Include="src\backend\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="api\backend\data.h" />
+    <ClInclude Include="ext\sqlite3.h" />
+    <ClInclude Include="ext\sqlite3ext.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
