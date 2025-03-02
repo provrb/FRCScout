@@ -1,6 +1,9 @@
-#include <iostream>
+#include <backend/data.h>
+    
+const char* DB_PATH = "data.db";
 
 int main() {    
-    std::cout << "Hello, World!" << std::endl;
+    DataBase db(DB_PATH);
+    
     return 0;
 }

@@ -10,10 +10,6 @@ struct Team {
     int teamNum;
     bool eliminated;
 
-    // Match info
-    std::shared_ptr<Match> nextMactch = NULL; // null if eliminated or no match
-    std::shared_ptr<Match> lastMatch = NULL; // null if first match or eliminated
-
     bool hangAttempt;
     bool hangSuccess;
 
@@ -68,8 +64,19 @@ public:
     std::vector<Team> GetTeams();
     std::vector<Match> GetMatches();
 private:
-    std::unique_ptr<sqlite3> db;
-
+    // Create tables if they don't exist
     void CreateTables();
-    void Connect(const std::string& dbPath);
+
+    // Create blank SQL tables
+    void NewTeamTable();
+    void NewMatchesTable();
+
+    // Connect to the SQL database
+    void Connect();
+    void Disconnect();
+
+    // SQL database
+    sqlite3* db;
+    const std::string dbPath; // Path to the .db file
+    bool connected; // If the database is connected
 };
