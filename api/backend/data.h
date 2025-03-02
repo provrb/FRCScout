@@ -65,11 +65,13 @@ public:
     std::vector<Match> GetMatches();
 private:
     // Create tables if they don't exist
+    bool TableExists(const std::string& tableName);
     void CreateTables();
 
     // Create blank SQL tables
     void NewTeamTable();
-    void NewMatchesTable();
+    void NewMatchesTable(); // consists of matches
+    void NewMatchTeamsTable(); // consists of teams in each match
 
     // Connect to the SQL database
     void Connect();
