@@ -1,17 +1,18 @@
 #pragma once
 
 #include <sqlite3.h>
-#include <stdint.h>
 #include <vector>
 #include <array>
+#include <memory>
+#include <string>
 
 struct Team {
     int teamNum;
     bool eliminated;
 
     // Match info
-    Match* nextMactch = NULL; // null if eliminated or no match
-    Match* lastMatch = NULL; // null if first match or eliminated
+    std::shared_ptr<Match> nextMactch = NULL; // null if eliminated or no match
+    std::shared_ptr<Match> lastMatch = NULL; // null if first match or eliminated
 
     bool hangAttempt;
     bool hangSuccess;
@@ -52,7 +53,7 @@ struct Match {
 
 class DataBase {
 public:
-    DataBase();
+    DataBase(const std::string& dbPath);
     ~DataBase();
 
     // find the fields that are different and make an sql query to update them specifically
@@ -67,8 +68,8 @@ public:
     std::vector<Team> GetTeams();
     std::vector<Match> GetMatches();
 private:
-    sqlite3* db;
+    std::unique_ptr<sqlite3> db;
 
     void CreateTables();
-    void Connect();
+    void Connect(const std::string& dbPath);
 };
