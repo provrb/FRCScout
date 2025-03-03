@@ -6,6 +6,11 @@
 #include <memory>
 #include <string>
 
+const std::string DB_PATH = "data.db";
+const std::string TEAM_TABLE = "Teams";
+const std::string MATCH_TABLE = "Matches";
+const std::string MATCH_TEAMS_TABLE = "MatchTeams";
+
 struct Team {
     int teamNum;
     bool eliminated;
@@ -58,8 +63,13 @@ public:
 
     void AddTeam(const Team& team);
     void AddMatch(const Match& match);
+    void AddTeamToMatch(int teamNum, int matchNum);
     void RemoveTeam(int teamNum);
     void RemoveMatch(int matchNum);
+
+    bool TeamExists(int teamNum);
+    bool MatchExists(int matchNum);
+    bool TeamInMatch(int teamNum, int matchNum);
 
     std::vector<Team> GetTeams();
     std::vector<Match> GetMatches();

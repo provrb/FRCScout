@@ -36,6 +36,11 @@ void DataBase::EditMatch(const Match& match) {
 
 }
 
+bool DataBase::TeamExists(int teamNum) {
+    if (!TableExists()
+    return false;
+}
+
 void DataBase::AddTeam(const Team& team) {
     std::string query = 
         "INSERT OR REPLACE INTO Teams "
@@ -59,18 +64,30 @@ void DataBase::AddTeam(const Team& team) {
         + std::to_string(team.rankingPoints) + ", "
         + std::to_string(team.ppm) + ");";
     std::cout << "Query: \n" << query << std::endl;
+
 }
 
 void DataBase::AddMatch(const Match& match) {
-
+    std::string query =
+        "INSERT OR REPLACE INTO Teams "
+        "(teamNum, eliminated, hangAttempt, "
+        "hangSuccess, robotSpeed, shooterAccuracy, "
+        "defense, autonomous, driverSkill, strategy, "
+        "fouls, overall, rankingPoints, ppm) "
+        "VALUES ("
+        + std::to_string(match.matchNum) + ", "
+        + std::to_string(match.blueWin) + ", "
+        + std::to_string(match.played) + ", "
+        + std::to_string(match.redWin) + ");";
+    std::cout << "Query: \n" << query << std::endl;
 }
 
 void DataBase::RemoveTeam(int teamNum) {
 
 }
 
-
 void DataBase::RemoveMatch(int matchNum) {
+
 }
 
 std::vector<Team> DataBase::GetTeams() {
@@ -115,7 +132,7 @@ void DataBase::CreateTables() {
 
 void DataBase::NewTeamTable() {
     std::cout << "Creating blank team table." << std::endl;
-    if ( TableExists("Teams") )
+    if ( TableExists(TEAM_TABLE) )
         return;
 
     char* errorMsg;
