@@ -19,23 +19,15 @@ struct Team {
     bool hangSuccess;
 
     // Statistics
-    uint8_t robotSpeed; // 1-5
-    uint8_t shooterAccuracy; // % out of 100
+    uint8_t robotCycleSpeed; // 1-100
+    uint8_t coralPoints;
     uint8_t defense; // 1-5
-    uint8_t autonomous; // 1-5. How well their autonomous performance is
-    uint8_t driverSkill; // 1-5
-    uint8_t strategy; // 1-5
+    uint8_t autonomousPoints;
+    uint8_t driverSkill; // 1-100
     uint8_t fouls; 
     uint8_t overall; // 1-10
     uint16_t rankingPoints;
     uint16_t ppm; // Points per match
-};
-
-struct Alliance {
-    std::array<Team*, 3> teams;
-    int allianceNum;
-    bool eliminated;
-    uint16_t score;
 };
 
 struct Match {
@@ -90,5 +82,5 @@ private:
     // SQL database
     sqlite3* db;
     const std::string dbPath; // Path to the .db file
-    bool connected; // If the database is connected
+    bool m_Connected; // If the database is connected
 };

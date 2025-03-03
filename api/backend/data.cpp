@@ -37,7 +37,13 @@ void DataBase::EditMatch(const Match& match) {
 }
 
 bool DataBase::TeamExists(int teamNum) {
-    if (!TableExists()
+    if (!TableExists(TEAM_TABLE))
+        return false;
+
+    std::string query = 
+        "SELECT * from Teams";
+    
+
     return false;
 }
 
@@ -45,34 +51,32 @@ void DataBase::AddTeam(const Team& team) {
     std::string query = 
         "INSERT OR REPLACE INTO Teams "
         "(teamNum, eliminated, hangAttempt, "
-        "hangSuccess, robotSpeed, shooterAccuracy, "
-        "defense, autonomous, driverSkill, strategy, "
+        "hangSuccess, robotCycleSpeed, coralPoints, "
+        "defense, autonomousPoints, driverSkill, strategy, "
         "fouls, overall, rankingPoints, ppm) "
         "VALUES ("
         + std::to_string(team.teamNum) + ", "
         + std::to_string(team.eliminated) + ", "
         + std::to_string(team.hangAttempt) + ", "
         + std::to_string(team.hangSuccess) + ", "
-        + std::to_string(team.robotSpeed) + ", "
-        + std::to_string(team.shooterAccuracy) + ", "
+        + std::to_string(team.robotCycleSpeed) + ", "
+        + std::to_string(team.coralPoints) + ", "
         + std::to_string(team.defense) + ", "
-        + std::to_string(team.autonomous) + ", "
+        + std::to_string(team.autonomousPoints) + ", "
         + std::to_string(team.driverSkill) + ", "
-        + std::to_string(team.strategy) + ", "
         + std::to_string(team.fouls) + ", "
         + std::to_string(team.overall) + ", "
         + std::to_string(team.rankingPoints) + ", "
         + std::to_string(team.ppm) + ");";
     std::cout << "Query: \n" << query << std::endl;
-
 }
 
 void DataBase::AddMatch(const Match& match) {
     std::string query =
         "INSERT OR REPLACE INTO Teams "
         "(teamNum, eliminated, hangAttempt, "
-        "hangSuccess, robotSpeed, shooterAccuracy, "
-        "defense, autonomous, driverSkill, strategy, "
+        "hangSuccess, robotCycleSpeed, coralPoints, "
+        "defense, autonomousPoints, driverSkill, strategy, "
         "fouls, overall, rankingPoints, ppm) "
         "VALUES ("
         + std::to_string(match.matchNum) + ", "
@@ -142,10 +146,10 @@ void DataBase::NewTeamTable() {
         "eliminated INTEGER, "
         "hangAttempt INTEGER, "
         "hangSuccess INTEGER, "
-        "robotSpeed INTEGER, "
-        "shooterAccuracy INTEGER, "
+        "robotCycleSpeed INTEGER, "
+        "coralPoints INTEGER, "
         "defense INTEGER, "
-        "autonomous INTEGER, "
+        "autonomousPoints INTEGER, "
         "driverSkill INTEGER, "
         "strategy INTEGER, "
         "fouls INTEGER, "
@@ -223,7 +227,7 @@ void DataBase::NewMatchTeamsTable() {
 
 void DataBase::Connect() {
     std::cout << "Connecting to SQL DB. Path: " << dbPath << std::endl;
-    if ( connected ) {
+    if ( m_Connected ) {
         std::cout << "Already connected to SQL DB" << std::endl;
         return;
     }
@@ -235,12 +239,12 @@ void DataBase::Connect() {
     }
 
     std::cout << "Connected to SQL DB" << std::endl;
-    connected = true;
+    m_Connected = true;
 }
 
 void DataBase::Disconnect() {
     std::cout << "Disconnecting from SQL DB" << std::endl;
 
     sqlite3_close(db);
-    connected = false;
+    m_Connected = false;
 }
