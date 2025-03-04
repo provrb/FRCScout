@@ -21,13 +21,15 @@ struct Team {
     // Statistics
     uint8_t robotCycleSpeed; // 1-100
     uint8_t coralPoints;
-    uint8_t defense; // 1-5
+    uint8_t defense; // 1-100
     uint8_t autonomousPoints;
     uint8_t driverSkill; // 1-100
     uint8_t fouls; 
-    uint8_t overall; // 1-10
+    uint8_t overall; // 1-100
     uint16_t rankingPoints;
     uint16_t ppm; // Points per match
+
+    Team FromSQLStatment(sqlite3_stmt* stmt);
 };
 
 struct Match {
@@ -74,6 +76,8 @@ private:
     void NewTeamTable();
     void NewMatchesTable(); // consists of matches
     void NewMatchTeamsTable(); // consists of teams in each match
+
+    sqlite3_stmt* MakeQuery(const std::string& query);
 
     // Connect to the SQL database
     void Connect();

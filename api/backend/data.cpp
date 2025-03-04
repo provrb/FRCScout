@@ -42,7 +42,20 @@ bool DataBase::TeamExists(int teamNum) {
 
     std::string query = 
         "SELECT * from Teams";
-    
+
+    std::cout << "Query: " << query << std::endl;
+
+    sqlite3_stmt* stmt = MakeQuery(query);  
+    while ( sqlite3_step(stmt) == SQLITE_ROW ) {
+        int team = sqlite3_column_int(stmt, 0);
+        std::cout << "Team: " << team << std::endl;
+        if ( team == teamNum ) {
+            sqlite3_finalize(stmt);
+            return true;
+        }
+    }
+
+    sqlite3_finalize(stmt);
 
     return false;
 }
@@ -52,7 +65,7 @@ void DataBase::AddTeam(const Team& team) {
         "INSERT OR REPLACE INTO Teams "
         "(teamNum, eliminated, hangAttempt, "
         "hangSuccess, robotCycleSpeed, coralPoints, "
-        "defense, autonomousPoints, driverSkill, strategy, "
+        "defense, autonomousPoints, driverSkill, "
         "fouls, overall, rankingPoints, ppm) "
         "VALUES ("
         + std::to_string(team.teamNum) + ", "
@@ -68,22 +81,37 @@ void DataBase::AddTeam(const Team& team) {
         + std::to_string(team.overall) + ", "
         + std::to_string(team.rankingPoints) + ", "
         + std::to_string(team.ppm) + ");";
-    std::cout << "Query: \n" << query << std::endl;
+
+    std::cout << "Adding team with team number " << team.teamNum << std::endl;
+
+    int res = sqlite3_exec(db, query.c_str(), NULL, 0, NULL);
+    if ( res != SQLITE_OK ) {
+        std::cout << "Failed to execute query. Aborting." << std::endl;
+        exit(-1);
+    }
+
+    std::cout << "Added team to teams table." << std::endl;
 }
 
 void DataBase::AddMatch(const Match& match) {
     std::string query =
-        "INSERT OR REPLACE INTO Teams "
-        "(teamNum, eliminated, hangAttempt, "
-        "hangSuccess, robotCycleSpeed, coralPoints, "
-        "defense, autonomousPoints, driverSkill, strategy, "
-        "fouls, overall, rankingPoints, ppm) "
-        "VALUES ("
+        "INSERT OR REPLACE INTO Matches "
+        "(matchNum, blueWin, played, "
+        "redWin) VALUES ("
         + std::to_string(match.matchNum) + ", "
         + std::to_string(match.blueWin) + ", "
         + std::to_string(match.played) + ", "
         + std::to_string(match.redWin) + ");";
-    std::cout << "Query: \n" << query << std::endl;
+
+    std::cout << "Adding match with match number " << match.matchNum << std::endl;
+
+    int res = sqlite3_exec(db, query.c_str(), NULL, 0, NULL);
+    if ( res != SQLITE_OK ) {
+        std::cout << "Failed to execute query. Aborting." << std::endl;
+        exit(-1);
+    }
+
+    std::cout << "Added match to matches table." << std::endl;
 }
 
 void DataBase::RemoveTeam(int teamNum) {
@@ -116,6 +144,7 @@ bool DataBase::TableExists(const std::string& tableName) {
 
     // Found a table with name tableName
     if ( sqlite3_step(stmt) == SQLITE_ROW ) {
+        std::cout << sqlite3_column_int(stmt, 0) << std::endl;
         sqlite3_finalize(stmt);
         std::cout << "Table with name " << tableName << " exists." << std::endl;
         return true;
@@ -223,6 +252,17 @@ void DataBase::NewMatchTeamsTable() {
     }
 
     std::cout << "Created blank match teams table." << std::endl;
+}
+
+sqlite3_stmt* DataBase::MakeQuery(const std::string& query) {
+    sqlite3_stmt* stmt;
+    int res = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, NULL);
+    if ( res != SQLITE_OK ) {
+        std::cout << "Failed to prepare statement \"" << query << "\" Aborting." << std::endl;
+        exit(-1);
+    }
+
+    return stmt;
 }
 
 void DataBase::Connect() {
