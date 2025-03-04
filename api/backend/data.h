@@ -6,10 +6,10 @@
 #include <memory>
 #include <string>
 
-const std::string DB_PATH = "data.db";
-const std::string TEAM_TABLE = "Teams";
-const std::string MATCH_TABLE = "Matches";
-const std::string MATCH_TEAMS_TABLE = "MatchTeams";
+#define DB_PATH "data.db"
+#define TEAM_TABLE "Teams"
+#define MATCH_TABLE "Matches"
+#define MATCH_TEAMS_TABLE "MatchTeams"
 
 struct Team {
     int teamNum;
@@ -29,6 +29,7 @@ struct Team {
     uint16_t rankingPoints;
     uint16_t ppm; // Points per match
 
+    /// Create a new Team struct from SQL DB
     Team FromSQLStatment(sqlite3_stmt* stmt);
 };
 
@@ -65,26 +66,22 @@ public:
     bool MatchExists(int matchNum);
     bool TeamInMatch(int teamNum, int matchNum);
 
-    std::vector<Team> GetTeams();
-    std::vector<Match> GetMatches();
+    // Note: to modify a team or match, use EditTeam and call GetTeams for maximum safety
+    const std::vector<Team> GetTeams();
+    const std::vector<Match> GetMatches();
 private:
-    // Create tables if they don't exist
-    bool TableExists(const std::string& tableName);
-    void CreateTables();
+    void Connect(); // Connect to the SQL database
+    void Disconnect(); // Disconnect from the SQL database
 
-    // Create blank SQL tables
-    void NewTeamTable();
-    void NewMatchesTable(); // consists of matches
+    bool TableExists(const std::string& tableName); // check if an SQL table exists
+    void CreateTables(); // create all required and used SQL tables
+    void NewTeamTable(); // create blank Team SQL table
+    void NewMatchesTable(); // create blank Matches SQL Table
     void NewMatchTeamsTable(); // consists of teams in each match
-
     sqlite3_stmt* MakeQuery(const std::string& query);
+    void SQLFatalError(uint8_t exitCode, const char* errMsg); // Exit program with an error message
 
-    // Connect to the SQL database
-    void Connect();
-    void Disconnect();
-
-    // SQL database
-    sqlite3* db;
+    sqlite3* db; // SQL database
     const std::string dbPath; // Path to the .db file
     bool m_Connected; // If the database is connected
 };

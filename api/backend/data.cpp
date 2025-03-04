@@ -41,22 +41,18 @@ bool DataBase::TeamExists(int teamNum) {
         return false;
 
     std::string query = 
-        "SELECT * from Teams";
+        "SELECT * from Teams WHERE teamNum = " 
+        + std::to_string(teamNum);
 
     std::cout << "Query: " << query << std::endl;
 
     sqlite3_stmt* stmt = MakeQuery(query);  
-    while ( sqlite3_step(stmt) == SQLITE_ROW ) {
-        int team = sqlite3_column_int(stmt, 0);
-        std::cout << "Team: " << team << std::endl;
-        if ( team == teamNum ) {
-            sqlite3_finalize(stmt);
-            return true;
-        }
+    if ( sqlite3_step(stmt) == SQLITE_ROW ) {
+        sqlite3_finalize(stmt);
+        std::cout << "Team with team number: " << teamNum << " exists." << std::endl;
+        return true;
     }
-
     sqlite3_finalize(stmt);
-
     return false;
 }
 
@@ -122,12 +118,12 @@ void DataBase::RemoveMatch(int matchNum) {
 
 }
 
-std::vector<Team> DataBase::GetTeams() {
+const std::vector<Team> DataBase::GetTeams() {
 
     return std::vector<Team>();
 }
 
-std::vector<Match> DataBase::GetMatches() {
+const std::vector<Match> DataBase::GetMatches() {
 
     return std::vector<Match>();
 }
@@ -144,14 +140,13 @@ bool DataBase::TableExists(const std::string& tableName) {
 
     // Found a table with name tableName
     if ( sqlite3_step(stmt) == SQLITE_ROW ) {
-        std::cout << sqlite3_column_int(stmt, 0) << std::endl;
         sqlite3_finalize(stmt);
         std::cout << "Table with name " << tableName << " exists." << std::endl;
         return true;
     }
 
     std::cout << "Table with name " << tableName << " doesn't exist." << std::endl;
-
+    sqlite3_finalize(stmt);
     return false;
 }
 
