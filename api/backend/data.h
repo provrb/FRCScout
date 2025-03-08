@@ -3,7 +3,6 @@
 #include <sqlite3.h>
 #include <vector>
 #include <array>
-#include <memory>
 #include <string>
 
 #define DB_PATH "data.db"
@@ -13,24 +12,26 @@
 
 struct Team {
     int teamNum;
-    bool eliminated;
+    int matchNum;
 
+    bool eliminated;
     bool hangAttempt;
     bool hangSuccess;
 
     // Statistics
-    uint8_t robotCycleSpeed; // 1-100
-    uint8_t coralPoints;
-    uint8_t defense; // 1-100
-    uint8_t autonomousPoints;
-    uint8_t driverSkill; // 1-100
-    uint8_t fouls; 
-    uint8_t overall; // 1-100
+    uint16_t robotCycleSpeed; // 1-100
+    uint16_t coralPoints;
+    uint16_t defense; // 1-100
+    uint16_t autonomousPoints;
+    uint16_t driverSkill; // 1-100
+    uint16_t fouls;
+    uint16_t overall; // 1-100
     uint16_t rankingPoints;
     uint16_t ppm; // Points per match
 
     /// Create a new Team struct from SQL DB
-    Team FromSQLStatment(sqlite3_stmt* stmt);
+    static Team FromSQLStatment(sqlite3_stmt* stmt);
+    void DebugPrint() const;
 };
 
 struct Match {
@@ -45,6 +46,10 @@ struct Match {
     const bool IsTie() const { return (redWin == true && blueWin == true); }
     const bool RedWon() const { return ( redWin == true && blueWin == false ); }
     const bool BlueWon() const { return ( redWin == false && blueWin == true ); }
+
+    static Match FromSQLStatment(sqlite3_stmt* stmt); // New Match struct from SQL db
+    void AddCompetitor(Team* team); // Add a team to the match
+    void RemoveCompetitor(int teamNum); // Remove a team from the match
 };
 
 class DataBase {
@@ -58,9 +63,10 @@ public:
 
     void AddTeam(const Team& team);
     void AddMatch(const Match& match);
-    void AddTeamToMatch(int teamNum, int matchNum);
     void RemoveTeam(int teamNum);
     void RemoveMatch(int matchNum);
+    Team GetTeam(int teamNum);
+    Match GetMatch(int matchNum);
 
     bool TeamExists(int teamNum);
     bool MatchExists(int matchNum);
