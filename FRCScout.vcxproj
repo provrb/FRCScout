@@ -73,7 +73,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)\out\release\</OutDir>
     <IntDir>$(SolutionDir)\.intermediate\</IntDir>
-    <IncludePath>C:\Users\ethan\Desktop\FRCScout\api;C:\Users\ethan\Desktop\FRCScout\ext;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\ethan\Desktop\FRCScout\api;C:\Users\ethan\Desktop\FRCScout\ext;C:\Users\ethan\Desktop\FRCScout\api\backend;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -134,9 +134,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="api\backend\data.cpp" />
-    <ClCompile Include="api\backend\match.cpp" />
-    <ClCompile Include="api\backend\team.cpp" />
+    <ClCompile Include="src\backend\data.cpp" />
+    <ClCompile Include="src\backend\match.cpp" />
+    <ClCompile Include="src\backend\team.cpp" />
     <ClCompile Include="ext\shell.c" />
     <ClCompile Include="ext\sqlite3.c" />
     <ClCompile Include="src\backend\main.cpp" />
