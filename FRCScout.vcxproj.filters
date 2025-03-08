@@ -27,6 +27,12 @@
     <ClCompile Include="api\backend\data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="api\backend\team.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="api\backend\match.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ext\sqlite3.h">
@@ -36,6 +42,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="api\backend\data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="api\backend\match.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="api\backend\team.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,46 +1,12 @@
 #include "data.h"
+#include "team.h"
+#include "match.h"
 
 #include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
 #include <format>
-#include <string_view>
-
-Team Team::FromSQLStatment(sqlite3_stmt* stmt) {
-    Team team = {};
-    team.teamNum = sqlite3_column_int(stmt, 0);
-    team.eliminated = sqlite3_column_int(stmt, 1);
-    team.hangAttempt = sqlite3_column_int(stmt, 2);
-    team.hangSuccess = sqlite3_column_int(stmt, 3);
-    team.robotCycleSpeed = sqlite3_column_int(stmt, 4);
-    team.coralPoints = sqlite3_column_int(stmt, 5);
-    team.defense = sqlite3_column_int(stmt, 6);
-    team.autonomousPoints = sqlite3_column_int(stmt, 7);
-    team.driverSkill = sqlite3_column_int(stmt, 8);
-    team.fouls = sqlite3_column_int(stmt, 9);
-    team.overall = sqlite3_column_int(stmt, 10);
-    team.rankingPoints = sqlite3_column_int(stmt, 11);
-    team.ppm = sqlite3_column_int(stmt, 12);
-
-    return team;
-}
-
-void Team::DebugPrint() const {
-    std::cout << "Team Number: " << this->teamNum << std::endl;
-    std::cout << "Eliminated: " << this->eliminated << std::endl;
-    std::cout << "Hang Attempt: " << this->hangAttempt << std::endl;
-    std::cout << "Hang Success: " << this->hangSuccess << std::endl;
-    std::cout << "Robot Cycle Speed: " << this->robotCycleSpeed << std::endl;
-    std::cout << "Coral Points: " << this->coralPoints << std::endl;
-    std::cout << "Defense: " << this->defense << std::endl;
-    std::cout << "Autonomous Points: " << this->autonomousPoints << std::endl;
-    std::cout << "Driver Skill: " << this->driverSkill << std::endl;
-    std::cout << "Fouls: " << this->fouls << std::endl;
-    std::cout << "Overall: " << this->overall << std::endl;
-    std::cout << "Ranking Points: " << this->rankingPoints << std::endl;
-    std::cout << "PPM: " << this->ppm << std::endl;
-}
 
 DataBase::DataBase(const std::string& path) : dbPath(path) {
     if ( !std::filesystem::exists(dbPath) ) {
@@ -63,7 +29,30 @@ DataBase::~DataBase() {
 }
 
 void DataBase::EditTeam(const Team& team) {
+    if ( !TeamExists(team.teamNum) ) {
+        std::cout << "Team with team number " << team.teamNum << " doesn't exist. "
+            "Cannot edit." << std::endl;
+        return;
+    }
 
+    std::string query = std::format(
+        "UPDATE {} SET "
+        "matchNum = {}, eliminated = {}, hangAttempt = {}, hangSuccess = {}, robotCycleSpeed = {}, "
+        "coralPoints = {}, defense = {}, autonomousPoints = {}, driverSkill = {}, fouls = {}, overall = {}, "
+        "rankingPoints = {}, ppm = {} "
+        "WHERE teamNum = {}",
+        TEAM_TABLE, team.matchNum, team.eliminated, team.hangAttempt, team.hangSuccess,
+        team.robotCycleSpeed, team.coralPoints, team.defense, team.autonomousPoints, team.driverSkill,
+        team.fouls, team.overall, team.rankingPoints, team.ppm, team.teamNum
+    );
+    
+    int res = sqlite3_exec(db, query.c_str(), NULL, 0, NULL);
+    if ( res != SQLITE_OK ) {
+        std::cout << "Failed to execute query. Aborting." << std::endl;
+        exit(-1);
+    }
+
+    std::cout << "Updated team with team number: " << team.teamNum << std::endl;
 }
 
 void DataBase::EditMatch(const Match& match) {
@@ -78,12 +67,9 @@ bool DataBase::TeamExists(int teamNum) {
         "SELECT * from " TEAM_TABLE " WHERE teamNum = " 
         + std::to_string(teamNum);
 
-    std::cout << "Query: " << query << std::endl;
-
     sqlite3_stmt* stmt = MakeQuery(query);  
     if ( sqlite3_step(stmt) == SQLITE_ROW ) {
         sqlite3_finalize(stmt);
-        std::cout << "Team with team number: " << teamNum << " exists." << std::endl;
         return true;
     }
     sqlite3_finalize(stmt);
@@ -92,11 +78,12 @@ bool DataBase::TeamExists(int teamNum) {
 
 void DataBase::AddTeam(const Team& team) {
     if ( TeamExists(team.teamNum) ) {
-        std::cout << "Team with team number " << team.teamNum << " already exists." << std::endl;
+        std::cout << "Team with team number " << team.teamNum << " already exists. " 
+            "Perhaps try editing the team instead." << std::endl;
         return;
-    }        
+    }
 
-    std::string q = std::format(
+    std::string query = std::format(
         "INSERT OR REPLACE INTO {} " // INSERT OR REPLACE INTO Teams
         "(teamNum, matchNum, eliminated, hangAttempt, hangSuccess, robotCycleSpeed, "
         "coralPoints, defense, autonomousPoints, driverSkill, fouls, overall, "
@@ -106,30 +93,6 @@ void DataBase::AddTeam(const Team& team) {
         team.robotCycleSpeed, team.coralPoints, team.defense, team.autonomousPoints, team.driverSkill,
         team.fouls, team.overall, team.rankingPoints, team.ppm
     );
-
-    std::cout << "New query: " << q << std::endl;
-
-    std::string query = 
-        "INSERT OR REPLACE INTO Teams "
-        "(teamNum, matchNum, eliminated, hangAttempt, "
-        "hangSuccess, robotCycleSpeed, coralPoints, "
-        "defense, autonomousPoints, driverSkill, "
-        "fouls, overall, rankingPoints, ppm) "
-        "VALUES ("
-        + std::to_string(team.teamNum) + ", "
-        + std::to_string(team.matchNum) + ", "
-        + std::to_string(team.eliminated) + ", "
-        + std::to_string(team.hangAttempt) + ", "
-        + std::to_string(team.hangSuccess) + ", "
-        + std::to_string(team.robotCycleSpeed) + ", "
-        + std::to_string(team.coralPoints) + ", "
-        + std::to_string(team.defense) + ", "
-        + std::to_string(team.autonomousPoints) + ", "
-        + std::to_string(team.driverSkill) + ", "
-        + std::to_string(team.fouls) + ", "
-        + std::to_string(team.overall) + ", "
-        + std::to_string(team.rankingPoints) + ", "
-        + std::to_string(team.ppm) + ");";
 
     int res = sqlite3_exec(db, query.c_str(), NULL, 0, NULL);
     if ( res != SQLITE_OK ) {
@@ -160,7 +123,20 @@ void DataBase::AddMatch(const Match& match) {
 }
 
 void DataBase::RemoveTeam(int teamNum) {
+    if ( !TeamExists(teamNum) ) {
+        std::cout << "Team with team number " << teamNum << " doesn't exist. "
+            "Cannot remove." << std::endl;
+        return;
+    }
+    
+    std::string query = std::format("DELETE FROM {} WHERE teamNum = {}", TEAM_TABLE, teamNum);
 
+    int res = sqlite3_exec(db, query.c_str(), NULL, 0, NULL);
+    if ( res != SQLITE_OK ) {
+        std::cout << "Failed to execute query. Aborting." << std::endl;
+        exit(-1);
+    }
+    std::cout << "Removed team with team number: " << teamNum << std::endl;
 }
 
 void DataBase::RemoveMatch(int matchNum) {
@@ -175,9 +151,7 @@ Team DataBase::GetTeam(int teamNum) {
         return team;
     }
 
-    std::string query =
-        "SELECT * from " TEAM_TABLE " WHERE teamNum = "
-        + std::to_string(teamNum);
+    std::string query = std::format("SELECT * from {} WHERE teamNum = {}", TEAM_TABLE, teamNum);
 
     sqlite3_stmt* stmt = MakeQuery(query);
     if ( sqlite3_step(stmt) == SQLITE_ROW )
@@ -204,14 +178,11 @@ bool DataBase::TableExists(const std::string& tableName) {
 
     int res = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, NULL);
     if ( res != SQLITE_OK ) {
-        std::cout << "Failed to prepare statement \"" << query << "\" Aborting." << std::endl;
         exit(-1);
     }
 
-    // Found a table with name tableName
     if ( sqlite3_step(stmt) == SQLITE_ROW ) {
         sqlite3_finalize(stmt);
-        std::cout << "Table with name " << tableName << " exists." << std::endl;
         return true;
     }
 
@@ -262,7 +233,7 @@ void DataBase::NewTeamTable() {
 }
 
 void DataBase::NewMatchesTable() {
-    if ( TableExists("Matches") )
+    if ( TableExists(MATCH_TABLE) )
         return;
 
     char* errorMsg;

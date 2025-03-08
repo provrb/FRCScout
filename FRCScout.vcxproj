@@ -135,12 +135,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="api\backend\data.cpp" />
+    <ClCompile Include="api\backend\match.cpp" />
+    <ClCompile Include="api\backend\team.cpp" />
     <ClCompile Include="ext\shell.c" />
     <ClCompile Include="ext\sqlite3.c" />
     <ClCompile Include="src\backend\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="api\backend\data.h" />
+    <ClInclude Include="api\backend\match.h" />
+    <ClInclude Include="api\backend\team.h" />
     <ClInclude Include="ext\sqlite3.h" />
     <ClInclude Include="ext\sqlite3ext.h" />
   </ItemGroup>

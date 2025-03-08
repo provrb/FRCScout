@@ -20,6 +20,7 @@ int main() {
     team.ppm = 59;
 
     db.AddTeam(team);
+    //db.GetTeam(10).DebugPrint();
     //Team fromSQL = db.GetTeam(2);
 
     //std::cout << "\n\n" << std::endl;

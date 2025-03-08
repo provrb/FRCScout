@@ -1,56 +1,17 @@
 #pragma once
 
+#include "team.h"
+#include "match.h"
+
 #include <sqlite3.h>
 #include <vector>
-#include <array>
 #include <string>
+
 
 #define DB_PATH "data.db"
 #define TEAM_TABLE "Teams"
 #define MATCH_TABLE "Matches"
 #define MATCH_TEAMS_TABLE "MatchTeams"
-
-struct Team {
-    int teamNum;
-    int matchNum;
-
-    bool eliminated;
-    bool hangAttempt;
-    bool hangSuccess;
-
-    // Statistics
-    uint16_t robotCycleSpeed; // 1-100
-    uint16_t coralPoints;
-    uint16_t defense; // 1-100
-    uint16_t autonomousPoints;
-    uint16_t driverSkill; // 1-100
-    uint16_t fouls;
-    uint16_t overall; // 1-100
-    uint16_t rankingPoints;
-    uint16_t ppm; // Points per match
-
-    /// Create a new Team struct from SQL DB
-    static Team FromSQLStatment(sqlite3_stmt* stmt);
-    void DebugPrint() const;
-};
-
-struct Match {
-    std::array<Team*, 6> teams; // teams facing each other
-    int matchNum;
-    bool played;
-    
-    // Match Results
-    bool redWin;
-    bool blueWin;
-
-    const bool IsTie() const { return (redWin == true && blueWin == true); }
-    const bool RedWon() const { return ( redWin == true && blueWin == false ); }
-    const bool BlueWon() const { return ( redWin == false && blueWin == true ); }
-
-    static Match FromSQLStatment(sqlite3_stmt* stmt); // New Match struct from SQL db
-    void AddCompetitor(Team* team); // Add a team to the match
-    void RemoveCompetitor(int teamNum); // Remove a team from the match
-};
 
 class DataBase {
 public:
