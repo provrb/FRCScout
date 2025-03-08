@@ -45,7 +45,6 @@ private:
     void NewTeamTable(); // create blank Team SQL table
     void NewMatchesTable(); // create blank Matches SQL Table
     void NewMatchTeamsTable(); // consists of teams in each match
-    sqlite3_stmt* MakeQuery(const std::string& query);
     void SQLFatalError(uint8_t exitCode, const char* errMsg); // Exit program with an error message
 
     sqlite3* db; // SQL database

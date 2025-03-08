@@ -67,11 +67,18 @@ bool DataBase::TeamExists(int teamNum) {
         "SELECT * from " TEAM_TABLE " WHERE teamNum = " 
         + std::to_string(teamNum);
 
-    sqlite3_stmt* stmt = MakeQuery(query);  
+    sqlite3_stmt* stmt;
+    int res = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, NULL);
+    if ( res != SQLITE_OK ) {
+        std::cout << "Error preparing query. Aborting." << std::endl;
+        exit(-1);
+    }
+
     if ( sqlite3_step(stmt) == SQLITE_ROW ) {
         sqlite3_finalize(stmt);
         return true;
     }
+
     sqlite3_finalize(stmt);
     return false;
 }
@@ -153,7 +160,13 @@ Team DataBase::GetTeam(int teamNum) {
 
     std::string query = std::format("SELECT * from {} WHERE teamNum = {}", TEAM_TABLE, teamNum);
 
-    sqlite3_stmt* stmt = MakeQuery(query);
+    sqlite3_stmt* stmt;
+    int res = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, NULL);
+    if ( res != SQLITE_OK ) {
+        std::cout << "Error preparing query. Aborting." << std::endl;
+        exit(-1);
+    }
+
     if ( sqlite3_step(stmt) == SQLITE_ROW )
         team = Team::FromSQLStatment(stmt);
 
@@ -284,17 +297,6 @@ void DataBase::NewMatchTeamsTable() {
     }
 
     std::cout << "Created blank match teams table." << std::endl;
-}
-
-sqlite3_stmt* DataBase::MakeQuery(const std::string& query) {
-    sqlite3_stmt* stmt;
-    int res = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, NULL);
-    if ( res != SQLITE_OK ) {
-        std::cout << "Failed to prepare statement \"" << query << "\" Aborting." << std::endl;
-        exit(-1);
-    }
-
-    return stmt;
 }
 
 void DataBase::Connect() {
