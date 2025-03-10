@@ -83,6 +83,31 @@ bool DataBase::TeamExists(int teamNum) {
     return false;
 }
 
+bool DataBase::MatchExists(int matchNum) {
+    if ( !TableExists(MATCH_TABLE) )
+        return false;
+
+    std::string query =
+        "SELECT * from " MATCH_TABLE " WHERE matchNum = "
+        + std::to_string(matchNum);
+
+    sqlite3_stmt* stmt;
+    int res = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, NULL);
+    if ( res != SQLITE_OK ) {
+        std::cout << "Error preparing query. Aborting." << std::endl;
+        exit(-1);
+    }
+
+    if ( sqlite3_step(stmt) == SQLITE_ROW ) {
+        sqlite3_finalize(stmt);
+        return true;
+    }
+
+    sqlite3_finalize(stmt);
+
+    return false;
+}
+
 void DataBase::AddTeam(const Team& team) {
     if ( TeamExists(team.teamNum) ) {
         std::cout << "Team with team number " << team.teamNum << " already exists. " 
@@ -173,6 +198,17 @@ Team DataBase::GetTeam(int teamNum) {
     sqlite3_finalize(stmt);
 
     return team;
+}
+
+Match DataBase::GetMatch(int matchNum) {
+    Match match = {};
+
+    if ( !MatchExists(matchNum) ) {
+        std::cout << "Match with match number " << matchNum << " doesn't exist." << std::endl;
+        return match;
+    }
+
+    return Match();
 }
 
 const std::vector<Team> DataBase::GetTeams() {
