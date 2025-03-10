@@ -24,6 +24,7 @@ public:
 
     void AddTeam(const Team& team);
     void AddMatch(const Match& match);
+    void AddTeamToMatch(int teamNum, int matchNum);
     void RemoveTeam(int teamNum);
     void RemoveMatch(int matchNum);
     Team GetTeam(int teamNum);

@@ -151,7 +151,39 @@ void DataBase::AddMatch(const Match& match) {
         exit(-1);
     }
 
+    // add each team from the match to the match teams table
+    for ( Team* team : match.teams )
+        AddTeamToMatch(team->teamNum, match.matchNum);
+
     std::cout << "Added match to matches table." << std::endl;
+}
+
+void DataBase::AddTeamToMatch(int teamNum, int matchNum) {
+    if ( !MatchExists(matchNum) )
+        return;
+
+    Match match = GetMatch(matchNum);
+    if ( match.teamCount >= 6 ) {
+        std::cout << "Match is full. Cannot add more teams." << std::endl;
+        return;
+    }
+    
+    Team team = GetTeam(teamNum);
+    if ( team.teamNum == 0 ) {
+        std::cout << "Team with team number " << teamNum << " doesn't exist. Cannot add to match." << std::endl;
+        return;
+    }
+
+    match.AddCompetitor(&team);
+
+    std::string query = std::format(
+        "INSERT OR REPLACE INTO {} "
+        "(matchNum, team1, team2, team3, team4, team5, team6) "
+        "VALUES ({}, {}, {}, {}, {}, {}, {});",
+        MATCH_TEAMS_TABLE, matchNum, match.teams[0]->teamNum, match.teams[1]->teamNum,
+        match.teams[2]->teamNum, match.teams[3]->teamNum, match.teams[4]->teamNum,
+        match.teams[5]->teamNum
+    );
 }
 
 void DataBase::RemoveTeam(int teamNum) {

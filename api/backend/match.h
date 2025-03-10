@@ -5,6 +5,8 @@
 
 struct Match {
     std::array<Team*, 6> teams; // teams facing each other
+    uint8_t teamCount; // number of teams in the match
+
     int matchNum;
     bool played;
 
