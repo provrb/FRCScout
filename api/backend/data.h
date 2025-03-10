@@ -11,7 +11,6 @@
 #define DB_PATH "data.db"
 #define TEAM_TABLE "Teams"
 #define MATCH_TABLE "Matches"
-#define MATCH_TEAMS_TABLE "MatchTeams"
 
 class DataBase {
 public:
@@ -45,7 +44,6 @@ private:
     void CreateTables(); // create all required and used SQL tables
     void NewTeamTable(); // create blank Team SQL table
     void NewMatchesTable(); // create blank Matches SQL Table
-    void NewMatchTeamsTable(); // consists of teams in each match
     void SQLFatalError(uint8_t exitCode, const char* errMsg); // Exit program with an error message
 
     sqlite3* db; // SQL database

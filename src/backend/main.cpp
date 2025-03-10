@@ -19,7 +19,16 @@ int main() {
     team.rankingPoints = 39;
     team.ppm = 59;
 
-    db.AddTeam(team);
+    //db.AddTeam(team);
+
+    Match match = {};
+    match.blueWin = false;
+    match.matchNum = 1;
+    match.played = false;
+
+    //db.EditTeam(team);
+    //db.AddMatch(match);
+    db.AddTeamToMatch(10, 1);
     //db.GetTeam(10).DebugPrint();
     //Team fromSQL = db.GetTeam(2);
 

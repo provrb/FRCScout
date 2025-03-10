@@ -136,24 +136,32 @@ void DataBase::AddTeam(const Team& team) {
 }
 
 void DataBase::AddMatch(const Match& match) {
-    std::string query =
-        "INSERT OR REPLACE INTO " MATCH_TABLE
-        " (matchNum, blueWin, played, "
-        "redWin) VALUES ("
-        + std::to_string(match.matchNum) + ", "
-        + std::to_string(match.blueWin) + ", "
-        + std::to_string(match.played) + ", "
-        + std::to_string(match.redWin) + ");";
 
-    int res = sqlite3_exec(db, query.c_str(), NULL, 0, NULL);
+    std::string query = std::format(
+        "INSERT OR REPLACE INTO {} "
+        "(matchNum, played, redWin, blueWin, "
+        "team1, team2, team3, team4, team5, team6) "
+        "VALUES ({}, {}, {}, {}, {}, {}, {}, {}, {}, {});",
+        MATCH_TABLE, 
+        match.matchNum, match.blueWin, match.played,
+        match.redWin, match.teams[0].teamNum, match.teams[1].teamNum,
+        match.teams[2].teamNum, match.teams[3].teamNum, match.teams[4].teamNum,
+        match.teams[5].teamNum
+    );
+
+    char* errMsg;
+    int res = sqlite3_exec(db, query.c_str(), NULL, 0, &errMsg);
     if ( res != SQLITE_OK ) {
         std::cout << "Failed to execute query. Aborting." << std::endl;
+        std::cout << "SQLite Error Message: " << errMsg << std::endl;
         exit(-1);
     }
 
+    std::cout << "Hello" << std::endl;
+
     // add each team from the match to the match teams table
-    for ( Team* team : match.teams )
-        AddTeamToMatch(team->teamNum, match.matchNum);
+    for ( const Team& team : match.teams )
+        AddTeamToMatch(team.teamNum, match.matchNum);
 
     std::cout << "Added match to matches table." << std::endl;
 }
@@ -174,16 +182,19 @@ void DataBase::AddTeamToMatch(int teamNum, int matchNum) {
         return;
     }
 
-    match.AddCompetitor(&team);
+    match.AddCompetitor(team);
 
+    // Update the match in the DB
     std::string query = std::format(
-        "INSERT OR REPLACE INTO {} "
-        "(matchNum, team1, team2, team3, team4, team5, team6) "
-        "VALUES ({}, {}, {}, {}, {}, {}, {});",
-        MATCH_TEAMS_TABLE, matchNum, match.teams[0]->teamNum, match.teams[1]->teamNum,
-        match.teams[2]->teamNum, match.teams[3]->teamNum, match.teams[4]->teamNum,
-        match.teams[5]->teamNum
+        "UPDATE {} SET "
+        "team1 = {}, team2 = {}, team3 = {}, team4 = {}, team5 = {}, team6 = {} "
+        "WHERE matchNum = {}",
+        MATCH_TABLE, match.teams[0].teamNum, match.teams[1].teamNum,
+        match.teams[2].teamNum, match.teams[3].teamNum, match.teams[4].teamNum,
+        match.teams[5].teamNum, matchNum
     );
+
+    std::cout << "Query to add team into match: \n" << query << std::endl;
 }
 
 void DataBase::RemoveTeam(int teamNum) {
@@ -275,7 +286,6 @@ void DataBase::CreateTables() {
     Connect();
     NewTeamTable();
     NewMatchesTable();
-    NewMatchTeamsTable();
 }
 
 void DataBase::NewTeamTable() {
@@ -318,17 +328,23 @@ void DataBase::NewMatchesTable() {
         return;
 
     char* errorMsg;
-    const char* query =
+    std::string query =
         "CREATE TABLE IF NOT EXISTS " MATCH_TABLE " ("
         "matchNum INTEGER PRIMARY KEY, "
         "played INTEGER, "
         "redWin INTEGER, "
-        "blueWin INTEGER"
+        "blueWin INTEGER, "
+        "team1 INTEGAR, "
+        "team2 INTEGAR, "
+        "team3 INTEGAR, "
+        "team4 INTEGAR, "
+        "team5 INTEGAR, "
+        "team6 INTEGAR"
         ");";
 
     Connect();
 
-    int res = sqlite3_exec(db, query, NULL, 0, &errorMsg);
+    int res = sqlite3_exec(db, query.c_str(), NULL, 0, &errorMsg);
     if ( res != SQLITE_OK ) {
         std::cout << "Failed to create table. Aborting. Error message: " << errorMsg << std::endl;
         sqlite3_free(errorMsg);
@@ -336,35 +352,6 @@ void DataBase::NewMatchesTable() {
     }
 
     std::cout << "Created blank matches table." << std::endl;
-}
-
-void DataBase::NewMatchTeamsTable() {
-    if ( TableExists(MATCH_TEAMS_TABLE) )
-        return;
-    
-    char* errorMsg;
-
-    // each team will have a table describing what match they belong to
-    const char* query =
-        "CREATE TABLE IF NOT EXISTS " MATCH_TEAMS_TABLE " ("
-        "matchNum INTEGER, "
-        "team1 INTEGER, "
-        "team2 INTEGAR, "
-        "team3 INTEGER, "
-        "team4 INTEGER, "
-        "team5 INTEGER, "
-        "team6 INTEGER);";
-
-    Connect();
-    
-    int res = sqlite3_exec(db, query, NULL, 0, &errorMsg);
-    if ( res != SQLITE_OK ) {
-        std::cout << "Failed to create table. Aborting. Error message: " << errorMsg << std::endl;
-        sqlite3_free(errorMsg);
-        exit(-1);
-    }
-
-    std::cout << "Created blank match teams table." << std::endl;
 }
 
 void DataBase::Connect() {

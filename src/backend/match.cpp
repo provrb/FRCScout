@@ -1,4 +1,5 @@
 #include "match.h"
+#include "team.h"
 
 #include <iostream>
 
@@ -7,13 +8,25 @@ Match Match::FromSQLStatment(sqlite3_stmt* stmt) {
     return Match();
 }
 
-void Match::AddCompetitor(Team* team) {
+bool Match::TeamInMatch(int teamNum) {
+    if ( teamCount == 0 )
+        return false;
+
+    for ( Team team : this->teams )
+        if ( team.teamNum == teamNum )
+            return true;
+
+    return false;
+}
+
+void Match::AddCompetitor(Team team) {
     if ( this->teamCount == 6 ) {
         std::cout << "Match is full. Cannot add more teams." << std::endl;
         return;
     }
 
     this->teams.at(this->teamCount) = team;
+    this->teamCount++;
 }
 
 void Match::RemoveCompetitor(int teamNum) {
@@ -22,9 +35,10 @@ void Match::RemoveCompetitor(int teamNum) {
         return;
     }
 
-    for ( Team* team : this->teams ) {
-        if ( team->teamNum == teamNum ) {
+    for ( Team team : this->teams ) {
+        if ( team.teamNum == teamNum ) {
             team = {0};
+            this->teamCount--;
             break;
         }
     }
