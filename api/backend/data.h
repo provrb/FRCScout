@@ -40,6 +40,8 @@ private:
     void Connect(); // Connect to the SQL database
     void Disconnect(); // Disconnect from the SQL database
 
+    void BindTeamToStatement(sqlite3_stmt* stmt, const Team& team); // bind each field of Team struct to sqlite stmt
+
     bool TableExists(const std::string& tableName); // check if an SQL table exists
     void CreateTables(); // create all required and used SQL tables
     void NewTeamTable(); // create blank Team SQL table
