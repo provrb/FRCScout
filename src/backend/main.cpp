@@ -63,7 +63,7 @@ int main() {
 
     // Modify a team
     team1.robotCycleSpeed = 75;
-    db.EditTeam(team1);
+    db.UpdateTeam(team1);
 
     // Retrieve and verify modification
     Team updatedTeam = db.GetTeam(101);
@@ -76,6 +76,7 @@ int main() {
 
     //// Remove a team from the match
     //db.RemoveTeamFromMatch(101, 201);
+    //std::cout << "Updated team 1: " << db.GetMatch(201).teams.at(0).teamNum << std::endl;
     //if ( !db.TeamInMatch(101, 201) ) {
     //    std::cout << "Team 101 successfully removed from match.\n";
     //}

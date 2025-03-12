@@ -17,8 +17,8 @@ public:
     ~DataBase();
 
     // find the fields that are different and make an sql query to update them specifically
-    void EditTeam(const Team& team); 
-    void EditMatch(const Match& match);
+    void UpdateTeam(const Team& team); 
+    void UpdateMatch(const Match& match);
 
     void AddTeam(const Team& team);
     void AddMatch(const Match& match);
@@ -29,17 +29,19 @@ public:
     Team GetTeam(int teamNum);
     Match GetMatch(int matchNum);
 
-    bool TeamExists(int teamNum);
-    bool MatchExists(int matchNum);
-    bool TeamInMatch(int teamNum, int matchNum);
+    bool TeamExists(int teamNum); // check if a team with teamNum is in the SQL DB 
+    bool MatchExists(int matchNum); // check if a match with matchNum is in the SQL DB
+    bool TeamInMatch(int teamNum, int matchNum); // check if a team is in a match with matchNum
+    bool TeamInMatch(int teamNum, const Match& match); // check if a team is in a match struct
 
-    // Note: to modify a team or match, use EditTeam and call GetTeams for maximum safety
-    const std::vector<Team> GetTeams();
-    const std::vector<Match> GetMatches();
+    // Note: to modify a team or match, use UpdateTeam and call GetTeams for maximum safety
+    std::vector<Team> GetTeams();
+    std::vector<Match> GetMatches();
 private:
     void Connect(); // Connect to the SQL database
     void Disconnect(); // Disconnect from the SQL database
 
+    int BindMatchTeams(sqlite3_stmt*, const Match& match);
     void BindTeamToStatement(sqlite3_stmt* stmt, const Team& team); // bind each field of Team struct to sqlite stmt
     bool TableExists(const std::string& tableName); // check if an SQL table exists
     void CreateTables(); // create all required and used SQL tables

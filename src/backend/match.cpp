@@ -10,7 +10,7 @@ Match Match::FromSQLStatment(sqlite3_stmt* stmt) {
     match.redWin = sqlite3_column_int(stmt, 2);
     match.blueWin = sqlite3_column_int(stmt, 3);
     
-    for ( int i = 0; i < 5; i++ ) {
+    for ( int i = 0; i < 6; i++ ) {
         int teamNum = sqlite3_column_int(stmt, i + 4);
         if ( teamNum == 0 ) // skip if there is no team number
             continue;
@@ -60,3 +60,10 @@ void Match::RemoveCompetitor(int teamNum) {
         }
     }
 }
+
+const Team& Match::Team1() const { return this->teams.at(0); }
+const Team& Match::Team2() const { return this->teams.at(1); }
+const Team& Match::Team3() const { return this->teams.at(2); }
+const Team& Match::Team4() const { return this->teams.at(3); }
+const Team& Match::Team5() const { return this->teams.at(4); }
+const Team& Match::Team6() const { return this->teams.at(5); }

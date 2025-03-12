@@ -7,6 +7,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <format>
+#include <vector>
 
 DataBase::DataBase(const std::string& path) : dbPath(path) {
     if ( !std::filesystem::exists(dbPath) ) {
@@ -28,7 +29,7 @@ DataBase::~DataBase() {
     Disconnect();
 }
 
-void DataBase::EditTeam(const Team& team) {
+void DataBase::UpdateTeam(const Team& team) {
     if ( !TeamExists(team.teamNum) ) {
         std::cout << "Team with team number " << team.teamNum << " doesn't exist. "
             "Cannot edit." << std::endl;
@@ -76,8 +77,46 @@ void DataBase::EditTeam(const Team& team) {
     // TODO: Update matches team is in if any. change old team number in match to new
 }
 
-void DataBase::EditMatch(const Match& match) {
+void DataBase::UpdateMatch(const Match& match) {
+    if ( !MatchExists(match.matchNum) ) {
+        std::cout << "Match doesn't exist. Cannot update." << std::endl;
+        return;
+    }
+        
+    const char* query =
+        "UPDATE " MATCH_TABLE " SET "
+        "matchNum = ?, played = ?, redWin = ?, blueWin = ?, "
+        "team1 = ?, team2 = ?, team3 = ?, team4 = ?, team5 = ?, "
+        "team6 = ? WHERE matchNum = ?";
 
+    sqlite3_stmt* stmt;
+    if ( sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK ) {
+        std::cout << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        return;
+    }
+
+    // Bind each field of 'team' to sql query 'query'
+    sqlite3_bind_int(stmt, 1, match.matchNum);
+    sqlite3_bind_int(stmt, 2, match.played);
+    sqlite3_bind_int(stmt, 3, match.redWin);
+    sqlite3_bind_int(stmt, 4, match.blueWin);
+    sqlite3_bind_int(stmt, 5, match.Team1().teamNum);
+    sqlite3_bind_int(stmt, 6, match.Team2().teamNum);
+    sqlite3_bind_int(stmt, 7, match.Team3().teamNum);
+    sqlite3_bind_int(stmt, 8, match.Team4().teamNum);
+    sqlite3_bind_int(stmt, 9, match.Team5().teamNum);
+    sqlite3_bind_int(stmt, 10, match.Team6().teamNum);
+    sqlite3_bind_int(stmt, 11, match.matchNum);
+
+    int res = sqlite3_step(stmt); // execute
+    if ( res != SQLITE_DONE ) {
+        std::cout << "Failed to execute statement." << std::endl;
+        exit(-1);
+    }
+
+    sqlite3_finalize(stmt);
+
+    std::cout << "Updated match with match number: " << match.matchNum << std::endl;
 }
 
 bool DataBase::TeamExists(int teamNum) {
@@ -129,6 +168,18 @@ bool DataBase::MatchExists(int matchNum) {
     return false;
 }
 
+bool DataBase::TeamInMatch(int teamNum, const Match& match) {
+    // iterate through each team comparing the 
+    // team numbers to the one were looking for
+
+    
+    for ( const Team& team : match.teams )
+        if ( team.teamNum == teamNum )
+           return true; // team is in match
+    
+    return false;
+}
+
 bool DataBase::TeamInMatch(int teamNum, int matchNum) {
     if ( !MatchExists(matchNum) ) {
         std::cout << "Cannot check if team is in match. Match doesn't exist." << std::endl;
@@ -136,16 +187,14 @@ bool DataBase::TeamInMatch(int teamNum, int matchNum) {
     }
 
     const Match& match = GetMatch(matchNum); // get match struct from sql db
+    std::cout << "Match " << match.matchNum << std::endl;
+    for ( const Team& team : match.teams ) {
+        std::cout << "\tTeam " << team.teamNum << std::endl;
+    }
     if ( match.teamCount == 0 ) // if no teams, automatically, team isnt in match
         return false;
 
-    // iterate through each team comparing the 
-    // team numbers to the one were looking for
-    for ( const Team& team : match.teams )
-        if ( team.teamNum == teamNum )
-            return true; // team is in match
-
-    return false;
+    return TeamInMatch(teamNum, match);
 }
 
 void DataBase::AddTeam(const Team& team) {
@@ -199,22 +248,13 @@ void DataBase::AddMatch(const Match& match) {
     sqlite3_bind_int(stmt, 2, match.played);
     sqlite3_bind_int(stmt, 3, match.redWin);
     sqlite3_bind_int(stmt, 4, match.blueWin);
-    
-    // add each team to match
-    for ( int i = 0; i < 6; i++ ) {
-        // if the team in Match struct doesnt exist then
-        // just skip it and put 0 as the team number
-        // team will needed to be added to Teams table
-        // first through AddTeam
-        if ( !TeamExists(match.teams[i].teamNum) ) {
-            std::cout << "Team in match hasn't been added to Teams table yet. Skipping." << std::endl;
-            sqlite3_bind_int(stmt, i + 5, 0);
-            continue;
-        }
+    sqlite3_bind_int(stmt, 5, match.Team1().teamNum);
+    sqlite3_bind_int(stmt, 6, match.Team2().teamNum);
+    sqlite3_bind_int(stmt, 7, match.Team3().teamNum);
+    sqlite3_bind_int(stmt, 8, match.Team4().teamNum);
+    sqlite3_bind_int(stmt, 9, match.Team5().teamNum);
+    sqlite3_bind_int(stmt, 10, match.Team6().teamNum);
 
-        sqlite3_bind_int(stmt, i + 5, match.teams[i].teamNum);
-    }
-    
     res = sqlite3_step(stmt); // execute
     if ( res != SQLITE_DONE ) {
         std::cout << "Failed to execute statement." << std::endl;
@@ -238,7 +278,7 @@ void DataBase::RemoveTeamFromMatch(int teamNum, int matchNum) {
     Match match = GetMatch(matchNum);
     match.RemoveCompetitor(teamNum);
     
-    EditMatch(match);
+    UpdateMatch(match);
 }
 
 void DataBase::AddTeamToMatch(int teamNum, int matchNum) {
@@ -280,12 +320,6 @@ void DataBase::AddTeamToMatch(int teamNum, int matchNum) {
 }
 
 void DataBase::RemoveTeam(int teamNum) {
-    if ( !TeamExists(teamNum) ) {
-        std::cout << "Team with team number " << teamNum << " doesn't exist. "
-            "Cannot remove." << std::endl;
-        return;
-    }
-    
     std::string query = std::format("DELETE FROM {} WHERE teamNum = {}", TEAM_TABLE, teamNum);
 
     int res = sqlite3_exec(db, query.c_str(), NULL, 0, NULL);
@@ -294,19 +328,35 @@ void DataBase::RemoveTeam(int teamNum) {
         exit(-1);
     }
 
-    // TODO: Remove team from matches if any, replace the teamnum with 0 in each match
+    // Remove team from matches if any, replace the teamnum with 0 in each match
+    for ( Match& match : GetMatches() ) {
+        if ( !TeamInMatch(teamNum, match) )
+            continue;
+        
+        // Remove and update
+        match.RemoveCompetitor(teamNum);
+        UpdateMatch(match);
+    }
 
     std::cout << "Removed team with team number: " << teamNum << std::endl;
 }
 
 void DataBase::RemoveMatch(int matchNum) {
+    std::string query = std::format("DELETE FROM {} WHERE matchNum = {}", MATCH_TABLE, matchNum);
 
+    int res = sqlite3_exec(db, query.c_str(), NULL, 0, NULL);
+    if ( res != SQLITE_OK ) {
+        std::cout << "Failed to execute query. Aborting." << std::endl;
+        exit(-1);
+    }
+
+    std::cout << "Removed match with match number: " << matchNum << std::endl;
 }
 
 Team DataBase::GetTeam(int teamNum) {
     Team team = {};
     
-    if ( !TeamExists(teamNum) || teamNum == 0 ) {
+    if ( teamNum == 0 || !TeamExists(teamNum) ) {
         std::cout << "Team with team number " << teamNum << " doesn't exist." << std::endl;
         return team;
     }
@@ -360,19 +410,20 @@ Match DataBase::GetMatch(int matchNum) {
             continue;
 
         // if the team exists add the new comptitor from sql db
-        if ( TeamExists(team.teamNum) )
+        if ( TeamExists(team.teamNum) ) {
             team = GetTeam(team.teamNum);
+        }
     }
 
     return match;
 }
 
-const std::vector<Team> DataBase::GetTeams() {
+std::vector<Team> DataBase::GetTeams() {
 
     return std::vector<Team>();
 }
 
-const std::vector<Match> DataBase::GetMatches() {
+std::vector<Match> DataBase::GetMatches() {
 
     return std::vector<Match>();
 }
@@ -482,6 +533,26 @@ void DataBase::Disconnect() {
 
     sqlite3_close(db);
     m_Connected = false;
+}
+
+int DataBase::BindMatchTeams(sqlite3_stmt* stmt, const Match& match) {
+    // add each team to match
+    int i = 0;
+    for ( ; i < 6; i++ ) {
+        // if the team in Match struct doesnt exist then
+        // just skip it and put 0 as the team number
+        // team will needed to be added to Teams table
+        // first through AddTeam
+        if ( match.teams[i].teamNum != 0 && !TeamExists(match.teams[i].teamNum) ) {
+            std::cout << "Team in match (" << match.teams[i].teamNum << ") hasn't been added to Teams table yet. Skipping." << std::endl;
+            sqlite3_bind_int(stmt, i + 5, 0);
+            continue;
+        }
+
+        std::cout << "Adding team: " << match.teams[i].teamNum << std::endl;
+        sqlite3_bind_int(stmt, i + 5, match.teams[i].teamNum);
+    }
+    return i;
 }
 
 void DataBase::BindTeamToStatement(sqlite3_stmt* stmt, const Team& team) {

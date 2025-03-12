@@ -23,4 +23,11 @@ struct Match {
     bool TeamInMatch(int teamNum); // return true or false whether or not the team number is in 'teams'
     void AddCompetitor(Team team); // Add a team to the match
     void RemoveCompetitor(int teamNum); // Remove a team from the match
+
+    const Team& Team1() const;
+    const Team& Team2() const;
+    const Team& Team3() const;
+    const Team& Team4() const;
+    const Team& Team5() const;
+    const Team& Team6() const;
 };
