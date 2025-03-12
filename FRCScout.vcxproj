@@ -148,6 +148,10 @@
     <ClInclude Include="ext\sqlite3.h" />
     <ClInclude Include="ext\sqlite3ext.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="out\release\FRCScout.exe" />
+    <None Include="out\release\FRCScout.pdb" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

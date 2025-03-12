@@ -51,4 +51,8 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="out\release\FRCScout.exe" />
+    <None Include="out\release\FRCScout.pdb" />
+  </ItemGroup>
 </Project>
