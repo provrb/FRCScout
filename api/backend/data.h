@@ -7,7 +7,6 @@
 #include <vector>
 #include <string>
 
-
 #define DB_PATH "data.db"
 #define TEAM_TABLE "Teams"
 #define MATCH_TABLE "Matches"
@@ -24,6 +23,7 @@ public:
     void AddTeam(const Team& team);
     void AddMatch(const Match& match);
     void AddTeamToMatch(int teamNum, int matchNum);
+    void RemoveTeamFromMatch(int teamNum, int matchNum);
     void RemoveTeam(int teamNum);
     void RemoveMatch(int matchNum);
     Team GetTeam(int teamNum);
@@ -41,7 +41,6 @@ private:
     void Disconnect(); // Disconnect from the SQL database
 
     void BindTeamToStatement(sqlite3_stmt* stmt, const Team& team); // bind each field of Team struct to sqlite stmt
-
     bool TableExists(const std::string& tableName); // check if an SQL table exists
     void CreateTables(); // create all required and used SQL tables
     void NewTeamTable(); // create blank Team SQL table

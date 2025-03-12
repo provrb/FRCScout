@@ -4,15 +4,32 @@
 #include <iostream>
 
 Match Match::FromSQLStatment(sqlite3_stmt* stmt) {
+    Match match = {};
+    match.matchNum = sqlite3_column_int(stmt, 0);
+    match.played = sqlite3_column_int(stmt, 1);
+    match.redWin = sqlite3_column_int(stmt, 2);
+    match.blueWin = sqlite3_column_int(stmt, 3);
+    
+    for ( int i = 0; i < 5; i++ ) {
+        int teamNum = sqlite3_column_int(stmt, i + 4);
+        if ( teamNum == 0 ) // skip if there is no team number
+            continue;
+        
+        // Note: This function does not initialize team values
+        // but only the team number for each. if a team number is
+        // 0 that means there is no team.
+        match.teams.at(i).teamNum = teamNum;
+        match.teamCount++;
+    }
 
-    return Match();
+    return match;
 }
 
 bool Match::TeamInMatch(int teamNum) {
     if ( teamCount == 0 )
         return false;
 
-    for ( Team team : this->teams )
+    for ( const Team& team : this->teams )
         if ( team.teamNum == teamNum )
             return true;
 
@@ -35,7 +52,7 @@ void Match::RemoveCompetitor(int teamNum) {
         return;
     }
 
-    for ( Team team : this->teams ) {
+    for ( Team& team : this->teams ) {
         if ( team.teamNum == teamNum ) {
             team = {0};
             this->teamCount--;
