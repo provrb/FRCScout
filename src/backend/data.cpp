@@ -305,18 +305,7 @@ void DataBase::AddTeamToMatch(int teamNum, int matchNum) {
     }
 
     match.AddCompetitor(team);
-
-    // Update the match in the DB
-    std::string query = std::format(
-        "UPDATE {} SET "
-        "team1 = {}, team2 = {}, team3 = {}, team4 = {}, team5 = {}, team6 = {} "
-        "WHERE matchNum = {}",
-        MATCH_TABLE, match.teams[0].teamNum, match.teams[1].teamNum,
-        match.teams[2].teamNum, match.teams[3].teamNum, match.teams[4].teamNum,
-        match.teams[5].teamNum, matchNum
-    );
-
-    std::cout << "Query to add team into match: \n" << query << std::endl;
+    UpdateMatch(match);
 }
 
 void DataBase::RemoveTeam(int teamNum) {
