@@ -27,6 +27,7 @@ int main() {
     db.AddTeam(team6);
 
     std::cout << "Teams added.\n";
+    db.ExportTableToCSV(TEAM_TABLE, "output.csv");
 
     // Verify if teams exist
     if ( db.TeamExists(101) && db.TeamExists(106) ) {

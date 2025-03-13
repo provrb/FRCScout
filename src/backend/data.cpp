@@ -9,6 +9,11 @@
 #include <format>
 #include <vector>
 #include <iosfwd>
+#include <string>
+#include <sqlite3.h>
+
+#include <json.hpp>
+using json = nlohmann::json;
 
 /**
  * @brief Constructs a DataBase object and initializes the database.
@@ -741,4 +746,112 @@ bool DataBase::TableExists(const std::string& tableName) {
 
     sqlite3_finalize(stmt);
     return false;
+}
+
+/**
+ * @brief Exports the contents of a specified table to a JSON file.
+ *
+ * This function retrieves all rows and columns from a given table in the SQLite database and exports
+ * the data to a JSON file. The data is stored as an array of JSON objects, where each object represents
+ * a row in the table with column names as keys and column values as values.
+ *
+ * @param tableName The name of the table to export from the database.
+ * @param outputFilename The name of the output JSON file where the data will be saved.
+ *
+ * @note The output file is overwritten if it already exists.
+ *
+ * @return void This function does not return a value.
+ *
+ * @example
+ * DataBase db("path_to_database.db");
+ * db.ExportTableToJSON("teams", "teams_data.json");
+ */
+void DataBase::ExportTableToJSON(const std::string& tableName, const std::string& outputFilename) {    
+    std::ofstream outFile(outputFilename);
+    if ( !outFile )
+        return;
+
+    sqlite3_stmt* stmt;
+    std::string query = "SELECT * FROM " + tableName + ";";
+    int res = sqlite3_prepare_v2(this->m_db, query.c_str(), -1, &stmt, nullptr);
+    if ( res != SQLITE_OK )
+        return;
+
+    json records = json::array();
+    while ( sqlite3_step(stmt) == SQLITE_ROW ) {
+        json row;
+        for ( int i = 0; i < sqlite3_column_count(stmt); i++ ) {
+            std::string colName = sqlite3_column_name(stmt, i);
+            const unsigned char* value = sqlite3_column_text(stmt, i);
+            if ( value )
+                row[colName] = reinterpret_cast< const char* >( value );
+            else
+                row[colName] = nullptr;
+        }
+        records.push_back(row);
+    }
+
+    if ( outFile ) {
+        outFile << records.dump(4);
+        outFile.close();
+        std::cout << "JSON export completed: " << outputFilename << std::endl;
+    }
+
+    sqlite3_finalize(stmt);
+}
+
+/**
+ * @brief Exports the contents of a specified table to a CSV file.
+ *
+ * This function retrieves all rows and columns from a given table in the SQLite database and exports
+ * the data to a CSV file. The first row in the CSV file contains the column names (headers), and each
+ * subsequent row represents the data in the table. NULL values are represented as "NULL" in the CSV file.
+ *
+ * @param tableName The name of the table to export from the database.
+ * @param outputFilename The name of the output CSV file where the data will be saved.
+ *
+ * @note The output file is overwritten if it already exists.
+ */
+void DataBase::ExportTableToCSV(const std::string& tableName, const std::string& outputFilename) {
+    sqlite3_stmt* stmt;
+    std::string query = "SELECT * FROM " + tableName + ";";
+
+    int res = sqlite3_prepare_v2(this->m_db, query.c_str(), -1, &stmt, nullptr);
+    if ( res != SQLITE_OK )
+        return;
+
+    std::ofstream csvfile(outputFilename);
+    if ( !csvfile.is_open() )
+        return;
+
+    // Write headers
+    int columnCount = sqlite3_column_count(stmt);
+    for ( int i = 0; i < columnCount; i++ ) {
+        csvfile << sqlite3_column_name(stmt, i);
+        // write comma
+        if ( i < columnCount - 1 )
+            csvfile << ",";
+    }
+
+    csvfile << std::endl;
+
+    while ( sqlite3_step(stmt) == SQLITE_ROW ) {
+
+        // write each column from the row
+        for ( int i = 0; i < columnCount; i++ ) {
+            const char* text = ( const char* ) sqlite3_column_text(stmt, i);
+            if ( text )
+                csvfile << text;
+            else 
+                csvfile << "NULL";
+
+            // write comma
+            if ( i < columnCount - 1 )
+                csvfile << ",";
+        }
+
+        csvfile << std::endl; // newline
+    }
+
+    sqlite3_finalize(stmt);
 }

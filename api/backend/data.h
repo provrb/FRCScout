@@ -50,6 +50,19 @@ public:
     
     std::vector<Team> GetTeams();
     std::vector<Match> GetMatches();
+
+    // Export a SQL DB Table to a JSON file format
+    void ExportTableToJSON(
+        const std::string& tableName, 
+        const std::string& outputFilename
+    );
+
+    // Export a SQL DB Table to a CSV file format
+    void ExportTableToCSV(
+        const std::string& tableName, 
+        const std::string& outputFilename
+    );
+
 private:
     void Connect(); // Connect to the SQL database
     void Disconnect(); // Disconnect from the SQL database
