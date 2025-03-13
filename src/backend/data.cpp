@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <format>
 #include <vector>
+#include <iosfwd>
 
 DataBase::DataBase(const std::string& path) : dbPath(path) {
     if ( !std::filesystem::exists(dbPath) ) {
@@ -219,7 +220,19 @@ void DataBase::AddTeam(const Team& team) {
     }
 
     // Bind each field of 'team' to sql query 'query'
-    BindTeamToStatement(stmt, team);
+    sqlite3_bind_int(stmt, 1, team.teamNum);
+    sqlite3_bind_int(stmt, 2, team.eliminated);
+    sqlite3_bind_int(stmt, 3, team.hangAttempt);
+    sqlite3_bind_int(stmt, 4, team.hangSuccess);
+    sqlite3_bind_int(stmt, 5, team.robotCycleSpeed);
+    sqlite3_bind_int(stmt, 6, team.coralPoints);
+    sqlite3_bind_int(stmt, 7, team.defense);
+    sqlite3_bind_int(stmt, 8, team.autonomousPoints);
+    sqlite3_bind_int(stmt, 9, team.driverSkill);
+    sqlite3_bind_int(stmt, 10, team.fouls);
+    sqlite3_bind_int(stmt, 11, team.overall);
+    sqlite3_bind_int(stmt, 12, team.rankingPoints);
+    sqlite3_bind_int(stmt, 13, team.ppm);
 
     res = sqlite3_step(stmt); // execute
     if ( res != SQLITE_DONE ) {
@@ -542,20 +555,4 @@ int DataBase::BindMatchTeams(sqlite3_stmt* stmt, const Match& match) {
         sqlite3_bind_int(stmt, i + 5, match.teams[i].teamNum);
     }
     return i;
-}
-
-void DataBase::BindTeamToStatement(sqlite3_stmt* stmt, const Team& team) {
-    sqlite3_bind_int(stmt, 1, team.teamNum);
-    sqlite3_bind_int(stmt, 2, team.eliminated);
-    sqlite3_bind_int(stmt, 3, team.hangAttempt);
-    sqlite3_bind_int(stmt, 4, team.hangSuccess);
-    sqlite3_bind_int(stmt, 5, team.robotCycleSpeed);
-    sqlite3_bind_int(stmt, 6, team.coralPoints);
-    sqlite3_bind_int(stmt, 7, team.defense);
-    sqlite3_bind_int(stmt, 8, team.autonomousPoints);
-    sqlite3_bind_int(stmt, 9, team.driverSkill);
-    sqlite3_bind_int(stmt, 10, team.fouls);
-    sqlite3_bind_int(stmt, 11, team.overall);
-    sqlite3_bind_int(stmt, 12, team.rankingPoints);
-    sqlite3_bind_int(stmt, 13, team.ppm);
 }

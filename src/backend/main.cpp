@@ -1,3 +1,5 @@
+#ifndef _USING_UI // Console tests
+
 #include "data.h"
 #include "team.h"
 #include "match.h"
@@ -74,40 +76,42 @@ int main() {
         std::cout << "Error: Team update failed.\n";
     }
 
-    //// Remove a team from the match
-    //db.RemoveTeamFromMatch(101, 201);
-    //std::cout << "Updated team 1: " << db.GetMatch(201).teams.at(0).teamNum << std::endl;
-    //if ( !db.TeamInMatch(101, 201) ) {
-    //    std::cout << "Team 101 successfully removed from match.\n";
-    //}
-    //else {
-    //    std::cout << "Error: Team removal from match failed.\n";
-    //}
+    // Remove a team from the match
+    db.RemoveTeamFromMatch(101, 201);
+    std::cout << "Updated team 1: " << db.GetMatch(201).teams.at(0).teamNum << std::endl;
+    if ( !db.TeamInMatch(101, 201) ) {
+        std::cout << "Team 101 successfully removed from match.\n";
+    }
+    else {
+        std::cout << "Error: Team removal from match failed.\n";
+    }
 
-    //// Remove match
-    //db.RemoveMatch(201);
-    //if ( !db.MatchExists(201) ) {
-    //    std::cout << "Match successfully removed.\n";
-    //}
-    //else {
-    //    std::cout << "Error: Match removal failed.\n";
-    //}
+    // Remove match
+    db.RemoveMatch(201);
+    if ( !db.MatchExists(201) ) {
+        std::cout << "Match successfully removed.\n";
+    }
+    else {
+        std::cout << "Error: Match removal failed.\n";
+    }
 
-    //// Remove teams
-    //db.RemoveTeam(101);
-    //db.RemoveTeam(102);
-    //db.RemoveTeam(103);
-    //db.RemoveTeam(104);
-    //db.RemoveTeam(105);
-    //db.RemoveTeam(106);
+    // Remove teams
+    db.RemoveTeam(101);
+    db.RemoveTeam(102);
+    db.RemoveTeam(103);
+    db.RemoveTeam(104);
+    db.RemoveTeam(105);
+    db.RemoveTeam(106);
 
-    //if ( !db.TeamExists(101) && !db.TeamExists(106) ) {
-    //    std::cout << "Teams successfully removed.\n";
-    //}
-    //else {
-    //    std::cout << "Error: Team removal failed.\n";
-    //}
+    if ( !db.TeamExists(101) && !db.TeamExists(106) ) {
+        std::cout << "Teams successfully removed.\n";
+    }
+    else {
+        std::cout << "Error: Team removal failed.\n";
+    }
 
     std::cout << "All tests completed.\n";
     return 0;
 }
+
+#endif

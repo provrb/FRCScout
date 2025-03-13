@@ -1,7 +1,15 @@
-#include "team.h"
+#include <team.h>
+#include <iostream> // cout
 
-#include <iostream>
-
+/**
+ * @brief Creates a Team object from an SQLite database statement.
+ *
+ * Extracts team statistics from the given SQLite statement, including performance metrics
+ * such as hang attempts, cycle speed, defense, and ranking points.
+ *
+ * @param stmt Pointer to an SQLite statement containing team data.
+ * @return Team object populated with data from the database.
+ */
 Team Team::FromSQLStatment(sqlite3_stmt* stmt) {
     Team team = {};
     team.teamNum = sqlite3_column_int(stmt, 0);
@@ -21,6 +29,12 @@ Team Team::FromSQLStatment(sqlite3_stmt* stmt) {
     return team;
 }
 
+/**
+ * @brief Prints team details to the console for debugging purposes.
+ *
+ * Displays various team statistics, including match performance, defense,
+ * fouls, and ranking metrics.
+ */
 void Team::DebugPrint() const {
     std::cout << "Team Number: " << this->teamNum << std::endl;
     std::cout << "Eliminated: " << this->eliminated << std::endl;
