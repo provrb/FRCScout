@@ -1,19 +1,13 @@
 #include "data.h"
-#include "team.h"
-#include "match.h"
+#include "team.h" // Team struct
+#include "match.h" // Match struct
 
-#include <filesystem>
-#include <iostream>
-#include <fstream>
-#include <cstdlib>
-#include <format>
-#include <vector>
-#include <iosfwd>
-#include <string>
-#include <sqlite3.h>
-
-#include <json.hpp>
-using json = nlohmann::json;
+#include <filesystem> // filesystem::exists
+#include <iostream> // cout
+#include <fstream> // std::ofstream
+#include <string> // std::string
+#include <sqlite3.h> 
+#include <json.hpp> // json
 
 /**
  * @brief Constructs a DataBase object and initializes the database.
@@ -767,6 +761,8 @@ bool DataBase::TableExists(const std::string& tableName) {
  * db.ExportTableToJSON("teams", "teams_data.json");
  */
 void DataBase::ExportTableToJSON(const std::string& tableName, const std::string& outputFilename) {    
+    using json = nlohmann::json;
+
     std::ofstream outFile(outputFilename);
     if ( !outFile )
         return;

@@ -19,7 +19,7 @@ bool App::OnInit()
     // Create the main application window
     MainFrame* mainFrame = new MainFrame(APP_NAME);
     mainFrame->Show(true);
-    mainFrame->SetIcon(wxICON(IDI_ICON1));
+    // mainFrame->SetIcon(wxICON(IDI_ICON1));
 
     // Get display information for positioning and sizing
     wxDisplay display(wxDisplay::GetFromWindow(mainFrame));

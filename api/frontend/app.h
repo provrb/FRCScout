@@ -26,4 +26,6 @@ public:
     bool OnInit();
 };
 
+wxIMPLEMENT_APP(App);
+
 #endif // _USING_UI

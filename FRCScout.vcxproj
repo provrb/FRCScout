@@ -212,7 +212,7 @@
     <ClCompile Include="ext\sqlite3.c" />
     <ClCompile Include="src\backend\main.cpp" />
     <ClCompile Include="src\frontend\app.cpp" />
-    <ClCompile Include="src\frontend\main.cpp" />
+    <ClCompile Include="src\frontend\mainframe.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="api\backend\data.h" />
@@ -220,6 +220,7 @@
     <ClInclude Include="api\backend\team.h" />
     <ClInclude Include="api\frontend\app.h" />
     <ClInclude Include="api\frontend\mainframe.h" />
+    <ClInclude Include="api\frontend\winids.h" />
     <ClInclude Include="ext\json.hpp" />
     <ClInclude Include="ext\json_fwd.hpp" />
     <ClInclude Include="ext\sqlite3.h" />

@@ -1,5 +1,5 @@
 teamNum,eliminated,hangAttempt,hangSuccess,robotCycleSpeed,coralPoints,defense,autonomousPoints,driverSkill,fouls,overall,rankingPoints,ppm
-101,0,1,0,75,30,40,20,60,2,85,5,15
+101,0,1,0,50,30,40,20,60,2,85,5,15
 102,0,0,0,45,25,35,18,55,1,80,4,14
 103,0,1,1,55,35,45,22,65,3,90,6,16
 104,0,0,1,40,20,30,15,50,2,75,3,13
