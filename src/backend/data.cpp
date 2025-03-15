@@ -820,16 +820,7 @@ void DataBase::ExportTableToCSV(const std::string& tableName, const std::string&
     if ( !csvfile.is_open() )
         return;
 
-    // Write headers
     int columnCount = sqlite3_column_count(stmt);
-    for ( int i = 0; i < columnCount; i++ ) {
-        csvfile << sqlite3_column_name(stmt, i);
-        // write comma
-        if ( i < columnCount - 1 )
-            csvfile << ",";
-    }
-
-    csvfile << std::endl;
 
     while ( sqlite3_step(stmt) == SQLITE_ROW ) {
 

@@ -1,10 +1,7 @@
 ﻿#include "frontend/mainframe.h"
-#include "frontend/winids.h" // WinId enum
+#include "frontend/wxids.h" // WinId enum
 
 // WX Components
-#include <wx/listctrl.h>
-#include <wx/sizer.h>
-#include <wx/button.h>
 
 MainFrame::MainFrame(const wxString& title)
     : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(800, 600)) // Initial window size
@@ -13,50 +10,110 @@ MainFrame::MainFrame(const wxString& title)
     wxBoxSizer* mainSizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer* leftSizer = new wxBoxSizer(wxVERTICAL);
 
-    int listWidth = this->GetSize().GetWidth() * 0.9; 
-
-    // Function to create a list view with buttons above it
-    auto CreateListPanel = [&](wxWindow* parent, int listId) -> wxBoxSizer* {
-        wxBoxSizer* listSizer = new wxBoxSizer(wxVERTICAL);
-        wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
-
-        // Buttons
-        wxButton* addButton = new wxButton(parent, wxID_ANY, "Add", wxDefaultPosition, wxSize(listWidth / 3, 30));
-        wxButton* deleteButton = new wxButton(parent, wxID_ANY, "Delete", wxDefaultPosition, wxSize(listWidth / 3, 30));
-
-        // Buttons should touch the edges
-        buttonSizer->Add(addButton, 1, wxEXPAND);
-        buttonSizer->Add(deleteButton, 1, wxEXPAND);
-
-        // List view
-        wxListCtrl* listCtrl = new wxListCtrl(parent, listId, wxDefaultPosition, wxSize(listWidth, 200), wxLC_REPORT);
-
-        // Add columns
-        listCtrl->InsertColumn(0, "Team #", wxLIST_FORMAT_LEFT, listWidth * 0.25);
-        listCtrl->InsertColumn(1, "Stat 1", wxLIST_FORMAT_LEFT, listWidth * 0.2);
-        listCtrl->InsertColumn(2, "Stat 2", wxLIST_FORMAT_LEFT, listWidth * 0.2);
-        listCtrl->InsertColumn(3, "Stat 3", wxLIST_FORMAT_LEFT, listWidth * 0.2);
-        listCtrl->InsertColumn(4, "Stat 4", wxLIST_FORMAT_LEFT, listWidth * 0.2);
-
-        // Example row
-        long index = listCtrl->InsertItem(0, "Team 1");
-        listCtrl->SetItem(index, 1, "100");
-        listCtrl->SetItem(index, 2, "90");
-        listCtrl->SetItem(index, 3, "85");
-        listCtrl->SetItem(index, 4, "80");
-
-        // Add buttons and list to the sizer
-        listSizer->Add(buttonSizer, 0, wxEXPAND | wxBOTTOM, 5);
-        listSizer->Add(listCtrl, 1, wxEXPAND);
-
-        return listSizer;
-        };
-
     // Create two list panels
-    leftSizer->Add(CreateListPanel(panel, kTeamListView), 1, wxEXPAND | wxALL, 10);
-    leftSizer->Add(CreateListPanel(panel, kTeamListView + 1), 1, wxEXPAND | wxALL, 10);
+    leftSizer->Add(CreateListPanel(panel, kTeamListView, "Teams"), 1, wxEXPAND | wxALL, 10);
+    leftSizer->Add(CreateListPanel(panel, kMatchListView, "Matches"), 1, wxEXPAND | wxALL, 10);
+    
+    // Get list views
+    wxListCtrl* teamListView = ( wxListCtrl* ) FindWindow(kTeamListView);
+    wxListCtrl* matchListView = ( wxListCtrl* ) FindWindow(kMatchListView);
+    const int teamListWidth = teamListView->GetSize().GetWidth();
+    const int matchListWidth = matchListView->GetSize().GetWidth();
+
+    // Add team list columns
+    teamListView->AppendColumn("Team #", wxLIST_FORMAT_LEFT, teamListWidth * 0.08);
+    teamListView->AppendColumn("Eliminated", wxLIST_FORMAT_LEFT, teamListWidth * 0.1);
+    teamListView->AppendColumn("Ranking Points", wxLIST_FORMAT_LEFT, teamListWidth * 0.15);
+
+    // Add match list columns
+    matchListView->AppendColumn("Match #", wxLIST_FORMAT_LEFT, matchListWidth * 0.08);
+    matchListView->AppendColumn("Finished", wxLIST_FORMAT_LEFT, matchListWidth * 0.08);
+    matchListView->AppendColumn("Red Win", wxLIST_FORMAT_LEFT, matchListWidth * 0.08);
+    matchListView->AppendColumn("Blue Win", wxLIST_FORMAT_LEFT, matchListWidth * 0.08);
 
     mainSizer->Add(leftSizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 10);
     panel->SetSizer(mainSizer);
     this->Layout();
+
+    // Add menu bar
+    CreateMenuBar();
+}
+
+wxMenuBar* MainFrame::CreateMenuBar() {
+    // Add menus such as file, export, import
+    wxMenu* menuFile = new wxMenu;
+    wxMenu* menuExport = new wxMenu;
+    wxMenu* menuImport = new wxMenu;
+
+    ///// Exporting options
+    
+    /// CSV
+    wxMenu* exportCSV = new wxMenu;
+    wxMenuItem* exportTeamDataCSV = new wxMenuItem(NULL, kExportTeamDataCSV, "Team Data CSVV File");
+    wxMenuItem* exportMatchDataCSV = new wxMenuItem(NULL, kExportMatchDataCSV, "Match Data As .CSV File");
+
+    // Add options to main exportCSV menu
+    exportCSV->Append(exportTeamDataCSV);
+    exportCSV->Append(exportMatchDataCSV);
+
+    // Add a submenu 'Export CSV Options' to Export menu
+    menuExport->AppendSubMenu(exportCSV, "&Export CSV Options");
+
+    /// JSON
+    wxMenu* exportJSON = new wxMenu;
+    wxMenuItem* exportTeamDataJSON = new wxMenuItem(NULL, kExportTeamDataJSON, "Team Data As JSON File");
+    wxMenuItem* exportMatchDataJSON = new wxMenuItem(NULL, kExportMatchDataJSON, "Match Data As JSON File");
+
+    // Add options to main exportCSV menu
+    exportJSON->Append(exportTeamDataJSON);
+    exportJSON->Append(exportMatchDataJSON);
+
+    // Add a submenu 'Export CSV Options' to Export menu
+    menuExport->AppendSubMenu(exportJSON, "&Export JSON Options");
+
+    // Import options
+
+
+    wxMenuBar* menuBar = new wxMenuBar;
+    menuBar->Append(menuFile, "&File");
+    menuBar->Append(menuExport, "&Export");
+    menuBar->Append(menuImport, "&Import");
+    SetMenuBar(menuBar);
+
+    return menuBar;
+}
+
+wxBoxSizer* MainFrame::CreateListPanel(wxWindow* parent, int listId, wxString titleName) {
+    int listWidth = this->GetSize().GetWidth();
+    
+    // Sizers
+    wxBoxSizer* listSizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* topSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    // Title on the left side
+    wxStaticText* titleText = new wxStaticText(parent, wxID_ANY, titleName, wxDefaultPosition, wxDefaultSize, 0);
+    titleText->SetFont(wxFontInfo(18).Bold());
+
+    // Buttons on the right side (smaller and more to the right)
+    wxButton* addButton = new wxButton(parent, wxID_ANY, "+", wxDefaultPosition, wxSize(50, 30));
+    wxButton* deleteButton = new wxButton(parent, wxID_ANY, "-", wxDefaultPosition, wxSize(50, 30));
+
+    // set text
+    deleteButton->SetFont(wxFontInfo(18).Bold());
+    addButton->SetFont(wxFontInfo(18).Bold());
+
+    // Add title and buttons to the top sizer
+    topSizer->Add(titleText, 1, wxALIGN_BOTTOM | wxALIGN_LEFT);  // Align title text with the bottom of buttons
+    topSizer->AddSpacer(10);  // Some space between title and buttons
+    topSizer->Add(addButton, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT);  // Align buttons to the right
+    topSizer->Add(deleteButton, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT);  // Align buttons to the right
+
+    // List view
+    wxListCtrl* listCtrl = new wxListCtrl(parent, listId, wxDefaultPosition, wxSize(listWidth, 200), wxLC_REPORT);
+
+    // Add topSizer and list view to the listSizer
+    listSizer->Add(topSizer, 0, wxEXPAND | wxBOTTOM, 5);  // Add the top sizer with buttons and title
+    listSizer->Add(listCtrl, 1, wxEXPAND);
+
+    return listSizer;
 }

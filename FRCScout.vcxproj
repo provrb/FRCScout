@@ -220,7 +220,7 @@
     <ClInclude Include="api\backend\team.h" />
     <ClInclude Include="api\frontend\app.h" />
     <ClInclude Include="api\frontend\mainframe.h" />
-    <ClInclude Include="api\frontend\winids.h" />
+    <ClInclude Include="api\frontend\wxids.h" />
     <ClInclude Include="ext\json.hpp" />
     <ClInclude Include="ext\json_fwd.hpp" />
     <ClInclude Include="ext\sqlite3.h" />
