@@ -17,9 +17,9 @@ public:
     wxBoxSizer* CreateListPanel(
         wxWindow* parent, 
         int listId, 
-        wxString titleName
+        wxString titleName,
+        wxString description
     );
-    wxBoxSizer* CreateListPanel2(wxWindow* parent, int listId, wxString titleName);
-    wxBoxSizer* CreateTeamsListPanel(wxWindow* parent);
+
     wxMenuBar* CreateMenuBar();
 };
