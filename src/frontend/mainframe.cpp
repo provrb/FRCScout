@@ -3,6 +3,7 @@
 // Frontend
 #include "frontend/mainframe.h" // MainFrame class
 #include "frontend/wxids.h" // WinId enum
+#include "frontend/colours.h"
 
 // Backend
 #include "backend/data.h" // DataBase class
@@ -234,6 +235,14 @@ wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
 
     // Set row size, disable row resize, and set default row value for all rows
     for ( int i = 0; i < 36; i++ ) {
+        if ( i % 2 == 0 ) {
+            grid->SetLabelBackgroundColour(LIGHT_GRAY_ACCENT_1);
+            grid->SetCellBackgroundColour(i, 0, LIGHT_GRAY_ACCENT_1);
+        }
+        else {
+            grid->SetLabelBackgroundColour(LIGHT_GRAY_ACCENT_2);
+            grid->SetCellBackgroundColour(i, 0, LIGHT_GRAY_ACCENT_2);
+        }
         grid->DisableRowResize(i);
         grid->SetRowSize(i, 25);
         grid->SetRowLabelValue(i, "...");
@@ -428,9 +437,9 @@ void MainFrame::CreateTeamRow(const Team& team) {
     // change the background colour of the 
     // row depending on itemId for readability
     if ( itemId % 2 == 0 )
-        m_teamListView->SetItemBackgroundColour(itemId, wxColour(245, 245, 245));
+        m_teamListView->SetItemBackgroundColour(itemId, LIGHT_GRAY_ACCENT_1);
     else
-        m_teamListView->SetItemBackgroundColour(itemId, wxColour(250, 250, 250));
+        m_teamListView->SetItemBackgroundColour(itemId, LIGHT_GRAY_ACCENT_2);
 }
 
 /**

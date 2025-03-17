@@ -219,6 +219,7 @@
     <ClInclude Include="api\backend\match.h" />
     <ClInclude Include="api\backend\team.h" />
     <ClInclude Include="api\frontend\app.h" />
+    <ClInclude Include="api\frontend\colours.h" />
     <ClInclude Include="api\frontend\mainframe.h" />
     <ClInclude Include="api\frontend\wxids.h" />
     <ClInclude Include="ext\json.hpp" />
