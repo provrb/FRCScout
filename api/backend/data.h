@@ -15,7 +15,7 @@ class MainFrame; // dummy declaration in case not using ui
 #define DB_PATH     "data.db" // Path to connect and save database file
 #define TEAM_TABLE  "Teams"   // Name of the Teams table to save Team info in
 #define MATCH_TABLE "Matches" // Name of the Matches table to save Match info in
- 
+
 /**
  * @class DataBase
  * @brief This class manages the interactions with an SQLite database that stores information about teams and matches.
