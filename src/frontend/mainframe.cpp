@@ -98,7 +98,7 @@ MainFrame::MainFrame(const wxString& title)
  *       The list view is set to have a height of 200px.
  */
 wxBoxSizer* MainFrame::CreateListPanel(wxWindow* parent, int listId, wxString titleName, wxString description) {
-    int listWidth = this->GetSize().GetWidth() * 1.3;
+    int listWidth = this->GetSize().GetWidth() * 1.27;
 
     // Sizers
     wxBoxSizer* listSizer = new wxBoxSizer(wxVERTICAL);
@@ -292,12 +292,18 @@ wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
     }
 
     // Title above the grid
-    wxStaticText* gridTitle = new wxStaticText(panel, kEditingDataTitle, "Edit Values", wxPoint(0, 10), wxDefaultSize, 0);
+    wxStaticText* gridTitle = new wxStaticText(panel, kEditingDataTitle, "Edit and View", wxPoint(0, 10), wxDefaultSize, 0);
     gridTitle->SetFont(wxFontInfo(18).Bold());
-    
+
     // Description above the grid
-    wxStaticText* gridDesc = new wxStaticText(panel, kEditingDataDesc, "Modifying fields for: ", wxPoint(0, 41), wxDefaultSize, 0);
+    wxStaticText* gridDesc = new wxStaticText(panel, kEditingDataDesc, "Edit and view fields of objects", wxPoint(0, 41), wxDefaultSize, 0);
     gridDesc->SetFont(wxFontInfo(10));
+
+    // Add edit and view mode button
+    wxButton* editModeButton = new wxButton(panel, kEditModeButton, "Edit Mode", wxPoint(305, 15), wxDefaultSize);
+    editModeButton->SetBackgroundColour(LIGHT_GRAY_ACCENT_3);
+    editModeButton->SetFont(wxFontInfo(8));
+    editModeButton->Bind(wxEVT_BUTTON, &MainFrame::OnToggleEditMode, this);
 
     return grid;
 }
@@ -449,6 +455,18 @@ const Team MainFrame::GetTeamFromRow(int row) {
     return db->GetTeam(teamNumber);
 }
 
+const Match MainFrame::GetMatchFromRow(int row) {
+    if ( row > this->m_displayedMatchCount || !g_DataBase )
+        return {};
+
+    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+
+    wxString colText = m_matchListView->GetItemText(row);
+    int matchNumber = std::stoi(colText.ToStdString());
+
+    return db->GetMatch(matchNumber);
+}
+
 /**
  * @brief Creates and inserts a new row in the team list view.
  *
@@ -537,6 +555,8 @@ void MainFrame::CreateMatchRow(const Match& match) {
         m_matchListView->SetItemBackgroundColour(itemId, wxColour(245, 245, 245));
     else
         m_matchListView->SetItemBackgroundColour(itemId, wxColour(250, 250, 250));
+
+    m_matchListView->Bind(wxEVT_LIST_ITEM_SELECTED, &MainFrame::OnMatchRowClicked, this);
 }
 
 /**
@@ -615,6 +635,7 @@ void MainFrame::OnTeamRowClicked(wxCommandEvent& event) {
 
     int row = m_teamListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     const Team team = GetTeamFromRow(row);
+    std::string teamNum = std::to_string(team.teamNum);
 
     // show details of team in editing grid
     ShowTeamEditGrid();
@@ -624,31 +645,132 @@ void MainFrame::OnTeamRowClicked(wxCommandEvent& event) {
     if ( !grid )
         return;
 
-    // read-only by default for safety
-    grid->EnableEditing(false);
+    grid->EnableEditing(m_isEditModeEnabled);
 
     // Set cell values
-    grid->SetCellValue(wxGridCellCoords(0, 0), std::to_string(team.teamNum));
-    grid->SetCellValue(wxGridCellCoords(1, 0), std::to_string(team.overall));
-    grid->SetCellValue(wxGridCellCoords(2, 0), (team.eliminated) ? "Y" : "N");
-    grid->SetCellValue(wxGridCellCoords(3, 0), (team.hangAttempt)?"Y":"N");
-    grid->SetCellValue(wxGridCellCoords(4, 0), (team.hangSuccess)?"Y":"N");
-    grid->SetCellValue(wxGridCellCoords(5, 0), std::to_string(team.robotCycleSpeed));
-    grid->SetCellValue(wxGridCellCoords(6, 0), std::to_string(team.coralPoints));
-    grid->SetCellValue(wxGridCellCoords(7, 0), std::to_string(team.defense));
-    grid->SetCellValue(wxGridCellCoords(8, 0), std::to_string(team.autonomousPoints));
-    grid->SetCellValue(wxGridCellCoords(9, 0), std::to_string(team.driverSkill));
-    grid->SetCellValue(wxGridCellCoords(10, 0), std::to_string(team.fouls));
-    grid->SetCellValue(wxGridCellCoords(11, 0), std::to_string(team.rankingPoints));
-    grid->SetCellValue(wxGridCellCoords(12, 0), std::to_string(team.ppm));
+    grid->SetCellValue(0, 0, teamNum);
+    grid->SetCellValue(1, 0, std::to_string(team.overall));
+    grid->SetCellValue(2, 0, (team.eliminated) ? "Y" : "N");
+    grid->SetCellValue(3, 0, (team.hangAttempt)?"Y":"N");
+    grid->SetCellValue(4, 0, (team.hangSuccess)?"Y":"N");
+    grid->SetCellValue(5, 0, std::to_string(team.robotCycleSpeed));
+    grid->SetCellValue(6, 0, std::to_string(team.coralPoints));
+    grid->SetCellValue(7, 0, std::to_string(team.defense));
+    grid->SetCellValue(8, 0, std::to_string(team.autonomousPoints));
+    grid->SetCellValue(9, 0, std::to_string(team.driverSkill));
+    grid->SetCellValue(10, 0, std::to_string(team.fouls));
+    grid->SetCellValue(11, 0, std::to_string(team.rankingPoints));
+    grid->SetCellValue(12, 0, std::to_string(team.ppm));
 
     // Set grid title and description
     wxStaticText* gridTitle = ( wxStaticText* ) FindWindow(kEditingDataTitle);
     wxStaticText* gridDesc = ( wxStaticText* ) FindWindow(kEditingDataDesc);
     
-    // By default, in read-only mode for safety
-    gridTitle->SetLabelText("Viewing Team # " + std::to_string(team.teamNum));
-    gridDesc->SetLabelText("Viewing all fields for team # " + std::to_string(team.teamNum));
+    if ( m_isEditModeEnabled ) {
+        gridTitle->SetLabelText("Editing Team # " + teamNum);
+        gridDesc->SetLabelText("Editing all fields for team # " + teamNum);
+    }
+    else {
+        gridTitle->SetLabelText("Viewing Team # " + teamNum);
+        gridDesc->SetLabelText("Viewing all fields for team # " + teamNum);
+    }
+}
+
+void MainFrame::OnMatchRowClicked(wxCommandEvent& event) {
+    if ( !g_DataBase )
+        return;
+
+    int row = m_matchListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    const Match match = GetMatchFromRow(row);
+    std::string matchNum = std::to_string(match.matchNum);
+
+    // show details of match in editing grid
+    ShowMatchEditGrid();
+
+    // get grid object
+    wxGrid* grid = ( wxGrid* ) FindWindow(kEditItemGrid);
+    if ( !grid )
+        return;
+
+    grid->EnableEditing(m_isEditModeEnabled);
+
+    // Set cell values
+    grid->SetCellValue(0, 0, matchNum);
+    grid->SetCellValue(1, 0, ( match.played ) ? "Y" : "N");
+    grid->SetCellValue(2, 0, ( match.redWin ) ? "Y" : "N");
+    grid->SetCellValue(3, 0, ( match.blueWin ) ? "Y" : "N");
+    grid->SetCellValue(4, 0, std::to_string(match.Team1().teamNum));
+    grid->SetCellValue(5, 0, std::to_string(match.Team2().teamNum));
+    grid->SetCellValue(6, 0, std::to_string(match.Team3().teamNum));
+    grid->SetCellValue(7, 0, std::to_string(match.Team4().teamNum));
+    grid->SetCellValue(8, 0, std::to_string(match.Team5().teamNum));
+    grid->SetCellValue(9, 0, std::to_string(match.Team6().teamNum));
+
+    // Set grid title and description
+    wxStaticText* gridTitle = ( wxStaticText* ) FindWindow(kEditingDataTitle);
+    wxStaticText* gridDesc = ( wxStaticText* ) FindWindow(kEditingDataDesc);
+
+    if ( m_isEditModeEnabled ) {
+        gridTitle->SetLabelText("Editing Match # " + matchNum);
+        gridDesc->SetLabelText("Editing all fields for match # " + matchNum);
+    }
+    else {
+        gridTitle->SetLabelText("Viewing Match # " + matchNum);
+        gridDesc->SetLabelText("Viewing all fields for Match # " + matchNum);
+    }
+}
+
+void MainFrame::OnToggleEditMode(wxCommandEvent& event) {
+    m_isEditModeEnabled = !m_isEditModeEnabled; // invert edit mode on toggle
+
+    // get grid object
+    wxGrid* grid = ( wxGrid* ) FindWindow(kEditItemGrid);
+    if ( !grid )
+        return;
+
+    grid->EnableEditing(m_isEditModeEnabled);
+
+    // Get title and description
+    wxStaticText* gridTitle = ( wxStaticText* ) FindWindow(kEditingDataTitle);
+    wxStaticText* gridDesc = ( wxStaticText* ) FindWindow(kEditingDataDesc);
+
+    // Default text
+    gridTitle->SetLabelText("Edit and View");
+    gridDesc->SetLabelText("Edit and view fields of objects");
+
+    // get button
+    wxButton* editModeButton = ( wxButton* ) FindWindow(kEditModeButton);
+
+    // check if editing a team or match
+    wxString colText = grid->GetRowLabelValue(0); // 0 will contain "Match #" or "Team #"
+    if ( colText.Contains("Team") ) {
+        // editing team
+        wxString teamNumber = grid->GetCellValue(0, 0);
+
+        if ( m_isEditModeEnabled ) {
+            gridTitle->SetLabelText("Editing Team # " + teamNumber);
+            gridDesc->SetLabelText("Editing all fields for team # " + teamNumber);
+        }
+        else {
+            gridTitle->SetLabelText("Viewing Team # " + teamNumber);
+            gridDesc->SetLabelText("Viewing all fields for team # " + teamNumber);
+        }
+    }
+    else if ( colText.Contains("Match") ) {
+        // editing match
+        wxString matchNumber = grid->GetCellValue(0, 0);
+
+        if ( m_isEditModeEnabled ) {
+            gridTitle->SetLabelText("Editing Match # " + matchNumber);
+            gridDesc->SetLabelText("Editing all fields for match # " + matchNumber);
+        }
+        else {
+            gridTitle->SetLabelText("Viewing Match # " + matchNumber);
+            gridDesc->SetLabelText("Viewing all fields for match # " + matchNumber);
+        }
+    }
+
+    ( m_isEditModeEnabled ) ? editModeButton->SetLabelText("View Mode") : editModeButton->SetLabelText("Edit Mode");
 }
 
 #endif // _USING_UI

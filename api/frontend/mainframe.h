@@ -71,6 +71,7 @@ private:
     void CreateMatchRow(const Match& match); // create a row with info from 'match' in matchListView
     wxMenuBar* CreateMenuBar(); // create menu bar which contains options like File, Export..
     const Team GetTeamFromRow(int row);
+    const Match GetMatchFromRow(int row);
 
     wxTextCtrl* CreateSQLOutputBox(wxPanel* panel); // Create a wxTextCtrl that will show all SQL output
     void LogSQLQuery(std::string queryHistory); // add a completed query to SQL output
@@ -78,7 +79,10 @@ private:
     void LogBackendMessage(std::string msg); // print a blue message in SQL output with prefix "MSG>"
 
     void OnTeamRowClicked(wxCommandEvent& event);
+    void OnMatchRowClicked(wxCommandEvent& event);
+    void OnToggleEditMode(wxCommandEvent& event);
 
+    bool m_isEditModeEnabled;
     int m_displayedTeamCount; // number of team rows in team list view
     int m_displayedMatchCount; // number of match rows in match list view
     wxListCtrl* m_teamListView; // container that holds rows about teams

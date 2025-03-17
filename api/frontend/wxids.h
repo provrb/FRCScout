@@ -30,6 +30,7 @@ enum ItemIds {
     kEditingDataTitle, // e.g "Editing Team #1" title
     kEditingDataDesc, // e.g "Modify values for Team #1" description
     kEditItemGrid, // grid to input new values for an item
+    kEditModeButton,
 };
 
 #endif // _USING_UI
