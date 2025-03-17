@@ -13,8 +13,7 @@
  * This class initializes and manages the application lifecycle
  * when the UI is enabled.
  */
-class App : public wxApp
-{
+class App : public wxApp {
 public:
     /**
      * @brief Initializes the wxWidgets application.

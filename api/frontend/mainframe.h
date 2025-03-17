@@ -1,20 +1,36 @@
 #pragma once
 
 // WX Components
-#include <wx/wx.h>
-#include <wx/window.h>
-#include <wx/sizer.h>
-#include <wx/menu.h>
-#include <wx/frame.h>
-#include <wx/listctrl.h>
-#include <wx/grid.h>
+#include <wx/wx.h> // wx Core
+#include <wx/sizer.h> // wxBoxSizer
+#include <wx/frame.h> // wxFrame
+#include <wx/listctrl.h> // wxListCtrl
+#include <wx/grid.h> // wxGrid
 
 // Backend
-#include "backend/team.h"
-#include "backend/match.h"
+#include "backend/team.h" // Team struct
+#include "backend/match.h" // Match struct
 
-class MainFrame : public wxFrame
-{
+/**
+ * @class MainFrame
+ * @brief The main user interface window for the application.
+ *
+ * This class represents the main frame of the application, which contains panels for displaying and editing
+ * team and match data. It interacts with the backend to retrieve and manipulate data and provides a UI to
+ * view and modify that data in a user-friendly way. The frame includes a list view for teams and matches,
+ * a spreadsheet-like grid for editing, and a text box to display SQL query results.
+ *
+ * **Key Responsibilities:**
+ * - Display a list of teams and matches with options to edit their details.
+ * - Provide a menu bar for additional options like File and Export.
+ * - Display SQL query results and errors.
+ * - Handle the creation and management of UI components like lists and grids.
+ *
+ * The MainFrame class is tightly integrated with the backend components (such as `Team` and `Match`),
+ * which provide the data for the UI elements. The database operations are executed, and relevant information
+ * is displayed in the interface.
+ */
+class MainFrame : public wxFrame {
 private:
     friend class DataBase; // Database needs to access functions to display backend data on the UI
     friend class App; // App should be the only thing calling MainFrame constructor
@@ -38,8 +54,8 @@ private:
     void CreateMatchRow(const Match& match); // create a row with info from 'match' in matchListView
     wxMenuBar* CreateMenuBar(); // create menu bar which contains options like File, Export..
 
-    wxTextCtrl* CreateSQLHistoryBox(wxPanel* panel); // Create a wxTextCtrl that will show all SQL output
-    bool UpdateQueryHistory(std::string queryHistory); // add a completed query to SQL output
+    wxTextCtrl* CreateSQLOutputBox(wxPanel* panel); // Create a wxTextCtrl that will show all SQL output
+    void LogSQLQuery(std::string queryHistory); // add a completed query to SQL output
     void LogSQLError(std::string errorMsg); // print a red error message in SQL output with prefix "ERROR>"
     void LogBackendMessage(std::string msg); // print a blue message in SQL output with prefix "MSG>"
 

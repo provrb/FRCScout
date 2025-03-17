@@ -1,14 +1,27 @@
 ﻿#ifdef _USING_UI
 
 // Frontend
-#include "frontend/mainframe.h"
+#include "frontend/mainframe.h" // MainFrame class
 #include "frontend/wxids.h" // WinId enum
 
 // Backend
-#include "backend/data.h"
-#include "backend/team.h"
-#include "backend/match.h"
+#include "backend/data.h" // DataBase class
 
+/**
+ * @brief Constructor for the MainFrame class, initializing the main window with a specified title.
+ *
+ * This constructor sets up the main frame of the application, creating and arranging the UI components.
+ * It creates a panel with a horizontal sizer that contains:
+ * - Two list panels (for teams and matches) arranged vertically on the left side.
+ * - A grid and a text box on the right side for editing data.
+ *
+ * The constructor also sets up the menu bar and initializes a `DataBase` object for interacting with the SQLite database.
+ *
+ * @param title The title of the window.
+ *
+ * @note The initial window size is set to 800x600 pixels. The list panels display views for teams and matches,
+ *       and the grid allows for editing of individual fields. The text box below the grid displays SQL query results.
+ */
 MainFrame::MainFrame(const wxString& title)
     : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(800, 600)) // Initial window size
 {
@@ -34,11 +47,11 @@ MainFrame::MainFrame(const wxString& title)
     wxBoxSizer* rightSizer = new wxBoxSizer(wxVERTICAL);
 
     wxGrid* grid = CreateEditingGrid(rightPanel);
-    wxTextCtrl* sqlHistory = CreateSQLHistoryBox(rightPanel);
+    wxTextCtrl* sqlOutput = CreateSQLOutputBox(rightPanel);
 
     // Add grid to the rightSizer
     rightSizer->Add(grid, 1, wxEXPAND | wxALL, 10);
-    rightSizer->Add(sqlHistory, 1, wxEXPAND | wxALL, 10);  // Text box will share the same space and dimensions
+    rightSizer->Add(sqlOutput, 1, wxEXPAND | wxALL, 10);  // Text box will share the same space and dimensions
 
     // Add the leftSizer (team list & match list) and rightSizer (grid) to the mainSizer
     mainSizer->Add(leftSizer, 0, wxEXPAND | wxALL, 10);
@@ -54,6 +67,31 @@ MainFrame::MainFrame(const wxString& title)
     DataBase db("data.db", this);
 }
 
+/**
+ * @brief Creates a panel with a list view, title, and description.
+ *
+ * This function constructs a panel that contains a title, description, and a list view. It uses sizers to arrange
+ * the elements in a vertical layout, where the title and description are stacked on top of the list view. The list
+ * view is created with a specified width and a fixed height of 200px. The function also sets the font for the title
+ * and description texts, with the title being bold and the description using a normal font weight.
+ *
+ * The layout is as follows:
+ * - A vertical stack that contains:
+ *   - A horizontal stack for the title and description
+ *   - A list view (`wxListCtrl`) that fills the remaining space of the panel.
+ *
+ * The function returns a `wxBoxSizer` that contains the entire layout.
+ *
+ * @param parent The parent window for the list panel.
+ * @param listId The ID to be used for the list control.
+ * @param titleName The title text to be displayed above the list view.
+ * @param description A brief description of the list view displayed under the title.
+ *
+ * @return A pointer to a `wxBoxSizer` that contains the list panel layout.
+ *
+ * @note The width of the list view is calculated as 1.3 times the width of the parent window.
+ *       The list view is set to have a height of 200px.
+ */
 wxBoxSizer* MainFrame::CreateListPanel(wxWindow* parent, int listId, wxString titleName, wxString description) {
     int listWidth = this->GetSize().GetWidth() * 1.3;
 
@@ -84,18 +122,31 @@ wxBoxSizer* MainFrame::CreateListPanel(wxWindow* parent, int listId, wxString ti
     listSizer->Add(topSizer, 0, wxEXPAND | wxBOTTOM, 5);
     listSizer->Add(listCtrl, 1, wxEXPAND);
 
-
     return listSizer;
 }
 
+/**
+ * @brief Adds columns to the team list view with specific headers and widths.
+ *
+ * This function adds columns to the team list view (`m_teamListView`) by first checking if the view exists.
+ * It sets the font for the column headers to be bold and then appends columns to display team-related information.
+ * Each column is given a header label, aligned appropriately (right or center), and a width proportional to the
+ * overall width of the team list view.
+ *
+ * The widths of the columns are dynamically set based on the total width of the team list view.
+ *
+ * @note This function does not return any value.
+ */
 void MainFrame::AddTeamListColumns() {
     if ( !m_teamListView )
         return;
 
     const int teamListWidth = m_teamListView->GetSize().GetWidth();
 
-    // Add team list columns
+    // Set bold column headers
     m_teamListView->SetFont(wxFontInfo(9).Bold());
+    
+    // Add team list columns
     m_teamListView->AppendColumn("Team #", wxLIST_FORMAT_RIGHT, teamListWidth * 0.055);
     m_teamListView->AppendColumn("OVR", wxLIST_FORMAT_CENTER, teamListWidth * 0.05);
     m_teamListView->AppendColumn("Out", wxLIST_FORMAT_CENTER, teamListWidth * 0.05);
@@ -111,14 +162,35 @@ void MainFrame::AddTeamListColumns() {
     m_teamListView->AppendColumn("PPM", wxLIST_FORMAT_CENTER, teamListWidth * 0.06); // points per match
 }
 
+/**
+ * @brief Adds columns to the match list view with specific headers and widths.
+ *
+ * This function adds columns to the match list view (`m_matchListView`) by first checking if the view exists.
+ * It sets the font for the column headers to be bold and then appends columns to display match information.
+ * Each column is given a header label, aligned at the center, and a width proportional to the overall width of
+ * the list view.
+ *
+ * The columns added are:
+ * - Match #
+ * - Finished
+ * - Red Win
+ * - Blue Win
+ * - Team 1 # to Team 6 #
+ *
+ * The widths of the columns are dynamically set based on the total width of the match list view.
+ *
+ * @note This function does not return any value.
+ */
 void MainFrame::AddMatchListColumns() {
     if ( !m_matchListView )
         return;
 
     const int matchListWidth = m_matchListView->GetSize().GetWidth();
 
+    // Set bold column headers
+    m_matchListView->SetFont(wxFontInfo(9).Bold()); 
+    
     // Add match list columns
-    m_matchListView->SetFont(wxFontInfo(9).Bold()); // bold headers
     m_matchListView->AppendColumn("Match #", wxLIST_FORMAT_CENTER, matchListWidth * 0.08);
     m_matchListView->AppendColumn("Finished", wxLIST_FORMAT_CENTER, matchListWidth * 0.08);
     m_matchListView->AppendColumn("Red Win", wxLIST_FORMAT_CENTER, matchListWidth * 0.07);
@@ -131,47 +203,95 @@ void MainFrame::AddMatchListColumns() {
     m_matchListView->AppendColumn("Team 6 #", wxLIST_FORMAT_CENTER, matchListWidth * 0.07);
 }
 
+/**
+ * @brief Creates a grid for editing values with labels and predefined settings.
+ *
+ * This function creates a grid within the specified `panel`, which is used for editing values. It configures
+ * the grid with 35 rows and 1 column, and sets various options such as column and row sizes, font styles,
+ * label background color, and label alignment. The function also disables resizing for both rows and columns.
+ * Additionally, a title and description are added above the grid.
+ *
+ * @param panel The wxPanel in which the editing grid will be created.
+ *
+ * @return wxGrid* A pointer to the created grid for editing values.
+ */
 wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
     // Create the grid
     wxGrid* grid = new wxGrid(panel, kEditItemGrid, wxPoint(0, 65), wxSize(400, 900));
     grid->CreateGrid(35, 1);
+
+    // Options
+    grid->SetColLabelValue(0, "Value"); 
     grid->DisableColResize(0);
-    grid->SetRowLabelSize(150);
-    grid->SetColSize(0, 230);
     grid->SetLabelBackgroundColour(wxColour(255, 255, 255));
     grid->SetRowLabelAlignment(wxALIGN_LEFT, wxALIGN_TOP);
     grid->SetLabelFont(wxFontInfo(9).Bold());
+    
+    // Sizing
+    grid->SetRowLabelSize(150);
+    grid->SetColSize(0, 230);
     grid->SetRowSize(35, 31);
 
+    // Set row size, disable row resize, and set default row value for all rows
     for ( int i = 0; i < 36; i++ ) {
         grid->DisableRowResize(i);
         grid->SetRowSize(i, 25);
         grid->SetRowLabelValue(i, "...");
     }
 
-    grid->SetColLabelValue(0, "Value");
-
-    // Title and description above the grid
+    // Title above the grid
     wxStaticText* gridTitle = new wxStaticText(panel, kEditingDataTitle, "Edit Values", wxPoint(0, 10), wxDefaultSize, 0);
     gridTitle->SetFont(wxFontInfo(18).Bold());
 
+    // Description above the grid
     wxStaticText* gridDesc = new wxStaticText(panel, kEditingDataDesc, "Modifying fields for: ", wxPoint(0, 41), wxDefaultSize, 0);
     gridDesc->SetFont(wxFontInfo(10));
 
     return grid;
 }
 
-wxTextCtrl* MainFrame::CreateSQLHistoryBox(wxPanel* rightPanel) {
-    wxTextCtrl* sqlHistory = new wxTextCtrl(rightPanel, kSQLHistoryTextBox, wxEmptyString, wxPoint(425, 65), wxSize(400, 900), wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH2);
+/**
+ * @brief Creates a read-only SQL output text box in the specified panel.
+ *
+ * This function creates a multi-line, read-only text box within the provided `rightPanel`. 
+ *
+ * @param rightPanel The wxPanel in which the SQL output text box will be placed.
+ * @return wxTextCtrl* A pointer to the created SQL output text box.
+ */
+wxTextCtrl* MainFrame::CreateSQLOutputBox(wxPanel* rightPanel) {
+    // Create a text box that is read only
+    wxTextCtrl* sqlOutput = new wxTextCtrl(
+        rightPanel, 
+        kSQLHistoryTextBox, 
+        wxEmptyString, 
+        wxPoint(425, 65), 
+        wxSize(400, 900),
+        wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH2
+    );
 
+    // Create font to use in the SQL output text box
     wxFont font(12, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, "Consolas");
     font.Scale(.9);
-    sqlHistory->SetFont(font);
-    return sqlHistory;
+
+    // Set the font
+    sqlOutput->SetFont(font);
+    
+    return sqlOutput;
 }
 
+/**
+ * @brief Sets up and displays the grid for editing team data.
+ *
+ * This function configures the grid for editing team data by setting row labels with appropriate field names.
+ * The labels include fields such as team number, overall score, elimination status, robot cycle speed,
+ * defense, fouls, and ranking points. The function first checks if the grid is valid (i.e., not null) before
+ * proceeding to set the labels.
+ */
 void MainFrame::ShowTeamEditGrid() {
     wxGrid* grid = ( wxGrid* ) FindWindow(kEditItemGrid);
+    if ( !grid )
+        return;
+
     grid->SetRowLabelValue(0, "Team #");
     grid->SetRowLabelValue(1, "Overall (0-100)");
     grid->SetRowLabelValue(2, "Eliminated (Y/N)");
@@ -187,8 +307,18 @@ void MainFrame::ShowTeamEditGrid() {
     grid->SetRowLabelValue(12, "Points Per Match");
 }
 
+/**
+ * @brief Sets up and displays the grid for editing match data.
+ *
+ * This function configures the grid for editing match data by setting row labels with appropriate field names.
+ * The labels include fields such as match number, win status, team numbers for all participants, and other
+ * match-related data. The function first checks if the grid is valid (i.e., not null) before proceeding to set the labels.
+ */
 void MainFrame::ShowMatchEditGrid() {
     wxGrid* grid = ( wxGrid* ) FindWindow(kEditItemGrid);
+    if ( !grid )
+        return;
+
     grid->SetRowLabelValue(0, "Match #");
     grid->SetRowLabelValue(1, "Finished (Y/N)");
     grid->SetRowLabelValue(2, "Red Win (Y/N)");
@@ -201,6 +331,16 @@ void MainFrame::ShowMatchEditGrid() {
     grid->SetRowLabelValue(9, "Team 6 #");
 }
 
+/**
+ * @brief Creates and returns the main menu bar for the application.
+ *
+ * This function sets up the menu bar, including the "File", "Export", and "Import" menus. It adds various
+ * submenu options under the "Export" menu, such as exporting data to CSV or JSON formats. The CSV and JSON
+ * submenus allow for the export of team data and match data in respective formats. Additionally, the function
+ * sets the menu bar for the main window of the application.
+ *
+ * @return wxMenuBar* The constructed menu bar with all the necessary menus and options.
+ */
 wxMenuBar* MainFrame::CreateMenuBar() {
     // Add menus such as file, export, import
     wxMenu* menuFile = new wxMenu;
@@ -245,14 +385,32 @@ wxMenuBar* MainFrame::CreateMenuBar() {
     return menuBar;
 }
 
+/**
+ * @brief Creates and inserts a new row in the team list view.
+ *
+ * This function creates a new row in the list view for displaying a team's data. It initializes the row
+ * with the team number and various statistics such as overall score, elimination status, robot cycle speed,
+ * and other relevant team data. The function also alternates the background color for each row for better readability.
+ *
+ * @param team The team object containing the data to be displayed in the row.
+ *
+ * @note The item id for each row is automatically incremented based on how many rows are currently displayed.
+ *       The font for each item is set to 9pt and non-bold.
+ *       Each column in the list item is populated with the team’s data, converting numerical values to strings.
+ *       The background color alternates between two shades of light gray based on the row index (odd/even).
+ */
 void MainFrame::CreateTeamRow(const Team& team) {
-    const int itemId = m_displayedTeamCount++;
+    const int itemId = m_displayedTeamCount++; // item id is always how many rows displayed + 1
     
+    // Insert the actual row item
     wxListItem item;
     item.SetId(itemId);
-
     m_teamListView->InsertItem(item);
+
+    // Set the font to not be bold
     m_teamListView->SetItemFont(itemId, wxFontInfo(9));
+
+    // Set each column value in the item
     m_teamListView->SetItem(itemId, 0, std::to_string(team.teamNum));
     m_teamListView->SetItem(itemId, 1, std::to_string(team.overall));
     m_teamListView->SetItem(itemId, 2, ( team.eliminated ) ? "Y" : "N");
@@ -267,20 +425,35 @@ void MainFrame::CreateTeamRow(const Team& team) {
     m_teamListView->SetItem(itemId, 11, std::to_string(team.rankingPoints));
     m_teamListView->SetItem(itemId, 12, std::to_string(team.ppm));
     
+    // change the background colour of the 
+    // row depending on itemId for readability
     if ( itemId % 2 == 0 )
         m_teamListView->SetItemBackgroundColour(itemId, wxColour(245, 245, 245));
     else
         m_teamListView->SetItemBackgroundColour(itemId, wxColour(250, 250, 250));
 }
 
+/**
+ * @brief Creates and adds a match entry to the match list view.
+ *
+ * This function inserts a new row into the match list, populating it with match details
+ * such as match number, whether the match was played, which alliance won, and the team numbers.
+ * The background color of the row alternates between two shades for readability.
+ *
+ * @param match The match data containing match number, status, and team information.
+ */
 void MainFrame::CreateMatchRow(const Match& match) {
-    const int itemId = m_displayedMatchCount++;
+    const int itemId = m_displayedMatchCount++; // item id is always how many rows displayed + 1
 
+    // Insert the actual row item
     wxListItem item;
     item.SetId(itemId);
-
     m_matchListView->InsertItem(item);
+
+    // Set the font to not be bold
     m_matchListView->SetItemFont(itemId, wxFontInfo(9));
+    
+    // Set each column value in the item
     m_matchListView->SetItem(itemId, 0, std::to_string(match.matchNum));
     m_matchListView->SetItem(itemId, 1, ( match.played ) ? "Y" : "N");
     m_matchListView->SetItem(itemId, 2, ( match.redWin ) ? "Y" : "N");
@@ -292,49 +465,82 @@ void MainFrame::CreateMatchRow(const Match& match) {
     m_matchListView->SetItem(itemId, 8, std::to_string(match.Team5().teamNum));
     m_matchListView->SetItem(itemId, 9, std::to_string(match.Team6().teamNum));
 
+    // change the background colour of the 
+    // row depending on itemId for readability
     if ( itemId % 2 == 0 )
         m_matchListView->SetItemBackgroundColour(itemId, wxColour(245, 245, 245));
     else
         m_matchListView->SetItemBackgroundColour(itemId, wxColour(250, 250, 250));
 }
 
-bool MainFrame::UpdateQueryHistory(std::string queryHistory) {
+/**
+ * @brief Updates the SQL query history in the text box.
+ *
+ * This function appends an SQL query that was ran by the backend, prefixed by
+ * "SQL> ". Used to display all executed SQL queries for debugging purposes.
+ *
+ * @param queryHistory The SQL query string to append.
+ */
+void MainFrame::LogSQLQuery(std::string queryHistory) {
     wxTextCtrl* SQLHistoryTextBox = ( wxTextCtrl* ) FindWindow(kSQLHistoryTextBox);
     if ( !SQLHistoryTextBox )
-        return false;
+        return;
 
     if ( queryHistory.empty() )
-        return false;
+        return;
 
     queryHistory = "SQL> " + queryHistory + "\n\n";
     SQLHistoryTextBox->AppendText(queryHistory);
 
-    return true;
+    return;
 }
 
+/**
+ * @brief Logs an SQL error message in red text.
+ *
+ * This function appends an error message to the SQL history text box,
+ * with a prefix "ERROR> ", and changes the text color to red to indicate an issue.
+ *
+ * @param errorMsg The error message to log.
+ */
 void MainFrame::LogSQLError(std::string errorMsg) {
     wxTextCtrl* SQLHistoryTextBox = ( wxTextCtrl* ) FindWindow(kSQLHistoryTextBox);
     if ( !SQLHistoryTextBox )
         return;
 
+    if ( errorMsg.empty() )
+        return;
+
     errorMsg = "ERROR> " + errorMsg + "\n\n";
-    wxTextAttr defaultAttr = SQLHistoryTextBox->GetDefaultStyle();
-    SQLHistoryTextBox->SetDefaultStyle(wxTextAttr(*wxRED));
+
+    const wxTextAttr defaultAttr = SQLHistoryTextBox->GetDefaultStyle();
+    SQLHistoryTextBox->SetDefaultStyle(wxTextAttr(*wxRED)); // change text colour to red
     SQLHistoryTextBox->AppendText(errorMsg);
-    SQLHistoryTextBox->SetDefaultStyle(defaultAttr);
+    SQLHistoryTextBox->SetDefaultStyle(defaultAttr); // reset text colour
 }
 
+/**
+ * @brief Logs a backend message in blue text.
+ *
+ * This function appends a message to the SQL history text box,
+ * with a prefix "MSG> ", and changes the text color to blue to distinguish it.
+ *
+ * @param msg The backend message to log.
+ */
 void MainFrame::LogBackendMessage(std::string msg) {
     wxTextCtrl* SQLHistoryTextBox = ( wxTextCtrl* ) FindWindow(kSQLHistoryTextBox);
     if ( !SQLHistoryTextBox )
         return;
 
+    if ( msg.empty() )
+        return;
+
     msg = "MSG> " + msg + "\n\n";
 
-    wxTextAttr defaultAttr = SQLHistoryTextBox->GetDefaultStyle();
-    SQLHistoryTextBox->SetDefaultStyle(wxTextAttr(*wxBLUE));
+    const wxTextAttr defaultAttr = SQLHistoryTextBox->GetDefaultStyle();
+    SQLHistoryTextBox->SetDefaultStyle(wxTextAttr(*wxBLUE)); // set text colour to blue
     SQLHistoryTextBox->AppendText(msg);
-    SQLHistoryTextBox->SetDefaultStyle(defaultAttr);
+    SQLHistoryTextBox->SetDefaultStyle(defaultAttr); // reset text colour
 }
 
 #endif // _USING_UI

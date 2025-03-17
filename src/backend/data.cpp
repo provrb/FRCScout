@@ -189,7 +189,7 @@ void DataBase::AddQueryToHistory(sqlite3_stmt* stmt) {
     const char* expanded = sqlite3_expanded_sql(stmt);
     this->m_queryHistory.push_back(expanded);
 #ifdef _USING_UI
-    this->m_mainFrame->UpdateQueryHistory(expanded);
+    this->m_mainFrame->LogSQLQuery(expanded);
 #endif
 }
 
@@ -208,7 +208,7 @@ void DataBase::AddQueryToHistory(const char* query) {
 
     this->m_queryHistory.push_back(query);
 #ifdef _USING_UI
-    this->m_mainFrame->UpdateQueryHistory(query);
+    this->m_mainFrame->LogSQLQuery(query);
 #endif
 }
 
