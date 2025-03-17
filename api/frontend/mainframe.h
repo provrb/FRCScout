@@ -12,6 +12,22 @@
 #include "backend/match.h" // Match struct
 
 /**
+ * Global database used by the frontend to communicate
+ * with the backend
+ * 
+ * Type: DataBase*
+ * 
+ * This is the method used to include DataBase
+ * without circular dependencies and is how the frontend
+ * will communicate with the backend.
+ * 
+ * The backend can directly communicate with the frontend
+ * because it has a MainFrame* member variable.
+ * This is initialized in the constructor of MainFrame
+*/
+static void* g_DataBase = nullptr;
+
+/**
  * @class MainFrame
  * @brief The main user interface window for the application.
  *
@@ -46,6 +62,7 @@ private:
 
     void AddTeamListColumns(); // Add header columns to m_teamListView
     void AddMatchListColumns(); // Add header columns to m_matchListView
+    void DisplayExistingData();
 
     wxGrid* CreateEditingGrid(wxPanel* panel); // create a spreedsheets-like grid to edit items
     void ShowTeamEditGrid(); // show options for editing a team struct in the editing grid

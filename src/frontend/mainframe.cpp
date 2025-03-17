@@ -26,6 +26,10 @@
 MainFrame::MainFrame(const wxString& title)
     : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(800, 600)) // Initial window size
 {
+    // Create global database
+    DataBase* db = new DataBase("data.db", this);
+    g_DataBase = db;
+
     // Panels
     wxPanel* panel = new wxPanel(this, wxID_ANY);
     wxBoxSizer* mainSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -65,7 +69,7 @@ MainFrame::MainFrame(const wxString& title)
     // Add menu bar
     CreateMenuBar();
 
-    DataBase db("data.db", this);
+    DisplayExistingData();
 }
 
 /**
@@ -202,6 +206,26 @@ void MainFrame::AddMatchListColumns() {
     m_matchListView->AppendColumn("Team 4 #", wxLIST_FORMAT_CENTER, matchListWidth * 0.07);
     m_matchListView->AppendColumn("Team 5 #", wxLIST_FORMAT_CENTER, matchListWidth * 0.07);
     m_matchListView->AppendColumn("Team 6 #", wxLIST_FORMAT_CENTER, matchListWidth * 0.07);
+}
+
+void MainFrame::DisplayExistingData() {
+    if ( !m_teamListView )
+        return;
+
+    m_teamListView->DeleteAllItems();
+
+    DataBase* db = ( DataBase* ) g_DataBase;
+    
+    std::vector<Team> teams = db->GetTeams();
+    for ( const auto& team : teams )
+        CreateTeamRow(team);
+
+    if ( !m_matchListView )
+        return;
+
+    std::vector<Match> matches = db->GetMatches();
+    for ( const auto& match : matches )
+        CreateMatchRow(match);
 }
 
 /**

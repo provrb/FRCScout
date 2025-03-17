@@ -36,15 +36,8 @@ DataBase::DataBase(const std::string& path, MainFrame* mainFrame) : m_dbPath(pat
     CreateTables();
 
 #ifdef _USING_UI
-    // Create a row for each existing team and match
-    std::vector<Team> teams = GetTeams();
-    std::vector<Match> matches = GetMatches();
+    //// Create a row for each existing team and match
 
-    for ( const auto& team : teams )
-        this->m_mainFrame->CreateTeamRow(team);
-    
-    for ( const auto& match : matches )
-        this->m_mainFrame->CreateMatchRow(match);
 #endif
 }
 
