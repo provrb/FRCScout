@@ -1,5 +1,11 @@
-﻿#include "frontend/mainframe.h"
+﻿#ifdef _USING_UI
+
+#include "frontend/mainframe.h"
 #include "frontend/wxids.h" // WinId enum
+#include "backend/data.h"
+#include "backend/team.h"
+#include "backend/match.h"
+
 #include <wx/grid.h>
 
 // WX Components
@@ -53,14 +59,14 @@ MainFrame::MainFrame(const wxString& title)
     wxBoxSizer* rightSizer = new wxBoxSizer(wxVERTICAL);
 
     // Title and description above the grid
-    wxStaticText* gridTitle = new wxStaticText(rightPanel, wxID_ANY, "Editing ___", wxPoint(0, 10), wxDefaultSize, 0);
+    wxStaticText* gridTitle = new wxStaticText(rightPanel, kEditingDataTitle, "Edit Values", wxPoint(0, 10), wxDefaultSize, 0);
     gridTitle->SetFont(wxFontInfo(18).Bold());
 
-    wxStaticText* gridDesc = new wxStaticText(rightPanel, wxID_ANY, "Modify fields of ", wxPoint(0, 41), wxDefaultSize, 0);
+    wxStaticText* gridDesc = new wxStaticText(rightPanel, kEditingDataDesc, "Modifying fields for: ", wxPoint(0, 41), wxDefaultSize, 0);
     gridDesc->SetFont(wxFontInfo(10));
 
     wxGrid* grid = CreateEditingGrid(rightPanel);
-    wxTextCtrl* sqlHistory = new wxTextCtrl(rightPanel, wxID_ANY, wxEmptyString, wxPoint(425, 65), wxSize(400, 900), wxTE_MULTILINE | wxTE_READONLY);
+    wxTextCtrl* sqlHistory = new wxTextCtrl(rightPanel, kSQLHistoryTextBox, wxEmptyString, wxPoint(425, 65), wxSize(400, 900), wxTE_MULTILINE | wxTE_READONLY);
 
     wxFont font(12, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, "Consolas");
     font.Scale(.9);
@@ -80,6 +86,23 @@ MainFrame::MainFrame(const wxString& title)
 
     // Add menu bar
     CreateMenuBar();
+
+    DataBase db("data.db", this);
+    // Create test teams
+    Team team1{ 101, 0, false, true, false, 50, 30, 40, 20, 60, 2, 85, 5, 15 };
+    Team team2{ 102, 0, false, false, false, 45, 25, 35, 18, 55, 1, 80, 4, 14 };
+    Team team3{ 103, 0, false, true, true, 55, 35, 45, 22, 65, 3, 90, 6, 16 };
+    Team team4{ 104, 0, false, false, true, 40, 20, 30, 15, 50, 2, 75, 3, 13 };
+    Team team5{ 105, 0, false, false, false, 60, 40, 50, 25, 70, 4, 95, 7, 17 };
+    Team team6{ 106, 0, false, true, false, 48, 28, 38, 19, 58, 2, 83, 5, 14 };
+
+    // Add teams
+    db.AddTeam(team1);
+    db.AddTeam(team2);
+    db.AddTeam(team3);
+    db.AddTeam(team4);
+    db.AddTeam(team5);
+    db.AddTeam(team6);
 }
 
 wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
@@ -115,6 +138,33 @@ wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
     grid->SetRowLabelValue(11, "Points Per Match");
 
     return grid;
+}
+
+bool MainFrame::UpdateQueryHistory(std::string queryHistory) {
+    wxTextCtrl* SQLHistoryTextBox = ( wxTextCtrl* ) FindWindow(kSQLHistoryTextBox);
+    if ( !SQLHistoryTextBox )
+        return false;
+
+    if ( queryHistory.empty() )
+        return false;
+
+    queryHistory.append("\n");
+    queryHistory = "\nSQL> " + queryHistory;
+    SQLHistoryTextBox->AppendText(queryHistory);
+
+    return true;
+}
+
+void MainFrame::LogSQLError(std::string errorMsg) {
+    wxTextCtrl* SQLHistoryTextBox = ( wxTextCtrl* ) FindWindow(kSQLHistoryTextBox);
+    if ( !SQLHistoryTextBox )
+        return;
+
+    errorMsg.append("\n");
+    errorMsg = "\nERROR> " + errorMsg;
+    SQLHistoryTextBox->SetForegroundColour(*wxRED);
+    SQLHistoryTextBox->AppendText(errorMsg);
+    SQLHistoryTextBox->SetForegroundColour(*wxBLACK);
 }
 
 wxMenuBar* MainFrame::CreateMenuBar() {
@@ -204,3 +254,5 @@ wxBoxSizer* MainFrame::CreateListPanel(wxWindow* parent, int listId, wxString ti
 
     return listSizer;
 }
+
+#endif // _USING_UI

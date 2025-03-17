@@ -15,18 +15,21 @@ class MainFrame : public wxFrame
 {
 public:
     MainFrame(const wxString& title);
-    wxGrid* CreateEditingGrid(wxPanel* panel);
 
+    friend class DataBase;
+private:
     wxBoxSizer* CreateListPanel(
-        wxWindow* parent, 
-        int listId, 
+        wxWindow* parent,
+        int listId,
         wxString titleName,
         wxString description
     );
 
+    wxGrid* CreateEditingGrid(wxPanel* panel);
     wxMenuBar* CreateMenuBar();
+    bool UpdateQueryHistory(std::string queryHistory);
+    void LogSQLError(std::string errorMsg);
 
-private:
     wxListCtrl* m_TeamListView;
     wxListCtrl* m_MatchListView;
 };
