@@ -7,7 +7,9 @@
 #include <string>    // std::string
 
 #ifdef _USING_UI
-#include <frontend/mainframe.h>
+#include "frontend/mainframe.h"
+#else
+class MainFrame; // dummy declaration in case not using ui
 #endif
 
 #define DB_PATH     "data.db" // Path to connect and save database file
@@ -72,11 +74,8 @@ private:
     void SQLFatalError(uint8_t exitCode, const char* errMsg); // Exit program with an error message
     
     sqlite3* m_db; // SQL database
-    std::vector<std::string> m_QueryHistory = {}; // list of SQL querys for debugging purposes
+    std::vector<std::string> m_queryHistory = {}; // list of SQL querys for debugging purposes
     const std::string m_dbPath; // Path to the .db file. Set when DataBase is constructed
-    bool m_Connected; // If the database is connected
-
-#ifdef _USING_UI
-    MainFrame* m_MainFrame;
-#endif
+    bool m_connected; // If the database is connected
+    MainFrame* m_mainFrame; // connect backend to frontend
 };

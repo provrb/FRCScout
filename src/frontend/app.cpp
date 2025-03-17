@@ -3,8 +3,6 @@
 #include "frontend/app.h"
 #include "frontend/mainframe.h"
 
-#include "wx/display.h"
-
 /**
  * @brief Initializes the wxWidgets application.
  *

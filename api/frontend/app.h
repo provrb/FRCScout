@@ -2,7 +2,8 @@
 
 #ifdef _USING_UI
 
-#include "wx/app.h"
+#include <wx/app.h>
+#include <wx/display.h>
 
 #define APP_NAME "FRCScout"
 

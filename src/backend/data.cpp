@@ -20,11 +20,7 @@
  *
  * @note If file creation fails, the program exits with an error code.
  */
-#ifdef _USING_UI
-DataBase::DataBase(const std::string& path, MainFrame* mainFrame) : m_dbPath(path), m_MainFrame(mainFrame) {
-#else
-DataBase::DataBase(const std::string& path) : m_dbPath(path) {
-#endif
+DataBase::DataBase(const std::string& path, MainFrame* mainFrame) : m_dbPath(path), m_mainFrame(mainFrame) {
     if ( !std::filesystem::exists(m_dbPath) ) {
         std::cout << "File with path " << m_dbPath << " doesn't exist. Creating it" << std::endl;
         std::ofstream file(m_dbPath);
@@ -38,6 +34,18 @@ DataBase::DataBase(const std::string& path) : m_dbPath(path) {
 
     Connect();
     CreateTables();
+
+#ifdef _USING_UI
+    // Create a row for each existing team and match
+    std::vector<Team> teams = GetTeams();
+    std::vector<Match> matches = GetMatches();
+
+    for ( const auto& team : teams )
+        this->m_mainFrame->CreateTeamRow(team);
+    
+    for ( const auto& match : matches )
+        this->m_mainFrame->CreateMatchRow(match);
+#endif
 }
 
 /**
@@ -58,7 +66,7 @@ DataBase::~DataBase() {
  * not already exist.
  */
 void DataBase::CreateTables() {
-    if ( !m_Connected ) {
+    if ( !m_connected ) {
         std::cout << "Not connected to database. Failed to created initial tables." << std::endl;
         return;
     }
@@ -74,7 +82,7 @@ void DataBase::CreateTables() {
  * It ensures that the database is ready for further interactions.
  */
 void DataBase::Connect() {
-    if ( m_Connected )
+    if ( m_connected )
         return;
 
     int res = sqlite3_open(m_dbPath.c_str(), &m_db);
@@ -84,7 +92,7 @@ void DataBase::Connect() {
     }
 
     std::cout << "Connected to SQL DB" << std::endl;
-    m_Connected = true;
+    m_connected = true;
 }
 
 /**
@@ -96,7 +104,7 @@ void DataBase::Disconnect() {
     std::cout << "Disconnecting from SQL DB" << std::endl;
 
     sqlite3_close(m_db);
-    m_Connected = false;
+    m_connected = false;
 }
 
 /**
@@ -179,8 +187,10 @@ void DataBase::AddQueryToHistory(sqlite3_stmt* stmt) {
         return;
 
     const char* expanded = sqlite3_expanded_sql(stmt);
-    this->m_QueryHistory.push_back(expanded);
-    this->m_MainFrame->UpdateQueryHistory(expanded);
+    this->m_queryHistory.push_back(expanded);
+#ifdef _USING_UI
+    this->m_mainFrame->UpdateQueryHistory(expanded);
+#endif
 }
 
 /**
@@ -196,8 +206,10 @@ void DataBase::AddQueryToHistory(const char* query) {
     if ( !query )
         return;
 
-    this->m_QueryHistory.push_back(query);
-    this->m_MainFrame->UpdateQueryHistory(query);
+    this->m_queryHistory.push_back(query);
+#ifdef _USING_UI
+    this->m_mainFrame->UpdateQueryHistory(query);
+#endif
 }
 
 /**
@@ -211,7 +223,9 @@ void DataBase::AddQueryToHistory(const char* query) {
  * @param errMsg The error message returned by the SQLite backend.
  */
 void DataBase::SQLBackendError(const char* errMsg) {
-    this->m_MainFrame->LogSQLError(errMsg);
+#ifdef _USING_UI
+    this->m_mainFrame->LogSQLError(errMsg);
+#endif
 }
 
 /**
@@ -776,14 +790,58 @@ Match DataBase::GetMatch(int matchNum) {
     return match;
 }
 
-// TODO
 std::vector<Team> DataBase::GetTeams() {
-    return std::vector<Team>();
+    std::vector<Team> teams = {};
+    std::string query = std::format("SELECT * from {}", TEAM_TABLE);
+
+    sqlite3_stmt* stmt;
+    int res = sqlite3_prepare_v2(m_db, query.c_str(), -1, &stmt, NULL);
+    if ( res != SQLITE_OK ) {
+        SQLBackendError(( std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) ).c_str());
+        return teams;
+    }
+
+    AddQueryToHistory(stmt);
+
+    while ( sqlite3_step(stmt) == SQLITE_ROW ) {
+        Team team = Team::FromSQLStatment(stmt);
+        teams.push_back(team);
+    }
+
+    sqlite3_finalize(stmt);
+    
+#ifdef _USING_UI
+    this->m_mainFrame->LogBackendMessage("Found " + std::to_string(teams.size()) + " Teams");
+#endif
+
+    return teams;
 }
 
-// TODO
 std::vector<Match> DataBase::GetMatches() {
-    return std::vector<Match>();
+    std::vector<Match> matches = {};
+    std::string query = std::format("SELECT * from {}", MATCH_TABLE);
+
+    sqlite3_stmt* stmt;
+    int res = sqlite3_prepare_v2(m_db, query.c_str(), -1, &stmt, NULL);
+    if ( res != SQLITE_OK ) {
+        SQLBackendError(( std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) ).c_str());
+        return matches;
+    }
+
+    AddQueryToHistory(stmt);
+
+    while ( sqlite3_step(stmt) == SQLITE_ROW ) {
+        Match match = Match::FromSQLStatment(stmt);
+        matches.push_back(match);
+    }
+
+    sqlite3_finalize(stmt);
+
+#ifdef _USING_UI
+    this->m_mainFrame->LogBackendMessage("Found " + std::to_string(matches.size()) + " Matches");
+#endif
+
+    return matches;
 }
 
 /**

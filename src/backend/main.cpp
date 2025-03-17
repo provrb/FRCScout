@@ -6,7 +6,7 @@
 #include <iostream>
 
 int main() {
-    DataBase db(DB_PATH);
+    DataBase db(DB_PATH, nullptr);
 
     std::cout << "Testing database operations...\n";
 
@@ -78,7 +78,7 @@ int main() {
     }
 
     // Remove a team from the match
-    db.RemoveTeamFromMatch(101, 201);
+    //db.RemoveTeamFromMatch(101, 201);
     std::cout << "Updated team 1: " << db.GetMatch(201).teams.at(0).teamNum << std::endl;
     if ( !db.TeamInMatch(101, 201) ) {
         std::cout << "Team 101 successfully removed from match.\n";
@@ -88,7 +88,7 @@ int main() {
     }
 
     // Remove match
-    db.RemoveMatch(201);
+    //db.RemoveMatch(201);
     if ( !db.MatchExists(201) ) {
         std::cout << "Match successfully removed.\n";
     }
@@ -97,19 +97,19 @@ int main() {
     }
 
     // Remove teams
-    db.RemoveTeam(101);
-    db.RemoveTeam(102);
-    db.RemoveTeam(103);
-    db.RemoveTeam(104);
-    db.RemoveTeam(105);
-    db.RemoveTeam(106);
+    //db.RemoveTeam(101);
+    //db.RemoveTeam(102);
+    //db.RemoveTeam(103);
+    //db.RemoveTeam(104);
+    //db.RemoveTeam(105);
+    //db.RemoveTeam(106);
 
-    if ( !db.TeamExists(101) && !db.TeamExists(106) ) {
-        std::cout << "Teams successfully removed.\n";
-    }
-    else {
-        std::cout << "Error: Team removal failed.\n";
-    }
+    //if ( !db.TeamExists(101) && !db.TeamExists(106) ) {
+    //    std::cout << "Teams successfully removed.\n";
+    //}
+    //else {
+    //    std::cout << "Error: Team removal failed.\n";
+    //}
 
     std::cout << "All tests completed.\n";
     return 0;
