@@ -28,7 +28,7 @@ MainFrame::MainFrame(const wxString& title)
 {
     // Create global database
     DataBase* db = new DataBase("data.db", this);
-    g_DataBase = db;
+    g_DataBase = reinterpret_cast<void*>(db);
 
     // Panels
     wxPanel* panel = new wxPanel(this, wxID_ANY);
@@ -208,14 +208,30 @@ void MainFrame::AddMatchListColumns() {
     m_matchListView->AppendColumn("Team 6 #", wxLIST_FORMAT_CENTER, matchListWidth * 0.07);
 }
 
+/**
+ * @brief Populates the UI with existing team and match data from the database.
+ *
+ * This function retrieves all teams and matches from the database (`g_DataBase`)
+ * and updates the UI list views (`m_teamListView` and `m_matchListView`).
+ * If either of these list views is uninitialized or if the global database
+ * pointer (`g_DataBase`) is null, the function returns early.
+ *
+ * @note This function assumes `g_DataBase` is a valid pointer to a `DataBase` instance.
+ *       If `g_DataBase` is incorrectly set or uninitialized, this may lead to undefined behavior.
+ *
+ * @warning `g_DataBase` is a `void*` and requires a `reinterpret_cast` to `DataBase*`.
+ *          Ensure `g_DataBase` actually points to a valid `DataBase` object before calling this function.
+ *
+ */
 void MainFrame::DisplayExistingData() {
-    if ( !m_teamListView )
+    if ( !m_teamListView || !g_DataBase )
         return;
 
     m_teamListView->DeleteAllItems();
 
-    DataBase* db = ( DataBase* ) g_DataBase;
+    DataBase* db = reinterpret_cast<DataBase*>(g_DataBase); // cast database
     
+    // show teams
     std::vector<Team> teams = db->GetTeams();
     for ( const auto& team : teams )
         CreateTeamRow(team);
@@ -223,6 +239,9 @@ void MainFrame::DisplayExistingData() {
     if ( !m_matchListView )
         return;
 
+    m_matchListView->DeleteAllItems();
+
+    // show matches
     std::vector<Match> matches = db->GetMatches();
     for ( const auto& match : matches )
         CreateMatchRow(match);
@@ -275,7 +294,7 @@ wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
     // Title above the grid
     wxStaticText* gridTitle = new wxStaticText(panel, kEditingDataTitle, "Edit Values", wxPoint(0, 10), wxDefaultSize, 0);
     gridTitle->SetFont(wxFontInfo(18).Bold());
-
+    
     // Description above the grid
     wxStaticText* gridDesc = new wxStaticText(panel, kEditingDataDesc, "Modifying fields for: ", wxPoint(0, 41), wxDefaultSize, 0);
     gridDesc->SetFont(wxFontInfo(10));
@@ -418,6 +437,18 @@ wxMenuBar* MainFrame::CreateMenuBar() {
     return menuBar;
 }
 
+const Team MainFrame::GetTeamFromRow(int row) {
+    if ( row > this->m_displayedTeamCount || !g_DataBase )
+        return {};
+
+    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+
+    wxString colText = m_teamListView->GetItemText(row);
+    int teamNumber = std::stoi(colText.ToStdString());
+    
+    return db->GetTeam(teamNumber);
+}
+
 /**
  * @brief Creates and inserts a new row in the team list view.
  *
@@ -464,6 +495,8 @@ void MainFrame::CreateTeamRow(const Team& team) {
         m_teamListView->SetItemBackgroundColour(itemId, LIGHT_GRAY_ACCENT_1);
     else
         m_teamListView->SetItemBackgroundColour(itemId, LIGHT_GRAY_ACCENT_2);
+
+    m_teamListView->Bind(wxEVT_LIST_ITEM_SELECTED, &MainFrame::OnTeamRowClicked, this);
 }
 
 /**
@@ -574,6 +607,48 @@ void MainFrame::LogBackendMessage(std::string msg) {
     SQLHistoryTextBox->SetDefaultStyle(wxTextAttr(*wxBLUE)); // set text colour to blue
     SQLHistoryTextBox->AppendText(msg);
     SQLHistoryTextBox->SetDefaultStyle(defaultAttr); // reset text colour
+}
+
+void MainFrame::OnTeamRowClicked(wxCommandEvent& event) {
+    if ( !g_DataBase )
+        return;
+
+    int row = m_teamListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    const Team team = GetTeamFromRow(row);
+
+    // show details of team in editing grid
+    ShowTeamEditGrid();
+    
+    // get grid object
+    wxGrid* grid = ( wxGrid* ) FindWindow(kEditItemGrid);
+    if ( !grid )
+        return;
+
+    // read-only by default for safety
+    grid->EnableEditing(false);
+
+    // Set cell values
+    grid->SetCellValue(wxGridCellCoords(0, 0), std::to_string(team.teamNum));
+    grid->SetCellValue(wxGridCellCoords(1, 0), std::to_string(team.overall));
+    grid->SetCellValue(wxGridCellCoords(2, 0), (team.eliminated) ? "Y" : "N");
+    grid->SetCellValue(wxGridCellCoords(3, 0), (team.hangAttempt)?"Y":"N");
+    grid->SetCellValue(wxGridCellCoords(4, 0), (team.hangSuccess)?"Y":"N");
+    grid->SetCellValue(wxGridCellCoords(5, 0), std::to_string(team.robotCycleSpeed));
+    grid->SetCellValue(wxGridCellCoords(6, 0), std::to_string(team.coralPoints));
+    grid->SetCellValue(wxGridCellCoords(7, 0), std::to_string(team.defense));
+    grid->SetCellValue(wxGridCellCoords(8, 0), std::to_string(team.autonomousPoints));
+    grid->SetCellValue(wxGridCellCoords(9, 0), std::to_string(team.driverSkill));
+    grid->SetCellValue(wxGridCellCoords(10, 0), std::to_string(team.fouls));
+    grid->SetCellValue(wxGridCellCoords(11, 0), std::to_string(team.rankingPoints));
+    grid->SetCellValue(wxGridCellCoords(12, 0), std::to_string(team.ppm));
+
+    // Set grid title and description
+    wxStaticText* gridTitle = ( wxStaticText* ) FindWindow(kEditingDataTitle);
+    wxStaticText* gridDesc = ( wxStaticText* ) FindWindow(kEditingDataDesc);
+    
+    // By default, in read-only mode for safety
+    gridTitle->SetLabelText("Viewing Team # " + std::to_string(team.teamNum));
+    gridDesc->SetLabelText("Viewing all fields for team # " + std::to_string(team.teamNum));
 }
 
 #endif // _USING_UI

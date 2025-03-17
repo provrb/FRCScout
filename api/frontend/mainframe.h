@@ -62,7 +62,7 @@ private:
 
     void AddTeamListColumns(); // Add header columns to m_teamListView
     void AddMatchListColumns(); // Add header columns to m_matchListView
-    void DisplayExistingData();
+    void DisplayExistingData(); // display existing data from the db to ui
 
     wxGrid* CreateEditingGrid(wxPanel* panel); // create a spreedsheets-like grid to edit items
     void ShowTeamEditGrid(); // show options for editing a team struct in the editing grid
@@ -70,11 +70,14 @@ private:
     void CreateTeamRow(const Team& team); // create a row with info from 'team' in teamListView
     void CreateMatchRow(const Match& match); // create a row with info from 'match' in matchListView
     wxMenuBar* CreateMenuBar(); // create menu bar which contains options like File, Export..
+    const Team GetTeamFromRow(int row);
 
     wxTextCtrl* CreateSQLOutputBox(wxPanel* panel); // Create a wxTextCtrl that will show all SQL output
     void LogSQLQuery(std::string queryHistory); // add a completed query to SQL output
     void LogSQLError(std::string errorMsg); // print a red error message in SQL output with prefix "ERROR>"
     void LogBackendMessage(std::string msg); // print a blue message in SQL output with prefix "MSG>"
+
+    void OnTeamRowClicked(wxCommandEvent& event);
 
     int m_displayedTeamCount; // number of team rows in team list view
     int m_displayedMatchCount; // number of match rows in match list view
