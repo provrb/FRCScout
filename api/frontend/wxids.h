@@ -3,13 +3,23 @@
 #pragma once
 #ifdef _USING_UI
 
-// Window IDs for WX
+/**
+ * @brief Enumeration for window IDs used in the application.
+ *
+ * These IDs are used to uniquely identify various 
+ * windows in the UI, such as the team and match list views.
+ */
 enum WinIds {
     kTeamListView = 0x30,
     kMatchListView,
 };
 
-// IDs for items like wxMenuItem
+/**
+ * @brief Enumeration for item IDs used in menus and other UI components.
+ *
+ * These IDs are used to uniquely identify 
+ * menu items, text boxes, and other components within the UI.
+ */
 enum ItemIds {
     kExportCSVMenuItem = 0xB0,
     kExportTeamDataJSON,
