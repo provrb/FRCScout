@@ -54,5 +54,4 @@ struct Team {
     uint16_t ppm; // Points per match
 
     static Team FromSQLStatment(sqlite3_stmt* stmt); // Create a new Team struct from SQL DB
-    void DebugPrint() const; // print out all fields of a Team
 };
