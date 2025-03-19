@@ -2,6 +2,7 @@
 
 #include <cstdint> // uint16_t
 #include <sqlite3.h> // sqlite3_stmt, sqlite3_column_int
+#include <random>
 
 /**
  * @struct Team
@@ -31,6 +32,8 @@
  *       and to print debug information for analysis.
  */
 struct Team {
+    int uid; // unique id 
+
     int teamNum; // unique team number used to identify the team
     int matchNum; // match the team is in, if any
 

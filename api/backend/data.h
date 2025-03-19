@@ -36,20 +36,23 @@ public:
     ~DataBase();
 
     // Add/remove/update/get
-    void AddTeam(const Team& team); // Add a team from Team struct to SQL DB
+    void AddTeam(Team& team); // Add a team from Team struct to SQL DB
     void AddMatch(const Match& match); // Add a match from Match struct to SQL DB
-    void AddTeamToMatch(int teamNum, int matchNum); // Add a team with teamNum to teams of match with matchNum
+    void AddTeamToMatch(int uid, int matchNum); // Add a team with teamNum to teams of match with matchNum
     void RemoveTeamFromMatch(int teamNum, int matchNum); // Remove a team with teamNum from teams of match with matchNum
-    void RemoveTeam(int teamNum); // Remove a team with teamNum from SQL DB
+    void RemoveTeam(int uid); // Remove a team with teamNum from SQL DB
     void RemoveMatch(int matchNum); // Remove a match with matchNum from SQL DB
     void UpdateTeam(const Team& team); // Update a team with teamNum from SQL DB
     void UpdateMatch(const Match& match); // Update a match with matchNum from SQL DB 
-    Team GetTeam(int teamNum); // Get a Team struct from SQL DB of teamNum
+    Team GetTeam(int uid); // Get a Team struct from SQL DB of teamNum
     Match GetMatch(int matchNum); // Get a Match struct from SQL DB of matchNum
     std::vector<Team> GetTeams();
     std::vector<Match> GetMatches();
 
+    int GenerateUID(); // Generate a unique ID for a new team or match
+
     // Conditional/exists/item1 in item2
+    bool TeamExistsUID(int uid);
     bool TeamExists(int teamNum); // check if a team with teamNum is in the SQL DB 
     bool MatchExists(int matchNum); // check if a match with matchNum is in the SQL DB
     bool TeamInMatch(int teamNum, int matchNum); // check if a team is in a match with matchNum

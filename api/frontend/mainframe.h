@@ -71,6 +71,10 @@ private:
     void PromptMatchEdit(const Match& match);
     void CreateTeamRow(const Team& team); // create a row with info from 'team' in teamListView
     void CreateMatchRow(const Match& match); // create a row with info from 'match' in matchListView
+    void RefreshTeamRow(int teamNum);
+    void RefreshMatchRow(int matchNum);
+    void FillMatchRow(int row, const Match& match);
+    void FillTeamRow(int row, const Team& team);
     wxMenuBar* CreateMenuBar(); // create menu bar which contains options like File, Export..
     const Team GetTeamFromRow(int row);
     const Match GetMatchFromRow(int row);
@@ -80,12 +84,19 @@ private:
     void LogSQLError(std::string errorMsg); // print a red error message in SQL output with prefix "ERROR>"
     void LogBackendMessage(std::string msg); // print a blue message in SQL output with prefix "MSG>"
 
-    void OnTeamRowClicked(wxCommandEvent& event);
-    void OnMatchRowClicked(wxCommandEvent& event);
+    // Events
+    void OnTeamRowLeftClicked(wxCommandEvent& event);
+    void OnMatchRowLeftClicked(wxCommandEvent& event);
+    void OnTeamRowRightClicked(wxCommandEvent& event);
+    void OnMatchRowRightClicked(wxCommandEvent& event);
     void OnListViewRightClick(wxCommandEvent& event);
     void OnToggleEditMode(wxCommandEvent& event);
     void OnCreateNewTeam(wxCommandEvent& event);
     void OnCreateNewMatch(wxCommandEvent& event);
+    void OnDeleteTeam(wxCommandEvent& event);
+    void OnDeleteMatch(wxCommandEvent& event);
+
+    void OnGridCellChange(wxGridEvent& event);
 
     bool m_isEditModeEnabled;
     int m_currentSelectedTeamRow = -1; // team number of team that is currently selected

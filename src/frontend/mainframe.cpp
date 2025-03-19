@@ -28,7 +28,7 @@ MainFrame::MainFrame(const wxString& title)
 {
     // Create global database
     DataBase* db = new DataBase("data.db", this);
-    g_DataBase = reinterpret_cast<void*>(db);
+    g_DataBase = reinterpret_cast< void* >( db );
 
     // Panels
     wxPanel* panel = new wxPanel(this, wxID_ANY);
@@ -152,7 +152,7 @@ void MainFrame::AddTeamListColumns() {
 
     // Set bold column headers
     m_teamListView->SetFont(wxFontInfo(9).Bold());
-    
+
     // Add team list columns
     m_teamListView->AppendColumn("Team #", wxLIST_FORMAT_RIGHT, teamListWidth * 0.055);
     m_teamListView->AppendColumn("OVR", wxLIST_FORMAT_CENTER, teamListWidth * 0.05);
@@ -195,8 +195,8 @@ void MainFrame::AddMatchListColumns() {
     const int matchListWidth = m_matchListView->GetSize().GetWidth();
 
     // Set bold column headers
-    m_matchListView->SetFont(wxFontInfo(9).Bold()); 
-    
+    m_matchListView->SetFont(wxFontInfo(9).Bold());
+
     // Add match list columns
     m_matchListView->AppendColumn("Match #", wxLIST_FORMAT_CENTER, matchListWidth * 0.08);
     m_matchListView->AppendColumn("Finished", wxLIST_FORMAT_CENTER, matchListWidth * 0.08);
@@ -231,8 +231,8 @@ void MainFrame::DisplayExistingData() {
 
     m_teamListView->DeleteAllItems();
 
-    DataBase* db = reinterpret_cast<DataBase*>(g_DataBase); // cast database
-    
+    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase ); // cast database
+
     // show teams
     std::vector<Team> teams = db->GetTeams();
     for ( const auto& team : teams )
@@ -267,12 +267,12 @@ wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
     grid->CreateGrid(35, 1);
 
     // Options
-    grid->SetColLabelValue(0, "Value"); 
+    grid->SetColLabelValue(0, "Value");
     grid->DisableColResize(0);
     grid->SetLabelBackgroundColour(wxColour(255, 255, 255));
     grid->SetRowLabelAlignment(wxALIGN_LEFT, wxALIGN_TOP);
     grid->SetLabelFont(wxFontInfo(9).Bold());
-    
+
     // Sizing
     grid->SetRowLabelSize(150);
     grid->SetColSize(0, 230);
@@ -292,6 +292,8 @@ wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
         grid->SetRowSize(i, 25);
         grid->SetRowLabelValue(i, "...");
     }
+
+    grid->Bind(wxEVT_GRID_CELL_CHANGED, &MainFrame::OnGridCellChange, this);
 
     // Title above the grid
     wxStaticText* gridTitle = new wxStaticText(panel, kEditingDataTitle, "Edit and View", wxPoint(0, 10), wxDefaultSize, 0);
@@ -313,7 +315,7 @@ wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
 /**
  * @brief Creates a read-only SQL output text box in the specified panel.
  *
- * This function creates a multi-line, read-only text box within the provided `rightPanel`. 
+ * This function creates a multi-line, read-only text box within the provided `rightPanel`.
  *
  * @param rightPanel The wxPanel in which the SQL output text box will be placed.
  * @return wxTextCtrl* A pointer to the created SQL output text box.
@@ -321,10 +323,10 @@ wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
 wxTextCtrl* MainFrame::CreateSQLOutputBox(wxPanel* rightPanel) {
     // Create a text box that is read only
     wxTextCtrl* sqlOutput = new wxTextCtrl(
-        rightPanel, 
-        kSQLHistoryTextBox, 
-        wxEmptyString, 
-        wxPoint(425, 65), 
+        rightPanel,
+        kSQLHistoryTextBox,
+        wxEmptyString,
+        wxPoint(425, 65),
         wxSize(400, 900),
         wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH2
     );
@@ -335,7 +337,7 @@ wxTextCtrl* MainFrame::CreateSQLOutputBox(wxPanel* rightPanel) {
 
     // Set the font
     sqlOutput->SetFont(font);
-    
+
     return sqlOutput;
 }
 
@@ -352,19 +354,19 @@ void MainFrame::ShowTeamEditGrid() {
     if ( !grid )
         return;
 
-    grid->SetRowLabelValue(0, "Team #");
-    grid->SetRowLabelValue(1, "Overall (0-100)");
-    grid->SetRowLabelValue(2, "Eliminated (Y/N)");
-    grid->SetRowLabelValue(3, "Hang Attempt (Y/N)");
-    grid->SetRowLabelValue(4, "Hang Success (Y/N)");
-    grid->SetRowLabelValue(5, "Robot Cycle Speed");
-    grid->SetRowLabelValue(6, "Coral Points");
-    grid->SetRowLabelValue(7, "Defense (0-100)");
-    grid->SetRowLabelValue(8, "Auto. Points");
-    grid->SetRowLabelValue(9, "Driver Skill");
-    grid->SetRowLabelValue(10, "Fouls");
-    grid->SetRowLabelValue(11, "Ranking Points");
-    grid->SetRowLabelValue(12, "Points Per Match");
+    grid->SetRowLabelValue(kColTeamNum, "Team #");
+    grid->SetRowLabelValue(kColOverall, "Overall (0-100)");
+    grid->SetRowLabelValue(kColEliminated, "Eliminated (Y/N)");
+    grid->SetRowLabelValue(kColHangAttempt, "Hang Attempt (Y/N)");
+    grid->SetRowLabelValue(kColHangSuccess, "Hang Success (Y/N)");
+    grid->SetRowLabelValue(kColRobotCycleSpeed, "Robot Cycle Speed");
+    grid->SetRowLabelValue(kColCoralPoints, "Coral Points");
+    grid->SetRowLabelValue(kColDefense, "Defense (0-100)");
+    grid->SetRowLabelValue(kColAutonomousPoints, "Auto. Points");
+    grid->SetRowLabelValue(kColDriverSkill, "Driver Skill (0-100)");
+    grid->SetRowLabelValue(kColFouls, "Fouls");
+    grid->SetRowLabelValue(kColRankingPoints, "Ranking Points");
+    grid->SetRowLabelValue(kColPPM, "Points Per Match");
 }
 
 /**
@@ -379,22 +381,22 @@ void MainFrame::ShowMatchEditGrid() {
     if ( !grid )
         return;
 
-    grid->SetRowLabelValue(0, "Match #");
-    grid->SetRowLabelValue(1, "Finished (Y/N)");
-    grid->SetRowLabelValue(2, "Red Win (Y/N)");
-    grid->SetRowLabelValue(3, "Blue Win (Y/N)");
-    grid->SetRowLabelValue(4, "Team 1 #");
-    grid->SetRowLabelValue(5, "Team 2 #");
-    grid->SetRowLabelValue(6, "Team 3 #");
-    grid->SetRowLabelValue(7, "Team 4 #");
-    grid->SetRowLabelValue(8, "Team 5 #");
-    grid->SetRowLabelValue(9, "Team 6 #");
+    grid->SetRowLabelValue(kColMatchNum, "Match #");
+    grid->SetRowLabelValue(kColPlayed, "Finished (Y/N)");
+    grid->SetRowLabelValue(kColRedWin, "Red Win (Y/N)");
+    grid->SetRowLabelValue(kColBlueWin, "Blue Win (Y/N)");
+    grid->SetRowLabelValue(kColTeam1, "Team 1 #");
+    grid->SetRowLabelValue(kColTeam2, "Team 2 #");
+    grid->SetRowLabelValue(kColTeam3, "Team 3 #");
+    grid->SetRowLabelValue(kColTeam4, "Team 4 #");
+    grid->SetRowLabelValue(kColTeam5, "Team 5 #");
+    grid->SetRowLabelValue(kColTeam6, "Team 6 #");
 }
 
 void MainFrame::PromptTeamEdit(const Team& team) {
     // show details of team in editing grid
     ShowTeamEditGrid();
-    
+
     // get grid object
     wxGrid* grid = ( wxGrid* ) FindWindow(kEditItemGrid);
     if ( !grid )
@@ -405,24 +407,38 @@ void MainFrame::PromptTeamEdit(const Team& team) {
     std::string teamNum = std::to_string(team.teamNum);
 
     // Set cell values
-    grid->SetCellValue(0, 0, teamNum);
-    grid->SetCellValue(1, 0, std::to_string(team.overall));
-    grid->SetCellValue(2, 0, (team.eliminated) ? "Y" : "N");
-    grid->SetCellValue(3, 0, (team.hangAttempt)?"Y":"N");
-    grid->SetCellValue(4, 0, (team.hangSuccess)?"Y":"N");
-    grid->SetCellValue(5, 0, std::to_string(team.robotCycleSpeed));
-    grid->SetCellValue(6, 0, std::to_string(team.coralPoints));
-    grid->SetCellValue(7, 0, std::to_string(team.defense));
-    grid->SetCellValue(8, 0, std::to_string(team.autonomousPoints));
-    grid->SetCellValue(9, 0, std::to_string(team.driverSkill));
-    grid->SetCellValue(10, 0, std::to_string(team.fouls));
-    grid->SetCellValue(11, 0, std::to_string(team.rankingPoints));
-    grid->SetCellValue(12, 0, std::to_string(team.ppm));
+    grid->SetCellValue(kColTeamNum, 0, teamNum);
+    grid->SetCellValue(kColOverall, 0, std::to_string(team.overall));
+    grid->SetCellValue(kColEliminated, 0, ( team.eliminated ) ? "Y" : "N");
+    grid->SetCellValue(kColHangAttempt, 0, ( team.hangAttempt ) ? "Y" : "N");
+    grid->SetCellValue(kColHangSuccess, 0, ( team.hangSuccess ) ? "Y" : "N");
+    grid->SetCellValue(kColRobotCycleSpeed, 0, std::to_string(team.robotCycleSpeed));
+    grid->SetCellValue(kColCoralPoints, 0, std::to_string(team.coralPoints));
+    grid->SetCellValue(kColDefense, 0, std::to_string(team.defense));
+    grid->SetCellValue(kColAutonomousPoints, 0, std::to_string(team.autonomousPoints));
+    grid->SetCellValue(kColDriverSkill, 0, std::to_string(team.driverSkill));
+    grid->SetCellValue(kColFouls, 0, std::to_string(team.fouls));
+    grid->SetCellValue(kColRankingPoints, 0, std::to_string(team.rankingPoints));
+    grid->SetCellValue(kColPPM, 0, std::to_string(team.ppm));
+
+    grid->SetCellEditor(kColTeamNum, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kColOverall, 0, new wxGridCellNumberEditor(0, 100));
+    grid->SetCellEditor(kColEliminated, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
+    grid->SetCellEditor(kColHangAttempt, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
+    grid->SetCellEditor(kColHangSuccess, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
+    grid->SetCellEditor(kColRobotCycleSpeed, 0, new wxGridCellNumberEditor(0));
+    grid->SetCellEditor(kColCoralPoints, 0, new wxGridCellNumberEditor(0));
+    grid->SetCellEditor(kColDefense, 0, new wxGridCellNumberEditor(0, 100));
+    grid->SetCellEditor(kColAutonomousPoints, 0, new wxGridCellNumberEditor(0));
+    grid->SetCellEditor(kColDriverSkill, 0, new wxGridCellNumberEditor(0, 100));
+    grid->SetCellEditor(kColFouls, 0, new wxGridCellNumberEditor(0));
+    grid->SetCellEditor(kColRankingPoints, 0, new wxGridCellNumberEditor(0));
+    grid->SetCellEditor(kColPPM, 0, new wxGridCellNumberEditor(0));
 
     // Set grid title and description
     wxStaticText* gridTitle = ( wxStaticText* ) FindWindow(kEditingDataTitle);
     wxStaticText* gridDesc = ( wxStaticText* ) FindWindow(kEditingDataDesc);
-    
+
     if ( m_isEditModeEnabled ) {
         gridTitle->SetLabelText("Editing Team # " + teamNum);
         gridDesc->SetLabelText("Editing all fields for team # " + teamNum);
@@ -447,16 +463,27 @@ void MainFrame::PromptMatchEdit(const Match& match) {
     grid->EnableEditing(m_isEditModeEnabled);
 
     // Set cell values
-    grid->SetCellValue(0, 0, matchNum);
-    grid->SetCellValue(1, 0, ( match.played ) ? "Y" : "N");
-    grid->SetCellValue(2, 0, ( match.redWin ) ? "Y" : "N");
-    grid->SetCellValue(3, 0, ( match.blueWin ) ? "Y" : "N");
-    grid->SetCellValue(4, 0, std::to_string(match.Team1().teamNum));
-    grid->SetCellValue(5, 0, std::to_string(match.Team2().teamNum));
-    grid->SetCellValue(6, 0, std::to_string(match.Team3().teamNum));
-    grid->SetCellValue(7, 0, std::to_string(match.Team4().teamNum));
-    grid->SetCellValue(8, 0, std::to_string(match.Team5().teamNum));
-    grid->SetCellValue(9, 0, std::to_string(match.Team6().teamNum));
+    grid->SetCellValue(kColMatchNum, 0, matchNum);
+    grid->SetCellValue(kColPlayed, 0, ( match.played ) ? "Y" : "N");
+    grid->SetCellValue(kColRedWin, 0, ( match.redWin ) ? "Y" : "N");
+    grid->SetCellValue(kColBlueWin, 0, ( match.blueWin ) ? "Y" : "N");
+    grid->SetCellValue(kColTeam1, 0, std::to_string(match.Team1().teamNum));
+    grid->SetCellValue(kColTeam2, 0, std::to_string(match.Team2().teamNum));
+    grid->SetCellValue(kColTeam3, 0, std::to_string(match.Team3().teamNum));
+    grid->SetCellValue(kColTeam4, 0, std::to_string(match.Team4().teamNum));
+    grid->SetCellValue(kColTeam5, 0, std::to_string(match.Team5().teamNum));
+    grid->SetCellValue(kColTeam6, 0, std::to_string(match.Team6().teamNum));
+
+    grid->SetCellEditor(kColMatchNum, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kColPlayed, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
+    grid->SetCellEditor(kColRedWin, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
+    grid->SetCellEditor(kColBlueWin, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
+    grid->SetCellEditor(kColTeam1, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kColTeam2, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kColTeam3, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kColTeam4, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kColTeam5, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kColTeam6, 0, new wxGridCellNumberEditor(0, 10000));
 
     // Set grid title and description
     wxStaticText* gridTitle = ( wxStaticText* ) FindWindow(kEditingDataTitle);
@@ -489,7 +516,7 @@ wxMenuBar* MainFrame::CreateMenuBar() {
     wxMenu* menuImport = new wxMenu;
 
     ///// Exporting options
-    
+
     /// CSV
     wxMenu* exportCSV = new wxMenu;
     wxMenuItem* exportTeamDataCSV = new wxMenuItem(NULL, kExportTeamDataCSV, "Team Data CSVV File");
@@ -532,10 +559,9 @@ const Team MainFrame::GetTeamFromRow(int row) {
 
     DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
 
-    wxString colText = m_teamListView->GetItemText(row);
-    int teamNumber = std::stoi(colText.ToStdString());
-    
-    return db->GetTeam(teamNumber);
+    int uid = m_teamListView->GetItemData(row);
+
+    return db->GetTeam(uid);
 }
 
 const Match MainFrame::GetMatchFromRow(int row) {
@@ -566,30 +592,19 @@ const Match MainFrame::GetMatchFromRow(int row) {
  */
 void MainFrame::CreateTeamRow(const Team& team) {
     const int itemId = m_displayedTeamCount++; // item id is always how many rows displayed + 1
-    
+
     // Insert the actual row item
     wxListItem item;
     item.SetId(itemId);
     m_teamListView->InsertItem(item);
+    m_teamListView->SetItemData(itemId, team.uid);
 
     // Set the font to not be bold
     m_teamListView->SetItemFont(itemId, wxFontInfo(9));
 
     // Set each column value in the item
-    m_teamListView->SetItem(itemId, 0, std::to_string(team.teamNum));
-    m_teamListView->SetItem(itemId, 1, std::to_string(team.overall));
-    m_teamListView->SetItem(itemId, 2, ( team.eliminated ) ? "Y" : "N");
-    m_teamListView->SetItem(itemId, 3, ( team.hangAttempt ) ? "Y" : "N");
-    m_teamListView->SetItem(itemId, 4, ( team.hangSuccess ) ? "Y" : "N");
-    m_teamListView->SetItem(itemId, 5, std::to_string(team.robotCycleSpeed));
-    m_teamListView->SetItem(itemId, 6, std::to_string(team.coralPoints));
-    m_teamListView->SetItem(itemId, 7, std::to_string(team.defense));
-    m_teamListView->SetItem(itemId, 8, std::to_string(team.autonomousPoints));
-    m_teamListView->SetItem(itemId, 9, std::to_string(team.driverSkill));
-    m_teamListView->SetItem(itemId, 10, std::to_string(team.fouls));
-    m_teamListView->SetItem(itemId, 11, std::to_string(team.rankingPoints));
-    m_teamListView->SetItem(itemId, 12, std::to_string(team.ppm));
-    
+    FillTeamRow(itemId, team);
+
     // change the background colour of the 
     // row depending on itemId for readability
     if ( itemId % 2 == 0 )
@@ -597,7 +612,9 @@ void MainFrame::CreateTeamRow(const Team& team) {
     else
         m_teamListView->SetItemBackgroundColour(itemId, LIGHT_GRAY_ACCENT_2);
 
-    m_teamListView->Bind(wxEVT_LIST_ITEM_SELECTED, &MainFrame::OnTeamRowClicked, this);
+    m_teamListView->Bind(wxEVT_LIST_ITEM_SELECTED, &MainFrame::OnTeamRowLeftClicked, this);
+    m_teamListView->Bind(wxEVT_LIST_ITEM_RIGHT_CLICK, &MainFrame::OnTeamRowRightClicked, this);
+
     m_currentSelectedTeamRow = m_displayedTeamCount;
 }
 
@@ -620,18 +637,9 @@ void MainFrame::CreateMatchRow(const Match& match) {
 
     // Set the font to not be bold
     m_matchListView->SetItemFont(itemId, wxFontInfo(9));
-    
+
     // Set each column value in the item
-    m_matchListView->SetItem(itemId, 0, std::to_string(match.matchNum));
-    m_matchListView->SetItem(itemId, 1, ( match.played ) ? "Y" : "N");
-    m_matchListView->SetItem(itemId, 2, ( match.redWin ) ? "Y" : "N");
-    m_matchListView->SetItem(itemId, 3, ( match.blueWin ) ? "Y" : "N");
-    m_matchListView->SetItem(itemId, 4, std::to_string(match.Team1().teamNum));
-    m_matchListView->SetItem(itemId, 5, std::to_string(match.Team2().teamNum));
-    m_matchListView->SetItem(itemId, 6, std::to_string(match.Team3().teamNum));
-    m_matchListView->SetItem(itemId, 7, std::to_string(match.Team4().teamNum));
-    m_matchListView->SetItem(itemId, 8, std::to_string(match.Team5().teamNum));
-    m_matchListView->SetItem(itemId, 9, std::to_string(match.Team6().teamNum));
+    FillMatchRow(itemId, match);
 
     // change the background colour of the 
     // row depending on itemId for readability
@@ -640,8 +648,91 @@ void MainFrame::CreateMatchRow(const Match& match) {
     else
         m_matchListView->SetItemBackgroundColour(itemId, wxColour(250, 250, 250));
 
-    m_matchListView->Bind(wxEVT_LIST_ITEM_SELECTED, &MainFrame::OnMatchRowClicked, this);
+    m_matchListView->Bind(wxEVT_LIST_ITEM_SELECTED, &MainFrame::OnMatchRowLeftClicked, this);
+    m_matchListView->Bind(wxEVT_LIST_ITEM_RIGHT_CLICK, &MainFrame::OnMatchRowRightClicked, this);
+
     m_currentSelectedMatchRow = m_displayedMatchCount;
+}
+
+void MainFrame::RefreshTeamRow(int teamNum) {
+    if ( !m_teamListView || !g_DataBase )
+        return;
+
+    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    const Team team = db->GetTeam(teamNum);
+
+    // Find the row with the team number
+    int row = -1;
+    for ( int i = 0; i < m_displayedTeamCount; i++ ) {
+        if ( m_teamListView->GetItemText(i) == std::to_string(teamNum) ) {
+            row = i;
+            break;
+        }
+    }
+
+    if ( row == -1 )
+        return;
+
+    // Update the row with the new team data
+    FillTeamRow(row, team);
+}
+
+void MainFrame::RefreshMatchRow(int matchNum) {
+    if ( !m_matchListView || !g_DataBase )
+        return;
+
+    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    const Match match = db->GetMatch(matchNum);
+
+    // Find the row with the match number
+    int row = -1;
+    for ( int i = 0; i < m_displayedMatchCount; i++ ) {
+        if ( m_matchListView->GetItemText(i) == std::to_string(matchNum) ) {
+            row = i;
+            break;
+        }
+    }
+
+    if ( row == -1 )
+        return;
+
+    // Update the row with the new team data
+    FillMatchRow(row, match);
+}
+
+void MainFrame::FillTeamRow(int row, const Team& team) {
+    if ( !m_teamListView )
+        return;
+
+    m_teamListView->SetItem(row, 0, std::to_string(team.teamNum));
+    m_teamListView->SetItem(row, 1, std::to_string(team.overall));
+    m_teamListView->SetItem(row, 2, ( team.eliminated ) ? "Y" : "N");
+    m_teamListView->SetItem(row, 3, ( team.hangAttempt ) ? "Y" : "N");
+    m_teamListView->SetItem(row, 4, ( team.hangSuccess ) ? "Y" : "N");
+    m_teamListView->SetItem(row, 5, std::to_string(team.robotCycleSpeed));
+    m_teamListView->SetItem(row, 6, std::to_string(team.coralPoints));
+    m_teamListView->SetItem(row, 7, std::to_string(team.defense));
+    m_teamListView->SetItem(row, 8, std::to_string(team.autonomousPoints));
+    m_teamListView->SetItem(row, 9, std::to_string(team.driverSkill));
+    m_teamListView->SetItem(row, 10, std::to_string(team.fouls));
+    m_teamListView->SetItem(row, 11, std::to_string(team.rankingPoints));
+    m_teamListView->SetItem(row, 12, std::to_string(team.ppm));
+}
+
+void MainFrame::FillMatchRow(int row, const Match& match) {
+    if ( !m_matchListView )
+        return;
+
+    m_matchListView->SetItem(row, 0, std::to_string(match.matchNum));
+    m_matchListView->SetItem(row, 1, ( match.played ) ? "Y" : "N");
+    m_matchListView->SetItem(row, 2, ( match.redWin ) ? "Y" : "N");
+    m_matchListView->SetItem(row, 3, ( match.blueWin ) ? "Y" : "N");
+    m_matchListView->SetItem(row, 4, std::to_string(match.Team1().teamNum));
+    m_matchListView->SetItem(row, 5, std::to_string(match.Team2().teamNum));
+    m_matchListView->SetItem(row, 6, std::to_string(match.Team3().teamNum));
+    m_matchListView->SetItem(row, 7, std::to_string(match.Team4().teamNum));
+    m_matchListView->SetItem(row, 8, std::to_string(match.Team5().teamNum));
+    m_matchListView->SetItem(row, 9, std::to_string(match.Team6().teamNum));
 }
 
 /**
@@ -714,10 +805,10 @@ void MainFrame::LogBackendMessage(std::string msg) {
     SQLHistoryTextBox->SetDefaultStyle(defaultAttr); // reset text colour
 }
 
-void MainFrame::OnTeamRowClicked(wxCommandEvent& event) {
+void MainFrame::OnTeamRowLeftClicked(wxCommandEvent& event) {
     // Check the row # that is selected
     int row = m_teamListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    if ( m_currentSelectedTeamRow == row ) // information would already be displayed, don't bother recalculating
+    if ( m_displayedTeamCount > 2 && m_currentSelectedTeamRow == row ) // information would already be displayed, don't bother recalculating
         return;
 
     m_currentSelectedTeamRow = row;
@@ -726,25 +817,40 @@ void MainFrame::OnTeamRowClicked(wxCommandEvent& event) {
     PromptTeamEdit(team);
 }
 
-void MainFrame::OnMatchRowClicked(wxCommandEvent& event) {
+void MainFrame::OnMatchRowLeftClicked(wxCommandEvent& event) {
     int row = m_matchListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    if ( m_currentSelectedMatchRow == row )
+    if ( m_displayedMatchCount > 2 && m_currentSelectedMatchRow == row )
         return;
-    
+
     m_currentSelectedMatchRow = row;
     const Match match = GetMatchFromRow(row);
-    
+
     PromptMatchEdit(match);
+}
+
+void MainFrame::OnTeamRowRightClicked(wxCommandEvent& event) {
+    wxMenu rightClickMenu;
+    rightClickMenu.Append(wxID_DELETE, "Delete Team");
+    rightClickMenu.Bind(wxEVT_MENU, &MainFrame::OnDeleteTeam, this, wxID_DELETE);
+    PopupMenu(&rightClickMenu);
+}
+
+void MainFrame::OnMatchRowRightClicked(wxCommandEvent& event) {
+    wxMenu rightClickMenu;
+    rightClickMenu.Append(wxID_DELETE, "Delete Match");
+    rightClickMenu.Bind(wxEVT_MENU, &MainFrame::OnDeleteMatch, this, wxID_DELETE);
+    PopupMenu(&rightClickMenu);
 }
 
 void MainFrame::OnListViewRightClick(wxCommandEvent& event) {
     const int eventId = event.GetId();
     wxMenu rightClickMenu;
-    
+
     if ( eventId == kTeamListView ) {
         rightClickMenu.Append(wxID_NEW, "Create New Team");
         rightClickMenu.Bind(wxEVT_MENU, &MainFrame::OnCreateNewTeam, this, wxID_NEW);
-    } else if ( eventId == kMatchListView ) {
+    }
+    else if ( eventId == kMatchListView ) {
         rightClickMenu.Append(wxID_NEW, "Create New Match");
         rightClickMenu.Bind(wxEVT_MENU, &MainFrame::OnCreateNewMatch, this, wxID_NEW);
     }
@@ -808,7 +914,7 @@ void MainFrame::OnToggleEditMode(wxCommandEvent& event) {
 void MainFrame::OnCreateNewTeam(wxCommandEvent& event) {
     Team team = {};
     team.teamNum = m_displayedTeamCount + 1;
-    
+
     CreateTeamRow(team);
 
     // check if database is active and add it to database, otherwise return
@@ -826,7 +932,7 @@ void MainFrame::OnCreateNewTeam(wxCommandEvent& event) {
 void MainFrame::OnCreateNewMatch(wxCommandEvent& event) {
     Match match = {};
     match.matchNum = m_displayedMatchCount + 1;
-    
+
     CreateMatchRow(match);
 
     // data base check
@@ -837,8 +943,75 @@ void MainFrame::OnCreateNewMatch(wxCommandEvent& event) {
 
     DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
     db->AddMatch(match);
-        
+
     PromptMatchEdit(match);
+}
+
+void MainFrame::OnDeleteTeam(wxCommandEvent& event) {
+    int opt = MessageBoxA(NULL, "Delete Team", "Are you sure?", MB_YESNOCANCEL | MB_ICONWARNING);
+    if ( opt != IDYES )
+        return;
+
+    // get team number
+    const Team team = GetTeamFromRow(m_currentSelectedTeamRow);
+    if ( team.teamNum == 0 )
+        return;
+
+    // remove team from database
+    if ( !g_DataBase ) {
+        LogBackendMessage("Database not available, cannot delete team.");
+        return;
+    }
+
+    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    db->RemoveTeam(team.uid);
+
+    // remove team from list view
+    m_teamListView->DeleteItem(m_currentSelectedTeamRow);
+    m_displayedTeamCount--;
+}
+
+void MainFrame::OnDeleteMatch(wxCommandEvent& event) {
+    int opt = MessageBoxA(NULL, "Delete Match", "Are you sure?", MB_YESNOCANCEL | MB_ICONWARNING);
+    if ( opt != IDYES )
+        return;
+
+    // get match number
+    const Match match = GetMatchFromRow(m_currentSelectedMatchRow);
+    if ( match.matchNum == 0 )
+        return;
+
+    // remove match from database
+    if ( !g_DataBase ) {
+        LogBackendMessage("Database not available, cannot delete match.");
+        return;
+    }
+
+    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    db->RemoveMatch(match.matchNum);
+
+    // remove match from list view
+    m_matchListView->DeleteItem(m_currentSelectedMatchRow);
+    m_displayedMatchCount--;
+}
+
+void MainFrame::OnGridCellChange(wxGridEvent& event) {
+    //int row = event.GetRow();
+    //int col = event.GetCol();
+    //wxGrid* grid = reinterpret_cast< wxGrid* >( event.GetEventObject() );
+    //
+    //if ( !grid )
+    //    return;
+
+    //wxString val = grid->GetCellValue(row, col);
+    //const Team team = GetTeamFromRow(m_currentSelectedTeamRow);
+
+    //switch ( row ) {
+    //case kColTeamNum: {
+    //    // team number
+    //    
+    //    break;
+    //}
 }
 
 #endif // _USING_UI
