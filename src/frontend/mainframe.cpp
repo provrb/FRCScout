@@ -3,7 +3,7 @@
 // Frontend
 #include "frontend/mainframe.h" // MainFrame class
 #include "frontend/wxids.h" // WinId enum
-#include "frontend/colours.h"
+#include "frontend/colours.h" // Common wxColours
 
 // Backend
 #include "backend/data.h" // DataBase class
@@ -354,19 +354,20 @@ void MainFrame::ShowTeamEditGrid() {
     if ( !grid )
         return;
 
-    grid->SetRowLabelValue(kColTeamNum, "Team #");
-    grid->SetRowLabelValue(kColOverall, "Overall (0-100)");
-    grid->SetRowLabelValue(kColEliminated, "Eliminated (Y/N)");
-    grid->SetRowLabelValue(kColHangAttempt, "Hang Attempt (Y/N)");
-    grid->SetRowLabelValue(kColHangSuccess, "Hang Success (Y/N)");
-    grid->SetRowLabelValue(kColRobotCycleSpeed, "Robot Cycle Speed");
-    grid->SetRowLabelValue(kColCoralPoints, "Coral Points");
-    grid->SetRowLabelValue(kColDefense, "Defense (0-100)");
-    grid->SetRowLabelValue(kColAutonomousPoints, "Auto. Points");
-    grid->SetRowLabelValue(kColDriverSkill, "Driver Skill (0-100)");
-    grid->SetRowLabelValue(kColFouls, "Fouls");
-    grid->SetRowLabelValue(kColRankingPoints, "Ranking Points");
-    grid->SetRowLabelValue(kColPPM, "Points Per Match");
+    grid->SetReadOnly(kRowTeamNum, 0, false);
+    grid->SetRowLabelValue(kRowTeamNum, "Team #");
+    grid->SetRowLabelValue(kRowOverall, "Overall (0-100)");
+    grid->SetRowLabelValue(kRowEliminated, "Eliminated (Y/N)");
+    grid->SetRowLabelValue(kRowHangAttempt, "Hang Attempt (Y/N)");
+    grid->SetRowLabelValue(kRowHangSuccess, "Hang Success (Y/N)");
+    grid->SetRowLabelValue(kRowRobotCycleSpeed, "Robot Cycle Speed");
+    grid->SetRowLabelValue(kRowCoralPoints, "Coral Points");
+    grid->SetRowLabelValue(kRowDefense, "Defense (0-100)");
+    grid->SetRowLabelValue(kRowAutonomousPoints, "Auto. Points");
+    grid->SetRowLabelValue(kRowDriverSkill, "Driver Skill (0-100)");
+    grid->SetRowLabelValue(kRowFouls, "Fouls");
+    grid->SetRowLabelValue(kRowRankingPoints, "Ranking Points");
+    grid->SetRowLabelValue(kRowPPM, "Points Per Match");
 }
 
 /**
@@ -381,16 +382,17 @@ void MainFrame::ShowMatchEditGrid() {
     if ( !grid )
         return;
 
-    grid->SetRowLabelValue(kColMatchNum, "Match #");
-    grid->SetRowLabelValue(kColPlayed, "Finished (Y/N)");
-    grid->SetRowLabelValue(kColRedWin, "Red Win (Y/N)");
-    grid->SetRowLabelValue(kColBlueWin, "Blue Win (Y/N)");
-    grid->SetRowLabelValue(kColTeam1, "Team 1 #");
-    grid->SetRowLabelValue(kColTeam2, "Team 2 #");
-    grid->SetRowLabelValue(kColTeam3, "Team 3 #");
-    grid->SetRowLabelValue(kColTeam4, "Team 4 #");
-    grid->SetRowLabelValue(kColTeam5, "Team 5 #");
-    grid->SetRowLabelValue(kColTeam6, "Team 6 #");
+    grid->SetReadOnly(kRowMatchNum, 0, true);
+    grid->SetRowLabelValue(kRowMatchNum, "Match #");
+    grid->SetRowLabelValue(kRowPlayed, "Finished (Y/N)");
+    grid->SetRowLabelValue(kRowRedWin, "Red Win (Y/N)");
+    grid->SetRowLabelValue(kRowBlueWin, "Blue Win (Y/N)");
+    grid->SetRowLabelValue(kRowTeam1, "Team 1 #");
+    grid->SetRowLabelValue(kRowTeam2, "Team 2 #");
+    grid->SetRowLabelValue(kRowTeam3, "Team 3 #");
+    grid->SetRowLabelValue(kRowTeam4, "Team 4 #");
+    grid->SetRowLabelValue(kRowTeam5, "Team 5 #");
+    grid->SetRowLabelValue(kRowTeam6, "Team 6 #");
 }
 
 void MainFrame::PromptTeamEdit(const Team& team) {
@@ -407,33 +409,33 @@ void MainFrame::PromptTeamEdit(const Team& team) {
     std::string teamNum = std::to_string(team.teamNum);
 
     // Set cell values
-    grid->SetCellValue(kColTeamNum, 0, teamNum);
-    grid->SetCellValue(kColOverall, 0, std::to_string(team.overall));
-    grid->SetCellValue(kColEliminated, 0, ( team.eliminated ) ? "Y" : "N");
-    grid->SetCellValue(kColHangAttempt, 0, ( team.hangAttempt ) ? "Y" : "N");
-    grid->SetCellValue(kColHangSuccess, 0, ( team.hangSuccess ) ? "Y" : "N");
-    grid->SetCellValue(kColRobotCycleSpeed, 0, std::to_string(team.robotCycleSpeed));
-    grid->SetCellValue(kColCoralPoints, 0, std::to_string(team.coralPoints));
-    grid->SetCellValue(kColDefense, 0, std::to_string(team.defense));
-    grid->SetCellValue(kColAutonomousPoints, 0, std::to_string(team.autonomousPoints));
-    grid->SetCellValue(kColDriverSkill, 0, std::to_string(team.driverSkill));
-    grid->SetCellValue(kColFouls, 0, std::to_string(team.fouls));
-    grid->SetCellValue(kColRankingPoints, 0, std::to_string(team.rankingPoints));
-    grid->SetCellValue(kColPPM, 0, std::to_string(team.ppm));
+    grid->SetCellValue(kRowTeamNum, 0, teamNum);
+    grid->SetCellValue(kRowOverall, 0, std::to_string(team.overall));
+    grid->SetCellValue(kRowEliminated, 0, ( team.eliminated ) ? "Y" : "N");
+    grid->SetCellValue(kRowHangAttempt, 0, ( team.hangAttempt ) ? "Y" : "N");
+    grid->SetCellValue(kRowHangSuccess, 0, ( team.hangSuccess ) ? "Y" : "N");
+    grid->SetCellValue(kRowRobotCycleSpeed, 0, std::to_string(team.robotCycleSpeed));
+    grid->SetCellValue(kRowCoralPoints, 0, std::to_string(team.coralPoints));
+    grid->SetCellValue(kRowDefense, 0, std::to_string(team.defense));
+    grid->SetCellValue(kRowAutonomousPoints, 0, std::to_string(team.autonomousPoints));
+    grid->SetCellValue(kRowDriverSkill, 0, std::to_string(team.driverSkill));
+    grid->SetCellValue(kRowFouls, 0, std::to_string(team.fouls));
+    grid->SetCellValue(kRowRankingPoints, 0, std::to_string(team.rankingPoints));
+    grid->SetCellValue(kRowPPM, 0, std::to_string(team.ppm));
 
-    grid->SetCellEditor(kColTeamNum, 0, new wxGridCellNumberEditor(0, 10000));
-    grid->SetCellEditor(kColOverall, 0, new wxGridCellNumberEditor(0, 100));
-    grid->SetCellEditor(kColEliminated, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
-    grid->SetCellEditor(kColHangAttempt, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
-    grid->SetCellEditor(kColHangSuccess, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
-    grid->SetCellEditor(kColRobotCycleSpeed, 0, new wxGridCellNumberEditor(0));
-    grid->SetCellEditor(kColCoralPoints, 0, new wxGridCellNumberEditor(0));
-    grid->SetCellEditor(kColDefense, 0, new wxGridCellNumberEditor(0, 100));
-    grid->SetCellEditor(kColAutonomousPoints, 0, new wxGridCellNumberEditor(0));
-    grid->SetCellEditor(kColDriverSkill, 0, new wxGridCellNumberEditor(0, 100));
-    grid->SetCellEditor(kColFouls, 0, new wxGridCellNumberEditor(0));
-    grid->SetCellEditor(kColRankingPoints, 0, new wxGridCellNumberEditor(0));
-    grid->SetCellEditor(kColPPM, 0, new wxGridCellNumberEditor(0));
+    grid->SetCellEditor(kRowTeamNum, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kRowOverall, 0, new wxGridCellNumberEditor(0, 100));
+    grid->SetCellEditor(kRowEliminated, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
+    grid->SetCellEditor(kRowHangAttempt, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
+    grid->SetCellEditor(kRowHangSuccess, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
+    grid->SetCellEditor(kRowRobotCycleSpeed, 0, new wxGridCellNumberEditor(0));
+    grid->SetCellEditor(kRowCoralPoints, 0, new wxGridCellNumberEditor(0));
+    grid->SetCellEditor(kRowDefense, 0, new wxGridCellNumberEditor(0, 100));
+    grid->SetCellEditor(kRowAutonomousPoints, 0, new wxGridCellNumberEditor(0));
+    grid->SetCellEditor(kRowDriverSkill, 0, new wxGridCellNumberEditor(0, 100));
+    grid->SetCellEditor(kRowFouls, 0, new wxGridCellNumberEditor(0));
+    grid->SetCellEditor(kRowRankingPoints, 0, new wxGridCellNumberEditor(0));
+    grid->SetCellEditor(kRowPPM, 0, new wxGridCellNumberEditor(0));
 
     // Set grid title and description
     wxStaticText* gridTitle = ( wxStaticText* ) FindWindow(kEditingDataTitle);
@@ -463,27 +465,28 @@ void MainFrame::PromptMatchEdit(const Match& match) {
     grid->EnableEditing(m_isEditModeEnabled);
 
     // Set cell values
-    grid->SetCellValue(kColMatchNum, 0, matchNum);
-    grid->SetCellValue(kColPlayed, 0, ( match.played ) ? "Y" : "N");
-    grid->SetCellValue(kColRedWin, 0, ( match.redWin ) ? "Y" : "N");
-    grid->SetCellValue(kColBlueWin, 0, ( match.blueWin ) ? "Y" : "N");
-    grid->SetCellValue(kColTeam1, 0, std::to_string(match.Team1().teamNum));
-    grid->SetCellValue(kColTeam2, 0, std::to_string(match.Team2().teamNum));
-    grid->SetCellValue(kColTeam3, 0, std::to_string(match.Team3().teamNum));
-    grid->SetCellValue(kColTeam4, 0, std::to_string(match.Team4().teamNum));
-    grid->SetCellValue(kColTeam5, 0, std::to_string(match.Team5().teamNum));
-    grid->SetCellValue(kColTeam6, 0, std::to_string(match.Team6().teamNum));
+    grid->SetCellValue(kRowMatchNum, 0, matchNum);
+    grid->SetCellValue(kRowPlayed, 0, ( match.played ) ? "Y" : "N");
+    grid->SetCellValue(kRowRedWin, 0, ( match.redWin ) ? "Y" : "N");
+    grid->SetCellValue(kRowBlueWin, 0, ( match.blueWin ) ? "Y" : "N");
+    grid->SetCellValue(kRowTeam1, 0, std::to_string(match.Team1().teamNum));
+    grid->SetCellValue(kRowTeam2, 0, std::to_string(match.Team2().teamNum));
+    grid->SetCellValue(kRowTeam3, 0, std::to_string(match.Team3().teamNum));
+    grid->SetCellValue(kRowTeam4, 0, std::to_string(match.Team4().teamNum));
+    grid->SetCellValue(kRowTeam5, 0, std::to_string(match.Team5().teamNum));
+    grid->SetCellValue(kRowTeam6, 0, std::to_string(match.Team6().teamNum));
 
-    grid->SetCellEditor(kColMatchNum, 0, new wxGridCellNumberEditor(0, 10000));
-    grid->SetCellEditor(kColPlayed, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
-    grid->SetCellEditor(kColRedWin, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
-    grid->SetCellEditor(kColBlueWin, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
-    grid->SetCellEditor(kColTeam1, 0, new wxGridCellNumberEditor(0, 10000));
-    grid->SetCellEditor(kColTeam2, 0, new wxGridCellNumberEditor(0, 10000));
-    grid->SetCellEditor(kColTeam3, 0, new wxGridCellNumberEditor(0, 10000));
-    grid->SetCellEditor(kColTeam4, 0, new wxGridCellNumberEditor(0, 10000));
-    grid->SetCellEditor(kColTeam5, 0, new wxGridCellNumberEditor(0, 10000));
-    grid->SetCellEditor(kColTeam6, 0, new wxGridCellNumberEditor(0, 10000));
+    // Set grid editor
+    grid->SetCellEditor(kRowMatchNum, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kRowPlayed, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
+    grid->SetCellEditor(kRowRedWin, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
+    grid->SetCellEditor(kRowBlueWin, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
+    grid->SetCellEditor(kRowTeam1, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kRowTeam2, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kRowTeam3, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kRowTeam4, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kRowTeam5, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kRowTeam6, 0, new wxGridCellNumberEditor(0, 10000));
 
     // Set grid title and description
     wxStaticText* gridTitle = ( wxStaticText* ) FindWindow(kEditingDataTitle);
@@ -805,6 +808,14 @@ void MainFrame::LogBackendMessage(std::string msg) {
     SQLHistoryTextBox->SetDefaultStyle(defaultAttr); // reset text colour
 }
 
+/**
+ * @brief Handles left-click events on a team row.
+ *
+ * Retrieves the selected row and displays relevant team information.
+ * Prevents unnecessary recalculations if the same row is clicked again.
+ *
+ * @param event The wxCommandEvent triggered by the user clicking a team row.
+ */
 void MainFrame::OnTeamRowLeftClicked(wxCommandEvent& event) {
     // Check the row # that is selected
     int row = m_teamListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
@@ -817,6 +828,14 @@ void MainFrame::OnTeamRowLeftClicked(wxCommandEvent& event) {
     PromptTeamEdit(team);
 }
 
+/**
+ * @brief Handles left-click events on a match row.
+ *
+ * Retrieves the selected row and displays relevant match information.
+ * Prevents unnecessary recalculations if the same row is clicked again.
+ *
+ * @param event The wxCommandEvent triggered by the user clicking a match row.
+ */
 void MainFrame::OnMatchRowLeftClicked(wxCommandEvent& event) {
     int row = m_matchListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     if ( m_displayedMatchCount > 2 && m_currentSelectedMatchRow == row )
@@ -828,6 +847,13 @@ void MainFrame::OnMatchRowLeftClicked(wxCommandEvent& event) {
     PromptMatchEdit(match);
 }
 
+/**
+ * @brief Handles right-click events on a team row.
+ *
+ * Displays a context menu with an option to delete the selected team.
+ *
+ * @param event The wxCommandEvent triggered by the user right-clicking a team row.
+ */
 void MainFrame::OnTeamRowRightClicked(wxCommandEvent& event) {
     wxMenu rightClickMenu;
     rightClickMenu.Append(wxID_DELETE, "Delete Team");
@@ -835,6 +861,13 @@ void MainFrame::OnTeamRowRightClicked(wxCommandEvent& event) {
     PopupMenu(&rightClickMenu);
 }
 
+/**
+ * @brief Handles right-click events on a match row.
+ *
+ * Displays a context menu with an option to delete the selected match.
+ *
+ * @param event The wxCommandEvent triggered by the user right-clicking a match row.
+ */
 void MainFrame::OnMatchRowRightClicked(wxCommandEvent& event) {
     wxMenu rightClickMenu;
     rightClickMenu.Append(wxID_DELETE, "Delete Match");
@@ -842,6 +875,14 @@ void MainFrame::OnMatchRowRightClicked(wxCommandEvent& event) {
     PopupMenu(&rightClickMenu);
 }
 
+/**
+ * @brief Handles right-click events on a list view.
+ *
+ * Determines whether the user clicked on the team or match list view,
+ * and presents a corresponding context menu with creation options.
+ *
+ * @param event The wxCommandEvent triggered by the user right-clicking a list view.
+ */
 void MainFrame::OnListViewRightClick(wxCommandEvent& event) {
     const int eventId = event.GetId();
     wxMenu rightClickMenu;
@@ -858,6 +899,14 @@ void MainFrame::OnListViewRightClick(wxCommandEvent& event) {
     PopupMenu(&rightClickMenu);
 }
 
+/**
+ * @brief Toggles the edit mode for modifying team or match details.
+ *
+ * Enables or disables editing mode, updates UI elements accordingly,
+ * and modifies the button label based on the current mode.
+ *
+ * @param event The wxCommandEvent triggered by toggling edit mode.
+ */
 void MainFrame::OnToggleEditMode(wxCommandEvent& event) {
     m_isEditModeEnabled = !m_isEditModeEnabled; // invert edit mode on toggle
 
@@ -911,6 +960,14 @@ void MainFrame::OnToggleEditMode(wxCommandEvent& event) {
     ( m_isEditModeEnabled ) ? editModeButton->SetLabelText("View Mode") : editModeButton->SetLabelText("Edit Mode");
 }
 
+/**
+ * @brief Creates and inserts a new team entry.
+ *
+ * Initializes a new team, inserts it into the list view, and attempts
+ * to save it in the database if available. Also prompts for team edits.
+ *
+ * @param event The wxCommandEvent triggered when creating a new team.
+ */
 void MainFrame::OnCreateNewTeam(wxCommandEvent& event) {
     Team team = {};
     team.teamNum = m_displayedTeamCount + 1;
@@ -929,6 +986,14 @@ void MainFrame::OnCreateNewTeam(wxCommandEvent& event) {
     PromptTeamEdit(team);
 }
 
+/**
+ * @brief Creates and inserts a new match entry.
+ *
+ * Initializes a new match, inserts it into the list view, and attempts
+ * to save it in the database if available. Also prompts for match edits.
+ *
+ * @param event The wxCommandEvent triggered when creating a new match.
+ */
 void MainFrame::OnCreateNewMatch(wxCommandEvent& event) {
     Match match = {};
     match.matchNum = m_displayedMatchCount + 1;
@@ -947,6 +1012,14 @@ void MainFrame::OnCreateNewMatch(wxCommandEvent& event) {
     PromptMatchEdit(match);
 }
 
+/**
+ * @brief Deletes the currently selected team.
+ *
+ * Prompts the user for confirmation, removes the team from the database
+ * if available, and updates the list view accordingly.
+ *
+ * @param event The wxCommandEvent triggered when deleting a team.
+ */
 void MainFrame::OnDeleteTeam(wxCommandEvent& event) {
     int opt = MessageBoxA(NULL, "Delete Team", "Are you sure?", MB_YESNOCANCEL | MB_ICONWARNING);
     if ( opt != IDYES )
@@ -971,6 +1044,14 @@ void MainFrame::OnDeleteTeam(wxCommandEvent& event) {
     m_displayedTeamCount--;
 }
 
+/**
+ * @brief Deletes the currently selected match.
+ *
+ * Prompts the user for confirmation, removes the match from the database
+ * if available, and updates the list view accordingly.
+ *
+ * @param event The wxCommandEvent triggered when deleting a match.
+ */
 void MainFrame::OnDeleteMatch(wxCommandEvent& event) {
     int opt = MessageBoxA(NULL, "Delete Match", "Are you sure?", MB_YESNOCANCEL | MB_ICONWARNING);
     if ( opt != IDYES )
@@ -995,6 +1076,7 @@ void MainFrame::OnDeleteMatch(wxCommandEvent& event) {
     m_displayedMatchCount--;
 }
 
+// TODO: Update the row the team is in
 void MainFrame::OnGridCellChange(wxGridEvent& event) {
     //int row = event.GetRow();
     //int col = event.GetCol();

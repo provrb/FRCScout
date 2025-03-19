@@ -33,33 +33,33 @@ enum ItemIds {
     kEditModeButton,
 };
 
-enum TeamGridColIds {
-    kColTeamNum = 0,
-    kColOverall = 1,
-    kColEliminated = 2,
-    kColHangAttempt = 3,
-    kColHangSuccess = 4,
-    kColRobotCycleSpeed = 5,
-    kColCoralPoints = 6,
-    kColDefense = 7,
-    kColAutonomousPoints = 8,
-    kColDriverSkill = 9,
-    kColFouls = 10,
-    kColRankingPoints = 11,
-    kColPPM = 12,
+enum TeamGridRowIds {
+    kRowTeamNum = 0,
+    kRowOverall = 1,
+    kRowEliminated = 2,
+    kRowHangAttempt = 3,
+    kRowHangSuccess = 4,
+    kRowRobotCycleSpeed = 5,
+    kRowCoralPoints = 6,
+    kRowDefense = 7,
+    kRowAutonomousPoints = 8,
+    kRowDriverSkill = 9,
+    kRowFouls = 10,
+    kRowRankingPoints = 11,
+    kRowPPM = 12,
 };
 
-enum MatchGridColIds {
-    kColMatchNum = 0,
-    kColPlayed = 1,
-    kColRedWin = 2,
-    kColBlueWin = 3,
-    kColTeam1 = 4,
-    kColTeam2 = 5,
-    kColTeam3 = 6,
-    kColTeam4 = 7,
-    kColTeam5 = 8,
-    kColTeam6 = 9,
+enum MatchGridRowIds {
+    kRowMatchNum = 0,
+    kRowPlayed = 1,
+    kRowRedWin = 2,
+    kRowBlueWin = 3,
+    kRowTeam1 = 4,
+    kRowTeam2 = 5,
+    kRowTeam3 = 6,
+    kRowTeam4 = 7,
+    kRowTeam5 = 8,
+    kRowTeam6 = 9,
 };
 
 #endif // _USING_UI

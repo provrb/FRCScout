@@ -12,7 +12,8 @@
  * match participation, performance statistics, and other key attributes used
  * for ranking and analysis in a tournament setting.
  *
- * @param teamNum          Unique team number used to identify the team.
+ * @param uid              Unique identifier for the team.
+ * @param teamNum          Team number used to identify the team.
  * @param matchNum         Match number the team is currently competing in (if applicable).
  * @param eliminated       Indicates whether the team has been eliminated from the tournament.
  * @param hangAttempt      Specifies if the team attempted to hang at the end of a match.
