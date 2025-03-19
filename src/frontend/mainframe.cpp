@@ -1,6 +1,4 @@
-﻿#ifdef _USING_UI
-
-// Frontend
+﻿// Frontend
 #include "frontend/mainframe.h" // MainFrame class
 #include "frontend/wxids.h" // WinId enum
 #include "frontend/colours.h" // Common wxColours
@@ -985,7 +983,7 @@ void MainFrame::OnCreateNewTeam(wxCommandEvent& event) {
     DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
     
     Team team = {};
-    team.uid = db->GenerateUID();
+    team.uid = db->GetNextTeamUID();
     team.teamNum = m_displayedTeamCount + 1;
 
     CreateTeamRow(team);
@@ -1102,5 +1100,3 @@ void MainFrame::OnGridCellChange(wxGridEvent& event) {
     //    break;
     //}
 }
-
-#endif // _USING_UI

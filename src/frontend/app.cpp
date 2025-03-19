@@ -1,4 +1,3 @@
-#ifdef _USING_UI
 
 #include "frontend/app.h"
 #include "frontend/mainframe.h"
@@ -29,5 +28,3 @@ bool App::OnInit() {
 
     return true;
 }
-
-#endif // _USING_UI

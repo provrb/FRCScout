@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef _USING_UI
-
 #include <wx/app.h>
 #include <wx/display.h>
 
@@ -27,5 +25,3 @@ public:
 };
 
 wxIMPLEMENT_APP(App);
-
-#endif // _USING_UI

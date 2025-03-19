@@ -1,7 +1,6 @@
 // IDs for WX menu items, windows, etc
 
 #pragma once
-#ifdef _USING_UI
 
 /**
  * @brief Enumeration for window IDs used in the application.
@@ -61,5 +60,3 @@ enum MatchGridRowIds {
     kRowTeam5 = 8,
     kRowTeam6 = 9,
 };
-
-#endif // _USING_UI

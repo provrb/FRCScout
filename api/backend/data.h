@@ -1,16 +1,13 @@
 #pragma once
 
+// Frontend
+#include "frontend/mainframe.h" // MainFrame class
+
 #include <team.h>    // Team struct definition
 #include <match.h>   // Match struct definition
 #include <sqlite3.h> // sqlite3_prepare_v2, sqlite3_exec, sqlite3_column_int, sqlite3_bind_int...
 #include <vector>    // std::vector
 #include <string>    // std::string
-
-#ifdef _USING_UI
-#include "frontend/mainframe.h"
-#else
-class MainFrame; // dummy declaration in case not using ui
-#endif
 
 #define DB_PATH     "data.db" // Path to connect and save database file
 #define TEAM_TABLE  "Teams"   // Name of the Teams table to save Team info in
@@ -49,7 +46,8 @@ public:
     std::vector<Team> GetTeams();
     std::vector<Match> GetMatches();
 
-    int GenerateUID(); // Generate a unique ID for a new team or match
+    // Generate a unique ID for a new team that is not in use
+    int GetNextTeamUID(); 
 
     // Conditional/exists/item1 in item2
     bool TeamExistsUID(int uid);
@@ -74,7 +72,6 @@ private:
 
     // Error handling
     void SQLBackendError(const char* errMsg); // Error on the backend, tell the frontend
-    void SQLFatalError(uint8_t exitCode, const char* errMsg); // Exit program with an error message
     
     sqlite3* m_db; // SQL database
     std::vector<std::string> m_queryHistory = {}; // list of SQL querys for debugging purposes

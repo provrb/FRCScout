@@ -178,9 +178,7 @@ void DataBase::AddQueryToHistory(sqlite3_stmt* stmt) {
 
     const char* expanded = sqlite3_expanded_sql(stmt);
     this->m_queryHistory.push_back(expanded);
-#ifdef _USING_UI
     this->m_mainFrame->LogSQLQuery(expanded);
-#endif
 }
 
 /**
@@ -197,9 +195,7 @@ void DataBase::AddQueryToHistory(const char* query) {
         return;
 
     this->m_queryHistory.push_back(query);
-#ifdef _USING_UI
     this->m_mainFrame->LogSQLQuery(query);
-#endif
 }
 
 /**
@@ -213,9 +209,7 @@ void DataBase::AddQueryToHistory(const char* query) {
  * @param errMsg The error message returned by the SQLite backend.
  */
 void DataBase::SQLBackendError(const char* errMsg) {
-#ifdef _USING_UI
     this->m_mainFrame->LogSQLError(errMsg);
-#endif
 }
 
 /**
@@ -796,9 +790,7 @@ std::vector<Team> DataBase::GetTeams() {
 
     sqlite3_finalize(stmt);
     
-#ifdef _USING_UI
     this->m_mainFrame->LogBackendMessage("Found " + std::to_string(teams.size()) + " Teams");
-#endif
 
     return teams;
 }
@@ -823,14 +815,12 @@ std::vector<Match> DataBase::GetMatches() {
 
     sqlite3_finalize(stmt);
 
-#ifdef _USING_UI
     this->m_mainFrame->LogBackendMessage("Found " + std::to_string(matches.size()) + " Matches");
-#endif
 
     return matches;
 }
 
-int DataBase::GenerateUID() {
+int DataBase::GetNextTeamUID() {
     int uid = 0;
 
     do {
