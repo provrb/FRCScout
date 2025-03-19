@@ -389,6 +389,87 @@ void MainFrame::ShowMatchEditGrid() {
     grid->SetRowLabelValue(9, "Team 6 #");
 }
 
+void MainFrame::PromptTeamEdit(const Team& team) {
+    // show details of team in editing grid
+    ShowTeamEditGrid();
+    
+    // get grid object
+    wxGrid* grid = ( wxGrid* ) FindWindow(kEditItemGrid);
+    if ( !grid )
+        return;
+
+    grid->EnableEditing(m_isEditModeEnabled);
+
+    std::string teamNum = std::to_string(team.teamNum);
+
+    // Set cell values
+    grid->SetCellValue(0, 0, teamNum);
+    grid->SetCellValue(1, 0, std::to_string(team.overall));
+    grid->SetCellValue(2, 0, (team.eliminated) ? "Y" : "N");
+    grid->SetCellValue(3, 0, (team.hangAttempt)?"Y":"N");
+    grid->SetCellValue(4, 0, (team.hangSuccess)?"Y":"N");
+    grid->SetCellValue(5, 0, std::to_string(team.robotCycleSpeed));
+    grid->SetCellValue(6, 0, std::to_string(team.coralPoints));
+    grid->SetCellValue(7, 0, std::to_string(team.defense));
+    grid->SetCellValue(8, 0, std::to_string(team.autonomousPoints));
+    grid->SetCellValue(9, 0, std::to_string(team.driverSkill));
+    grid->SetCellValue(10, 0, std::to_string(team.fouls));
+    grid->SetCellValue(11, 0, std::to_string(team.rankingPoints));
+    grid->SetCellValue(12, 0, std::to_string(team.ppm));
+
+    // Set grid title and description
+    wxStaticText* gridTitle = ( wxStaticText* ) FindWindow(kEditingDataTitle);
+    wxStaticText* gridDesc = ( wxStaticText* ) FindWindow(kEditingDataDesc);
+    
+    if ( m_isEditModeEnabled ) {
+        gridTitle->SetLabelText("Editing Team # " + teamNum);
+        gridDesc->SetLabelText("Editing all fields for team # " + teamNum);
+    }
+    else {
+        gridTitle->SetLabelText("Viewing Team # " + teamNum);
+        gridDesc->SetLabelText("Viewing all fields for team # " + teamNum);
+    }
+}
+
+void MainFrame::PromptMatchEdit(const Match& match) {
+    std::string matchNum = std::to_string(match.matchNum);
+
+    // show details of match in editing grid
+    ShowMatchEditGrid();
+
+    // get grid object
+    wxGrid* grid = ( wxGrid* ) FindWindow(kEditItemGrid);
+    if ( !grid )
+        return;
+
+    grid->EnableEditing(m_isEditModeEnabled);
+
+    // Set cell values
+    grid->SetCellValue(0, 0, matchNum);
+    grid->SetCellValue(1, 0, ( match.played ) ? "Y" : "N");
+    grid->SetCellValue(2, 0, ( match.redWin ) ? "Y" : "N");
+    grid->SetCellValue(3, 0, ( match.blueWin ) ? "Y" : "N");
+    grid->SetCellValue(4, 0, std::to_string(match.Team1().teamNum));
+    grid->SetCellValue(5, 0, std::to_string(match.Team2().teamNum));
+    grid->SetCellValue(6, 0, std::to_string(match.Team3().teamNum));
+    grid->SetCellValue(7, 0, std::to_string(match.Team4().teamNum));
+    grid->SetCellValue(8, 0, std::to_string(match.Team5().teamNum));
+    grid->SetCellValue(9, 0, std::to_string(match.Team6().teamNum));
+
+    // Set grid title and description
+    wxStaticText* gridTitle = ( wxStaticText* ) FindWindow(kEditingDataTitle);
+    wxStaticText* gridDesc = ( wxStaticText* ) FindWindow(kEditingDataDesc);
+
+    if ( m_isEditModeEnabled ) {
+        gridTitle->SetLabelText("Editing Match # " + matchNum);
+        gridDesc->SetLabelText("Editing all fields for match # " + matchNum);
+    }
+    else {
+        gridTitle->SetLabelText("Viewing Match # " + matchNum);
+        gridDesc->SetLabelText("Viewing all fields for Match # " + matchNum);
+    }
+}
+
 /**
  * @brief Creates and returns the main menu bar for the application.
  *
@@ -630,93 +711,29 @@ void MainFrame::LogBackendMessage(std::string msg) {
 }
 
 void MainFrame::OnTeamRowClicked(wxCommandEvent& event) {
-    if ( !g_DataBase )
-        return;
-
     int row = m_teamListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     const Team team = GetTeamFromRow(row);
-    std::string teamNum = std::to_string(team.teamNum);
 
-    // show details of team in editing grid
-    ShowTeamEditGrid();
-    
-    // get grid object
-    wxGrid* grid = ( wxGrid* ) FindWindow(kEditItemGrid);
-    if ( !grid )
-        return;
-
-    grid->EnableEditing(m_isEditModeEnabled);
-
-    // Set cell values
-    grid->SetCellValue(0, 0, teamNum);
-    grid->SetCellValue(1, 0, std::to_string(team.overall));
-    grid->SetCellValue(2, 0, (team.eliminated) ? "Y" : "N");
-    grid->SetCellValue(3, 0, (team.hangAttempt)?"Y":"N");
-    grid->SetCellValue(4, 0, (team.hangSuccess)?"Y":"N");
-    grid->SetCellValue(5, 0, std::to_string(team.robotCycleSpeed));
-    grid->SetCellValue(6, 0, std::to_string(team.coralPoints));
-    grid->SetCellValue(7, 0, std::to_string(team.defense));
-    grid->SetCellValue(8, 0, std::to_string(team.autonomousPoints));
-    grid->SetCellValue(9, 0, std::to_string(team.driverSkill));
-    grid->SetCellValue(10, 0, std::to_string(team.fouls));
-    grid->SetCellValue(11, 0, std::to_string(team.rankingPoints));
-    grid->SetCellValue(12, 0, std::to_string(team.ppm));
-
-    // Set grid title and description
-    wxStaticText* gridTitle = ( wxStaticText* ) FindWindow(kEditingDataTitle);
-    wxStaticText* gridDesc = ( wxStaticText* ) FindWindow(kEditingDataDesc);
-    
-    if ( m_isEditModeEnabled ) {
-        gridTitle->SetLabelText("Editing Team # " + teamNum);
-        gridDesc->SetLabelText("Editing all fields for team # " + teamNum);
-    }
-    else {
-        gridTitle->SetLabelText("Viewing Team # " + teamNum);
-        gridDesc->SetLabelText("Viewing all fields for team # " + teamNum);
-    }
+    PromptTeamEdit(team);
 }
 
 void MainFrame::OnMatchRowClicked(wxCommandEvent& event) {
-    if ( !g_DataBase )
-        return;
-
     int row = m_matchListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     const Match match = GetMatchFromRow(row);
-    std::string matchNum = std::to_string(match.matchNum);
+    
+    PromptMatchEdit(match);
+}
 
-    // show details of match in editing grid
-    ShowMatchEditGrid();
-
-    // get grid object
-    wxGrid* grid = ( wxGrid* ) FindWindow(kEditItemGrid);
-    if ( !grid )
-        return;
-
-    grid->EnableEditing(m_isEditModeEnabled);
-
-    // Set cell values
-    grid->SetCellValue(0, 0, matchNum);
-    grid->SetCellValue(1, 0, ( match.played ) ? "Y" : "N");
-    grid->SetCellValue(2, 0, ( match.redWin ) ? "Y" : "N");
-    grid->SetCellValue(3, 0, ( match.blueWin ) ? "Y" : "N");
-    grid->SetCellValue(4, 0, std::to_string(match.Team1().teamNum));
-    grid->SetCellValue(5, 0, std::to_string(match.Team2().teamNum));
-    grid->SetCellValue(6, 0, std::to_string(match.Team3().teamNum));
-    grid->SetCellValue(7, 0, std::to_string(match.Team4().teamNum));
-    grid->SetCellValue(8, 0, std::to_string(match.Team5().teamNum));
-    grid->SetCellValue(9, 0, std::to_string(match.Team6().teamNum));
-
-    // Set grid title and description
-    wxStaticText* gridTitle = ( wxStaticText* ) FindWindow(kEditingDataTitle);
-    wxStaticText* gridDesc = ( wxStaticText* ) FindWindow(kEditingDataDesc);
-
-    if ( m_isEditModeEnabled ) {
-        gridTitle->SetLabelText("Editing Match # " + matchNum);
-        gridDesc->SetLabelText("Editing all fields for match # " + matchNum);
-    }
-    else {
-        gridTitle->SetLabelText("Viewing Match # " + matchNum);
-        gridDesc->SetLabelText("Viewing all fields for Match # " + matchNum);
+void MainFrame::OnListViewRightClick(wxCommandEvent& event) {
+    const int eventId = event.GetId();
+    static wxMenu rightClickMenu;
+    
+    if ( eventId == kTeamListView ) {
+        rightClickMenu.Append(wxID_NEW, "Create New Team");
+        rightClickMenu.Bind(wxEVT_MENU, &MainFrame::OnCreateNewTeam, this, wxID_NEW);
+    } else if ( eventId == kMatchListView ) {
+        rightClickMenu.Append(wxID_NEW, "Create New Match");
+        rightClickMenu.Bind(wxEVT_MENU, &MainFrame::OnCreateNewMatch, this, wxID_NEW);
     }
 }
 
@@ -771,6 +788,38 @@ void MainFrame::OnToggleEditMode(wxCommandEvent& event) {
     }
 
     ( m_isEditModeEnabled ) ? editModeButton->SetLabelText("View Mode") : editModeButton->SetLabelText("Edit Mode");
+}
+
+void MainFrame::OnCreateNewTeam(wxCommandEvent& event) {
+    Team team = {};
+    team.teamNum = m_displayedTeamCount + 1;
+    
+    CreateTeamRow(team);
+
+    // check if database is active and add it to database, otherwise return
+    if ( !g_DataBase ) {
+        PromptTeamEdit(team);
+        return;
+    }
+
+    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    db->AddTeam(team);
+}
+
+void MainFrame::OnCreateNewMatch(wxCommandEvent& event) {
+    Match match = {};
+    match.matchNum = m_displayedMatchCount + 1;
+    
+    CreateMatchRow(match);
+
+    // data base check
+    if ( !g_DataBase ) {
+        PromptMatchEdit(match);
+        return;
+    }
+
+    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    db->AddMatch(match);
 }
 
 #endif // _USING_UI

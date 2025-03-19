@@ -67,6 +67,8 @@ private:
     wxGrid* CreateEditingGrid(wxPanel* panel); // create a spreedsheets-like grid to edit items
     void ShowTeamEditGrid(); // show options for editing a team struct in the editing grid
     void ShowMatchEditGrid(); // show options for editing a match struct in the editing grid
+    void PromptTeamEdit(const Team& team);
+    void PromptMatchEdit(const Match& match);
     void CreateTeamRow(const Team& team); // create a row with info from 'team' in teamListView
     void CreateMatchRow(const Match& match); // create a row with info from 'match' in matchListView
     wxMenuBar* CreateMenuBar(); // create menu bar which contains options like File, Export..
@@ -80,7 +82,10 @@ private:
 
     void OnTeamRowClicked(wxCommandEvent& event);
     void OnMatchRowClicked(wxCommandEvent& event);
+    void OnListViewRightClick(wxCommandEvent& event);
     void OnToggleEditMode(wxCommandEvent& event);
+    void OnCreateNewTeam(wxCommandEvent& event);
+    void OnCreateNewMatch(wxCommandEvent& event);
 
     bool m_isEditModeEnabled;
     int m_displayedTeamCount; // number of team rows in team list view
