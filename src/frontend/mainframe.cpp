@@ -68,7 +68,7 @@ MainFrame::MainFrame(const wxString& title)
 
     // Add menu bar
     CreateMenuBar();
-
+    
     DisplayExistingData();
 }
 
@@ -557,12 +557,17 @@ wxMenuBar* MainFrame::CreateMenuBar() {
 }
 
 const Team MainFrame::GetTeamFromRow(int row) {
-    if ( row > this->m_displayedTeamCount || !g_DataBase )
+    if ( row > this->m_displayedTeamCount || !g_DataBase ) {
+        LogBackendMessage("Row (" + std::to_string(row) + 
+            ") is greater than displayed team count (" 
+            + std::to_string(this->m_displayedTeamCount) + ")");
         return {};
+    }
 
     DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
-
     int uid = m_teamListView->GetItemData(row);
+
+    LogBackendMessage("Getting team with UID: " + std::to_string(uid));
 
     return db->GetTeam(uid);
 }
@@ -600,7 +605,6 @@ void MainFrame::CreateTeamRow(const Team& team) {
     wxListItem item;
     item.SetId(itemId);
     m_teamListView->InsertItem(item);
-    m_teamListView->SetItemData(itemId, team.uid);
 
     // Set the font to not be bold
     m_teamListView->SetItemFont(itemId, wxFontInfo(9));
@@ -619,6 +623,8 @@ void MainFrame::CreateTeamRow(const Team& team) {
     m_teamListView->Bind(wxEVT_LIST_ITEM_RIGHT_CLICK, &MainFrame::OnTeamRowRightClicked, this);
 
     m_currentSelectedTeamRow = m_displayedTeamCount;
+    m_teamListView->SetItemData(itemId, team.uid);
+    LogBackendMessage("Set item metadata for team uid " + std::to_string(team.uid));
 }
 
 /**
@@ -819,9 +825,10 @@ void MainFrame::LogBackendMessage(std::string msg) {
 void MainFrame::OnTeamRowLeftClicked(wxCommandEvent& event) {
     // Check the row # that is selected
     int row = m_teamListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    if ( m_displayedTeamCount > 2 && m_currentSelectedTeamRow == row ) // information would already be displayed, don't bother recalculating
+    if ( m_currentSelectedTeamRow == row ) // information would already be displayed, don't bother recalculating
         return;
 
+    LogBackendMessage("Team row selected: " + std::to_string(row));
     m_currentSelectedTeamRow = row;
     const Team team = GetTeamFromRow(row);
 
@@ -969,11 +976,6 @@ void MainFrame::OnToggleEditMode(wxCommandEvent& event) {
  * @param event The wxCommandEvent triggered when creating a new team.
  */
 void MainFrame::OnCreateNewTeam(wxCommandEvent& event) {
-    Team team = {};
-    team.teamNum = m_displayedTeamCount + 1;
-
-    CreateTeamRow(team);
-
     // check if database is active and add it to database, otherwise return
     if ( !g_DataBase ) {
         LogBackendMessage("Database not available, cannot save team. Closing this app will delete all progress.");
@@ -981,8 +983,13 @@ void MainFrame::OnCreateNewTeam(wxCommandEvent& event) {
     }
 
     DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
-    db->AddTeam(team);
+    
+    Team team = {};
+    team.uid = db->GenerateUID();
+    team.teamNum = m_displayedTeamCount + 1;
 
+    CreateTeamRow(team);
+    db->AddTeam(team);
     PromptTeamEdit(team);
 }
 

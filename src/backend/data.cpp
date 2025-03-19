@@ -34,11 +34,6 @@ DataBase::DataBase(const std::string& path, MainFrame* mainFrame) : m_dbPath(pat
 
     Connect();
     CreateTables();
-
-#ifdef _USING_UI
-    //// Create a row for each existing team and match
-
-#endif
 }
 
 /**
@@ -506,8 +501,6 @@ bool DataBase::TeamInMatch(int teamNum, int matchNum) {
  * @param team The `Team` object containing all relevant information for the team to be added to the database.
  */
 void DataBase::AddTeam(Team& team) {
-    team.uid = GenerateUID();
-
     const char* query =
         "INSERT OR REPLACE INTO " TEAM_TABLE " " // INSERT OR REPLACE INTO Teams
         "(uid, teamNum, eliminated, hangAttempt, hangSuccess, robotCycleSpeed, "
