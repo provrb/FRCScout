@@ -127,6 +127,8 @@ wxBoxSizer* MainFrame::CreateListPanel(wxWindow* parent, int listId, wxString ti
     listSizer->Add(topSizer, 0, wxEXPAND | wxBOTTOM, 5);
     listSizer->Add(listCtrl, 1, wxEXPAND);
 
+    listCtrl->Bind(wxEVT_CONTEXT_MENU, &MainFrame::OnListViewRightClick, this);
+
     return listSizer;
 }
 
@@ -596,6 +598,7 @@ void MainFrame::CreateTeamRow(const Team& team) {
         m_teamListView->SetItemBackgroundColour(itemId, LIGHT_GRAY_ACCENT_2);
 
     m_teamListView->Bind(wxEVT_LIST_ITEM_SELECTED, &MainFrame::OnTeamRowClicked, this);
+    m_currentSelectedTeamRow = m_displayedTeamCount;
 }
 
 /**
@@ -638,6 +641,7 @@ void MainFrame::CreateMatchRow(const Match& match) {
         m_matchListView->SetItemBackgroundColour(itemId, wxColour(250, 250, 250));
 
     m_matchListView->Bind(wxEVT_LIST_ITEM_SELECTED, &MainFrame::OnMatchRowClicked, this);
+    m_currentSelectedMatchRow = m_displayedMatchCount;
 }
 
 /**
@@ -711,7 +715,12 @@ void MainFrame::LogBackendMessage(std::string msg) {
 }
 
 void MainFrame::OnTeamRowClicked(wxCommandEvent& event) {
+    // Check the row # that is selected
     int row = m_teamListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    if ( m_currentSelectedTeamRow == row ) // information would already be displayed, don't bother recalculating
+        return;
+
+    m_currentSelectedTeamRow = row;
     const Team team = GetTeamFromRow(row);
 
     PromptTeamEdit(team);
@@ -719,6 +728,10 @@ void MainFrame::OnTeamRowClicked(wxCommandEvent& event) {
 
 void MainFrame::OnMatchRowClicked(wxCommandEvent& event) {
     int row = m_matchListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    if ( m_currentSelectedMatchRow == row )
+        return;
+    
+    m_currentSelectedMatchRow = row;
     const Match match = GetMatchFromRow(row);
     
     PromptMatchEdit(match);
@@ -726,7 +739,7 @@ void MainFrame::OnMatchRowClicked(wxCommandEvent& event) {
 
 void MainFrame::OnListViewRightClick(wxCommandEvent& event) {
     const int eventId = event.GetId();
-    static wxMenu rightClickMenu;
+    wxMenu rightClickMenu;
     
     if ( eventId == kTeamListView ) {
         rightClickMenu.Append(wxID_NEW, "Create New Team");
@@ -735,6 +748,8 @@ void MainFrame::OnListViewRightClick(wxCommandEvent& event) {
         rightClickMenu.Append(wxID_NEW, "Create New Match");
         rightClickMenu.Bind(wxEVT_MENU, &MainFrame::OnCreateNewMatch, this, wxID_NEW);
     }
+
+    PopupMenu(&rightClickMenu);
 }
 
 void MainFrame::OnToggleEditMode(wxCommandEvent& event) {
@@ -798,12 +813,14 @@ void MainFrame::OnCreateNewTeam(wxCommandEvent& event) {
 
     // check if database is active and add it to database, otherwise return
     if ( !g_DataBase ) {
-        PromptTeamEdit(team);
+        LogBackendMessage("Database not available, cannot save team. Closing this app will delete all progress.");
         return;
     }
 
     DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
     db->AddTeam(team);
+
+    PromptTeamEdit(team);
 }
 
 void MainFrame::OnCreateNewMatch(wxCommandEvent& event) {
@@ -814,12 +831,14 @@ void MainFrame::OnCreateNewMatch(wxCommandEvent& event) {
 
     // data base check
     if ( !g_DataBase ) {
-        PromptMatchEdit(match);
+        LogBackendMessage("Database not available, cannot save team. Closing this app will delete all progress.");
         return;
     }
 
     DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
     db->AddMatch(match);
+        
+    PromptMatchEdit(match);
 }
 
 #endif // _USING_UI

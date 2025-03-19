@@ -88,6 +88,8 @@ private:
     void OnCreateNewMatch(wxCommandEvent& event);
 
     bool m_isEditModeEnabled;
+    int m_currentSelectedTeamRow = -1; // team number of team that is currently selected
+    int m_currentSelectedMatchRow = -1; // match number of match that is currently selected
     int m_displayedTeamCount; // number of team rows in team list view
     int m_displayedMatchCount; // number of match rows in match list view
     wxListCtrl* m_teamListView; // container that holds rows about teams
