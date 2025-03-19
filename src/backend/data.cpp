@@ -706,11 +706,6 @@ void DataBase::RemoveMatch(int matchNum) {
  */
 Team DataBase::GetTeam(int teamNum) {
     Team team = {};
-    
-    if ( teamNum == 0 || !TeamExists(teamNum) ) {
-        std::cout << "Team with team number " << teamNum << " doesn't exist." << std::endl;
-        return team;
-    }
 
     std::string query = std::format("SELECT * from {} WHERE teamNum = {}", TEAM_TABLE, teamNum);
 
@@ -743,11 +738,6 @@ Team DataBase::GetTeam(int teamNum) {
  */
 Match DataBase::GetMatch(int matchNum) {
     Match match = {};
-
-    if ( !MatchExists(matchNum) ) {
-        std::cout << "Match with match number " << matchNum << " doesn't exist." << std::endl;
-        return match;
-    }
 
     std::string query = std::format("SELECT * from {} WHERE matchNum = {}", MATCH_TABLE, matchNum);
     
