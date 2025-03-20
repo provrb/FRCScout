@@ -29,7 +29,7 @@
  */
 class DataBase {
 public:
-    DataBase(const std::string& dbPath, MainFrame* mainFrame);
+    explicit DataBase(const std::string& dbPath, MainFrame* mainFrame);
     ~DataBase();
 
     // Add/remove/update/get

@@ -950,7 +950,7 @@ void DataBase::ExportTableToJSON(const std::string& tableName, const std::string
     if ( outFile ) {
         outFile << records.dump(4);
         outFile.close();
-        std::cout << "JSON export completed: " << outputFilename << std::endl;
+        this->m_mainFrame->LogBackendMessage("JSON data exported to " + outputFilename);
     }
 
     sqlite3_finalize(stmt);

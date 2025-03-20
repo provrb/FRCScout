@@ -30,8 +30,16 @@ enum ItemIds {
     kEditingDataDesc, // e.g "Modify values for Team #1" description
     kEditItemGrid, // grid to input new values for an item
     kEditModeButton,
+    kClearOutputButton,
 };
 
+/**
+ * @brief Enum representing row indices for the team data grid.
+ *
+ * This enum defines the row positions for various team-related statistics
+ * in the team data grid. Each row corresponds to a specific data field
+ * that stores information about a team's performance.
+ */
 enum TeamGridRowIds {
     kRowTeamNum = 0,
     kRowOverall = 1,
@@ -48,6 +56,13 @@ enum TeamGridRowIds {
     kRowPPM = 12,
 };
 
+/**
+ * @brief Enum representing row indices for the match data grid.
+ *
+ * This enum defines the row positions for various match-related data fields
+ * in the match data grid. Each row corresponds to a specific piece of match
+ * information, including match number, results, and participating teams.
+ */
 enum MatchGridRowIds {
     kRowMatchNum = 0,
     kRowPlayed = 1,

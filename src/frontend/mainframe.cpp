@@ -1,15 +1,14 @@
 ﻿// Frontend
 #include "frontend/mainframe.h" // MainFrame class
-#include "frontend/wxids.h" // WinId enum
-#include "frontend/colours.h" // Common wxColours
 
 // Backend
 #include "backend/data.h" // DataBase class
+#include "backend/team.h"
+#include "backend/match.h"
 
 // STD
 #include <filesystem> // exists(), absolute()
 #include <string>
-#include <fstream>
 
 /**
  * @brief Constructor for the MainFrame class, initializing the main window with a specified title.
@@ -126,9 +125,14 @@ wxBoxSizer* MainFrame::CreateListPanel(wxWindow* parent, int listId, wxString ti
     textSizer->Add(titleText, 0, wxALIGN_LEFT);
     textSizer->Add(descText, 0, wxALIGN_LEFT | wxTOP, 2);  // Small space between title and description
 
+    wxButton* addButton = new wxButton(parent, wxID_ANY, "Add", wxDefaultPosition, wxSize(50, 30));
+    addButton->SetClientData(reinterpret_cast< void* >( listId )); // save list id in metadata, e.g kTeamListView
+    addButton->Bind(wxEVT_BUTTON, &MainFrame::OnAddButton, this);
+
     // Add elements to the horizontal top sizer
     topSizer->Add(textSizer, 1, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);  // Add title + desc stack
     topSizer->AddSpacer(10);  // Some space before buttons
+    topSizer->Add(addButton, 0, wxALIGN_BOTTOM | wxALIGN_RIGHT);
 
     // List view
     wxListCtrl* listCtrl = new wxListCtrl(parent, listId, wxDefaultPosition, wxSize(listWidth, 200), wxLC_REPORT);
@@ -274,7 +278,7 @@ void MainFrame::DisplayExistingData() {
 wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
     // Create the grid
     wxGrid* grid = new wxGrid(panel, kEditItemGrid, wxPoint(0, 65), wxSize(400, 900));
-    grid->CreateGrid(35, 1);
+    grid->CreateGrid(34, 1);
 
     // Options
     grid->SetColLabelValue(0, "Value");
@@ -285,8 +289,7 @@ wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
 
     // Sizing
     grid->SetRowLabelSize(150);
-    grid->SetColSize(0, 230);
-    grid->SetRowSize(35, 31);
+    grid->SetColSize(0, 250);
 
     DefaultEditGrid();
 
@@ -315,9 +318,8 @@ wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
     gridDesc->SetFont(wxFontInfo(10));
 
     // Add edit and view mode button
-    wxButton* editModeButton = new wxButton(panel, kEditModeButton, "Edit Mode", wxPoint(305, 15), wxDefaultSize);
+    wxButton* editModeButton = new wxButton(panel, kEditModeButton, "Edit", wxPoint(350, 30), wxSize(50, 30));
     editModeButton->SetBackgroundColour(LIGHT_GRAY_ACCENT_3);
-    editModeButton->SetFont(wxFontInfo(8));
     editModeButton->Bind(wxEVT_BUTTON, &MainFrame::OnToggleEditMode, this);
 
     return grid;
@@ -344,7 +346,7 @@ wxTextCtrl* MainFrame::CreateSQLOutputBox(wxPanel* rightPanel) {
 
     // Create font to use in the SQL output text box
     wxFont font(12, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, "Consolas");
-    font.Scale(.9);
+    font.Scale(0.9);
 
     // Set the font
     sqlOutput->SetFont(font);
@@ -356,6 +358,10 @@ wxTextCtrl* MainFrame::CreateSQLOutputBox(wxPanel* rightPanel) {
     // Description above the box
     wxStaticText* gridDesc = new wxStaticText(rightPanel, kEditingDataDesc, "Real-time logs", wxPoint(425, 41), wxDefaultSize, 0);
     gridDesc->SetFont(wxFontInfo(10));
+
+    // Add clear button
+    wxButton* clearButton = new wxButton(rightPanel, kClearOutputButton, "Clear", wxPoint(775, 30), wxSize(50, 30));
+    clearButton->Bind(wxEVT_BUTTON, &MainFrame::ClearOutput, this);
 
     return sqlOutput;
 }
@@ -619,6 +625,9 @@ wxMenuBar* MainFrame::CreateMenuBar() {
     wxMenuItem* exportTeamDataJSON = new wxMenuItem(NULL, kExportTeamDataJSON, "Team Data As JSON File");
     wxMenuItem* exportMatchDataJSON = new wxMenuItem(NULL, kExportMatchDataJSON, "Match Data As JSON File");
 
+    Bind(wxEVT_MENU, &MainFrame::OnExportTeamDataJSON, this, kExportTeamDataJSON);
+    Bind(wxEVT_MENU, &MainFrame::OnExportMatchDataJSON, this, kExportMatchDataJSON);
+
     // Add options to main exportCSV menu
     exportJSON->Append(exportTeamDataJSON);
     exportJSON->Append(exportMatchDataJSON);
@@ -632,7 +641,7 @@ wxMenuBar* MainFrame::CreateMenuBar() {
     wxMenuBar* menuBar = new wxMenuBar;
     menuBar->Append(menuFile, "&File");
     menuBar->Append(menuExport, "&Export");
-    menuBar->Append(menuImport, "&Import");
+    //menuBar->Append(menuImport, "&Import");
     SetMenuBar(menuBar);
 
     return menuBar;
@@ -705,6 +714,8 @@ void MainFrame::CreateTeamRow(const Team& team) {
     // Set the font to not be bold
     m_teamListView->SetItemFont(itemId, wxFontInfo(9));
 
+    m_teamListView->EnsureVisible(itemId);
+
     // Set each column value in the item
     FillTeamRow(itemId, team);
 
@@ -743,6 +754,8 @@ void MainFrame::CreateMatchRow(const Match& match) {
 
     // Set the font to not be bold
     m_matchListView->SetItemFont(itemId, wxFontInfo(9));
+
+    m_matchListView->EnsureVisible(itemId);
 
     // Set each column value in the item
     FillMatchRow(itemId, match);
@@ -955,477 +968,17 @@ void MainFrame::LogBackendMessage(std::string msg) {
     LogMessage(msg, *wxBLUE);
 }
 
-/**
- * @brief Handles left-click events on a team row.
- *
- * Retrieves the selected row and displays relevant team information.
- * Prevents unnecessary recalculations if the same row is clicked again.
- *
- * @param event The wxCommandEvent triggered by the user clicking a team row.
- */
-void MainFrame::OnTeamRowLeftClicked(wxCommandEvent& event) {
-    // Check the row # that is selected
-    int row = m_teamListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    if ( m_currentSelectedTeamRow == row ) // information would already be displayed, don't bother recalculating
-        return;
-
-    m_currentSelectedTeamRow = row;
-    const Team team = GetTeamFromRow(row);
-
-    PromptTeamEdit(team);
-}
-
-/**
- * @brief Handles left-click events on a match row.
- *
- * Retrieves the selected row and displays relevant match information.
- * Prevents unnecessary recalculations if the same row is clicked again.
- *
- * @param event The wxCommandEvent triggered by the user clicking a match row.
- */
-void MainFrame::OnMatchRowLeftClicked(wxCommandEvent& event) {
-    int row = m_matchListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    if ( m_displayedMatchCount > 2 && m_currentSelectedMatchRow == row )
-        return;
-
-    m_currentSelectedMatchRow = row;
-    const Match match = GetMatchFromRow(row);
-
-    PromptMatchEdit(match);
-}
-
-/**
- * @brief Handles right-click events on a team row.
- *
- * Displays a context menu with an option to delete the selected team.
- *
- * @param event The wxCommandEvent triggered by the user right-clicking a team row.
- */
-void MainFrame::OnTeamRowRightClicked(wxCommandEvent& event) {
-    wxMenu rightClickMenu;
-    rightClickMenu.Append(wxID_DELETE, "Delete Team");
-    rightClickMenu.Bind(wxEVT_MENU, &MainFrame::OnDeleteTeam, this, wxID_DELETE);
-    PopupMenu(&rightClickMenu);
-}
-
-/**
- * @brief Handles right-click events on a match row.
- *
- * Displays a context menu with an option to delete the selected match.
- *
- * @param event The wxCommandEvent triggered by the user right-clicking a match row.
- */
-void MainFrame::OnMatchRowRightClicked(wxCommandEvent& event) {
-    wxMenu rightClickMenu;
-    rightClickMenu.Append(wxID_DELETE, "Delete Match");
-    rightClickMenu.Bind(wxEVT_MENU, &MainFrame::OnDeleteMatch, this, wxID_DELETE);
-    PopupMenu(&rightClickMenu);
-}
-
-/**
- * @brief Handles right-click events on a list view.
- *
- * Determines whether the user clicked on the team or match list view,
- * and presents a corresponding context menu with creation options.
- *
- * @param event The wxCommandEvent triggered by the user right-clicking a list view.
- */
-void MainFrame::OnListViewRightClick(wxCommandEvent& event) {
-    const int eventId = event.GetId();
-    wxMenu rightClickMenu;
-
-    if ( eventId == kTeamListView ) {
-        rightClickMenu.Append(wxID_NEW, "Create New Team");
-        rightClickMenu.Bind(wxEVT_MENU, &MainFrame::OnCreateNewTeam, this, wxID_NEW);
-    }
-    else if ( eventId == kMatchListView ) {
-        rightClickMenu.Append(wxID_NEW, "Create New Match");
-        rightClickMenu.Bind(wxEVT_MENU, &MainFrame::OnCreateNewMatch, this, wxID_NEW);
-    }
-
-    PopupMenu(&rightClickMenu);
-}
-
-/**
- * @brief Toggles the edit mode for modifying team or match details.
- *
- * Enables or disables editing mode, updates UI elements accordingly,
- * and modifies the button label based on the current mode.
- *
- * @param event The wxCommandEvent triggered by toggling edit mode.
- */
-void MainFrame::OnToggleEditMode(wxCommandEvent& event) {
-    m_isEditModeEnabled = !m_isEditModeEnabled; // invert edit mode on toggle
-
-    // get grid object
-    wxGrid* grid = ( wxGrid* ) FindWindow(kEditItemGrid);
-    if ( !grid )
-        return;
-
-    grid->EnableEditing(m_isEditModeEnabled);
-
-    // Get title and description
-    wxStaticText* gridTitle = ( wxStaticText* ) FindWindow(kEditingDataTitle);
-    wxStaticText* gridDesc = ( wxStaticText* ) FindWindow(kEditingDataDesc);
-
-    // Default text
-    gridTitle->SetLabelText("Edit and View");
-    gridDesc->SetLabelText("Edit and view fields of objects");
-
-    // get button
-    wxButton* editModeButton = ( wxButton* ) FindWindow(kEditModeButton);
-
-    // check if editing a team or match
-    wxString colText = grid->GetRowLabelValue(0); // 0 will contain "Match #" or "Team #"
-    if ( colText.Contains("Team") ) {
-        // editing team
-        wxString teamNumber = grid->GetCellValue(0, 0);
-
-        if ( m_isEditModeEnabled ) {
-            gridTitle->SetLabelText("Editing Team # " + teamNumber);
-            gridDesc->SetLabelText("Editing all fields for team # " + teamNumber);
-        }
-        else {
-            gridTitle->SetLabelText("Viewing Team # " + teamNumber);
-            gridDesc->SetLabelText("Viewing all fields for team # " + teamNumber);
-        }
-    }
-    else if ( colText.Contains("Match") ) {
-        // editing match
-        wxString matchNumber = grid->GetCellValue(0, 0);
-
-        if ( m_isEditModeEnabled ) {
-            gridTitle->SetLabelText("Editing Match # " + matchNumber);
-            gridDesc->SetLabelText("Editing all fields for match # " + matchNumber);
-        }
-        else {
-            gridTitle->SetLabelText("Viewing Match # " + matchNumber);
-            gridDesc->SetLabelText("Viewing all fields for match # " + matchNumber);
-        }
-    }
-
-    ( m_isEditModeEnabled ) ? editModeButton->SetLabelText("View Mode") : editModeButton->SetLabelText("Edit Mode");
-}
-
-/**
- * @brief Creates and inserts a new team entry.
- *
- * Initializes a new team, inserts it into the list view, and attempts
- * to save it in the database if available. Also prompts for team edits.
- *
- * @param event The wxCommandEvent triggered when creating a new team.
- */
-void MainFrame::OnCreateNewTeam(wxCommandEvent& event) {
-    // check if database is active and add it to database, otherwise return
-    if ( !g_DataBase ) {
-        LogMessage("Database not available, cannot save team. Closing this app will delete all progress.", *wxRED);
-        return;
-    }
-
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
-    
-    Team team = {};
-    team.uid = db->GetNextTeamUID();
-    team.teamNum = m_displayedTeamCount + 1;
-
-    CreateTeamRow(team);
-    db->AddTeam(team);
-    PromptTeamEdit(team);
-}
-
-/**
- * @brief Creates and inserts a new match entry.
- *
- * Initializes a new match, inserts it into the list view, and attempts
- * to save it in the database if available. Also prompts for match edits.
- *
- * @param event The wxCommandEvent triggered when creating a new match.
- */
-void MainFrame::OnCreateNewMatch(wxCommandEvent& event) {
-    Match match = {};
-    match.matchNum = m_displayedMatchCount + 1;
-
-    CreateMatchRow(match);
-
-    // data base check
-    if ( !g_DataBase ) {
-        LogMessage("Database not available, cannot save team. Closing this app will delete all progress.", *wxRED);
-        return;
-    }
-
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
-    db->AddMatch(match);
-
-    PromptMatchEdit(match);
-}
-
-/**
- * @brief Deletes the currently selected team.
- *
- * Prompts the user for confirmation, removes the team from the database
- * if available, and updates the list view accordingly.
- *
- * @param event The wxCommandEvent triggered when deleting a team.
- */
-void MainFrame::OnDeleteTeam(wxCommandEvent& event) {
-    int opt = MessageBoxA(NULL, "Delete Team", "Are you sure?", MB_YESNOCANCEL | MB_ICONWARNING);
-    if ( opt != IDYES )
-        return;
-
-    // get team number
-    const Team team = GetTeamFromRow(m_currentSelectedTeamRow);
-    if ( team.teamNum == 0 )
-        return;
-
-    // remove team from database
-    if ( !g_DataBase ) {
-        LogBackendMessage("Database not available, cannot delete team.");
-        return;
-    }
-
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
-    db->RemoveTeam(team.uid);
-
-    // remove team from list view
-    m_teamListView->DeleteItem(m_currentSelectedTeamRow);
-    m_displayedTeamCount--;
-
-    LogMessage("Successfully deleted team " + std::to_string(team.teamNum) + "\n\n", *wxRED);
-}
-
-/**
- * @brief Deletes the currently selected match.
- *
- * Prompts the user for confirmation, removes the match from the database
- * if available, and updates the list view accordingly.
- *
- * @param event The wxCommandEvent triggered when deleting a match.
- */
-void MainFrame::OnDeleteMatch(wxCommandEvent& event) {
-    int opt = MessageBoxA(NULL, "Delete Match", "Are you sure?", MB_YESNOCANCEL | MB_ICONWARNING);
-    if ( opt != IDYES )
-        return;
-
-    // get match number
-    const Match match = GetMatchFromRow(m_currentSelectedMatchRow);
-    if ( match.matchNum == 0 )
-        return;
-
-    // remove match from database
-    if ( !g_DataBase ) {
-        LogBackendMessage("Database not available, cannot delete match.");
-        return;
-    }
-
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
-    db->RemoveMatch(match.matchNum);
-
-    // remove match from list view
-    m_matchListView->DeleteItem(m_currentSelectedMatchRow);
-    m_displayedMatchCount--;
-
-    LogMessage("Successfully deleted match " + std::to_string(match.matchNum) + "\n\n", *wxRED);
-}
-
-/**
- * @brief Exports team data to a CSV file and generates a QR code for the data.
- *
- * This function opens a file dialog for the user to select the path and file name to save the team data as a CSV file.
- * It checks if the database is available, and if not, logs an error message. If the database is available, it exports
- * the team data from the database to the CSV file. After saving the file, it reads the CSV file into a string and generates
- * a QR code based on the CSV data, saving the QR code as an image file ("TeamData.png").
- *
- * @param event The wxCommandEvent triggered by the user action (e.g., button click).
- */
-void MainFrame::OnExportTeamDataCSV(wxCommandEvent& event) {
-    wxFileDialog fileDialog(this, "Save Team Data as CSV", "", "", "CSV files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-
-    int res = fileDialog.ShowModal();
-    if ( res != wxID_OK )
-        return;
-
-    wxString path = fileDialog.GetPath();
-
-    if ( !g_DataBase ) {
-        LogSQLError("Database not available, cannot export team data.");
-        return;
-    }
-
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
-    db->ExportTableToCSV(TEAM_TABLE, path.ToStdString());
-
-    // Read csv file into a string
-    std::ifstream file(path.ToStdString());
-    std::string csvData(( std::istreambuf_iterator< char >(file) ), std::istreambuf_iterator< char >());
-    file.close();
-
-    db->ExportTOQRCode(csvData, "TeamData.png");
-}
-
-/**
- * @brief Exports match data to a CSV file and generates a QR code for the data.
- *
- * This function opens a file dialog for the user to select the path and file name to save the match data as a CSV file.
- * It checks if the database is available, and if not, logs an error message. If the database is available, it exports
- * the match data from the database to the CSV file. After saving the file, it reads the CSV file into a string and generates
- * a QR code based on the CSV data, saving the QR code as an image file ("MatchData.png").
- *
- * @param event The wxCommandEvent triggered by the user action (e.g., button click).
- */
-void MainFrame::OnExportMatchDataCSV(wxCommandEvent& event) {
-    wxFileDialog fileDialog(this, "Save Match Data as CSV", "", "", "CSV files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-
-    int res = fileDialog.ShowModal();
-    if ( res != wxID_OK )
-        return;
-
-    wxString path = fileDialog.GetPath();
-
-    if ( !g_DataBase ) {
-        LogSQLError("Database not available, cannot export team data.");
-        return;
-    }
-
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
-    db->ExportTableToCSV(MATCH_TABLE, path.ToStdString());
-
-    // Read csv file into a string
-    std::ifstream file(path.ToStdString());
-    std::string csvData(( std::istreambuf_iterator< char >(file) ), std::istreambuf_iterator< char >());
-    file.close();
-
-    db->ExportTOQRCode(csvData, "MatchData.png");
-}
-
-/**
- * @brief Handles changes to cells in the wxGrid.
+/*
+ * @brief Clears the output in the SQL history text box.
  * 
- * This function is triggered when a cell in the wxGrid is modified. It determines 
- * whether the user is editing team data or match data based on the row label, 
- * updates the corresponding `Team` or `Match` object, and updates the database 
- * accordingly.
+ * This function finds the SQL history text box and clears its contents.
  * 
- * @param event The wxGridEvent containing information about the changed cell.
- * 
- * @note The function assumes that cell values can be safely converted to integers 
- *       where applicable. It does not handle conversion errors.
+ * @param Unused wxCommandEvent so this function can be
+ * bound to WX events like button clicks.
  */
-void MainFrame::OnGridCellChange(wxGridEvent& event) {
-    int row = event.GetRow();
-    int col = event.GetCol();
-    wxGrid* grid = reinterpret_cast< wxGrid* >( event.GetEventObject() );
-    
-    if ( !grid )
+void MainFrame::ClearOutput(wxCommandEvent&) {
+    wxTextCtrl* SQLHistoryTextBox = ( wxTextCtrl* ) FindWindow(kSQLHistoryTextBox);
+    if ( !SQLHistoryTextBox )
         return;
-
-    if ( !g_DataBase )
-        return;
-
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
-
-    wxString val = grid->GetCellValue(row, col);
-    bool editingTeam = grid->GetRowLabelValue(kRowTeamNum).Contains("Team");
-
-    if ( editingTeam ) {
-        Team team = GetTeamFromRow(m_currentSelectedTeamRow);
-        switch ( row ) {
-        case kRowTeamNum:
-            // team number
-            team.teamNum = std::stoi(val.ToStdString());
-            break;
-        case kRowOverall:
-            // overall score
-            team.overall = std::stoi(val.ToStdString());
-            break;
-        case kRowEliminated:
-            // eliminated status
-            team.eliminated = (val == "Y");
-            break;
-        case kRowHangAttempt:
-            // hang attempt
-            team.hangAttempt = ( val == "Y" );
-            break;
-        case kRowHangSuccess:
-            // hang success
-            team.hangSuccess = ( val == "Y" );
-            break;
-        case kRowRobotCycleSpeed:
-            // robot cycle speed
-            team.robotCycleSpeed = std::stoi(val.ToStdString());
-            break;
-        case kRowCoralPoints:
-            // coral points
-            team.coralPoints = std::stoi(val.ToStdString());
-            break;
-        case kRowDefense:
-            // defense
-            team.defense = std::stoi(val.ToStdString());
-            break;
-        case kRowAutonomousPoints:
-            // autonomous points
-            team.autonomousPoints = std::stoi(val.ToStdString());
-            break;
-        case kRowDriverSkill:
-            // driver skill
-            team.driverSkill = std::stoi(val.ToStdString());
-            break;
-        case kRowFouls:
-            // fouls
-            team.fouls = std::stoi(val.ToStdString());
-            break;
-        case kRowRankingPoints:
-            // ranking points
-            team.rankingPoints = std::stoi(val.ToStdString());
-            break;
-        case kRowPPM: 
-            // points per match
-            team.ppm = std::stoi(val.ToStdString());
-            break;
-        }
-        
-        db->UpdateTeam(team);
-        RefreshTeamRow(team.uid);
-        return;
-    }
-
-    Match match = GetMatchFromRow(m_currentSelectedMatchRow);
-    switch ( row ) {
-    case kRowMatchNum:
-        // match number
-        match.matchNum = std::stoi(val.ToStdString());
-        break;
-    case kRowPlayed:
-        // played status
-        match.played = ( val == "Y" );
-        break;
-    case kRowRedWin:
-        // red win status
-        match.redWin = ( val == "Y" );
-        break;
-    case kRowBlueWin:
-        // blue win status
-        match.blueWin = ( val == "Y" );
-        break;
-    case kRowTeam1:
-        match.teams[0].teamNum = std::stoi(val.ToStdString());
-        break;
-    case kRowTeam2:
-        match.teams[1].teamNum = std::stoi(val.ToStdString());
-        break;
-    case kRowTeam3:
-        match.teams[2].teamNum = std::stoi(val.ToStdString());
-        break;
-    case kRowTeam4:
-        match.teams[3].teamNum = std::stoi(val.ToStdString());
-        break;
-    case kRowTeam5:
-        match.teams[4].teamNum = std::stoi(val.ToStdString());
-        break;
-    case kRowTeam6:
-        match.teams[5].teamNum = std::stoi(val.ToStdString());
-        break;
-    }
-
-    db->UpdateMatch(match);
-    RefreshMatchRow(match.matchNum);
+    SQLHistoryTextBox->Clear();
 }
