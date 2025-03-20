@@ -59,6 +59,7 @@ public:
     // Exporting
     void ExportTableToJSON(const std::string& tableName, const std::string& outputFilename);
     void ExportTableToCSV(const std::string& tableName, const std::string& outputFilename);
+    void ExportTOQRCode(const std::string& content, const std::string& outputFilename);
 private:
     void Connect(); // Connect to the SQL database
     void Disconnect(); // Disconnect from the SQL database

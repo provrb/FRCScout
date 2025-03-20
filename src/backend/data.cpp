@@ -1,3 +1,5 @@
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+
 #include "data.h"
 #include "team.h" // Team struct
 #include "match.h" // Match struct
@@ -8,6 +10,8 @@
 #include <string> // std::string
 #include <sqlite3.h> 
 #include <json.hpp> // json
+#include <qrcodegen.hpp>
+#include <stb_image_write.h>
 
 /**
  * @brief Constructs a DataBase object and initializes the database.
@@ -770,6 +774,17 @@ Match DataBase::GetMatch(int matchNum) {
     return match;
 }
 
+/**
+ * @brief Retrieves all teams from the database.
+ *
+ * This function queries the database to select all rows from the `TEAM_TABLE`. It then iterates over each row
+ * in the result set, creating `Team` objects using the `Team::FromSQLStatement` function. These objects are
+ * added to a vector, which is returned to the caller.
+ *
+ * If there is an error in preparing the SQL statement, an error is logged, and an empty vector is returned.
+ *
+ * @return std::vector<Team> A vector containing all the teams retrieved from the database.
+ */
 std::vector<Team> DataBase::GetTeams() {
     std::vector<Team> teams = {};
     std::string query = std::format("SELECT * from {}", TEAM_TABLE);
@@ -795,6 +810,17 @@ std::vector<Team> DataBase::GetTeams() {
     return teams;
 }
 
+/**
+ * @brief Retrieves all matches from the database.
+ *
+ * This function queries the database to select all rows from the `MATCH_TABLE`. It then iterates over each row
+ * in the result set, creating `Match` objects using the `Match::FromSQLStatement` function. These objects are
+ * added to a vector, which is returned to the caller.
+ *
+ * If there is an error in preparing the SQL statement, an error is logged, and an empty vector is returned.
+ *
+ * @return std::vector<Match> A vector containing all the matches retrieved from the database.
+ */
 std::vector<Match> DataBase::GetMatches() {
     std::vector<Match> matches = {};
     std::string query = std::format("SELECT * from {}", MATCH_TABLE);
@@ -820,6 +846,15 @@ std::vector<Match> DataBase::GetMatches() {
     return matches;
 }
 
+/**
+ * @brief Generates a unique team UID (User Identifier) that does not already exist.
+ *
+ * This function generates a random 4-digit integer UID (between 1000 and 9999) using a random number generator.
+ * It checks if the generated UID already exists using the `TeamExistsUID` function. If the UID exists, the process
+ * repeats until a unique UID is found. The unique UID is then returned.
+ *
+ * @return int The unique team UID.
+ */
 int DataBase::GetNextTeamUID() {
     int uid = 0;
 
@@ -971,4 +1006,48 @@ void DataBase::ExportTableToCSV(const std::string& tableName, const std::string&
     }
 
     sqlite3_finalize(stmt);
+}
+
+// Not my code
+/**
+ * @brief Generates a QR code from the provided content and saves it as a PNG file.
+ *
+ * This function takes a string of content and generates a QR code with low error correction. It then creates an
+ * image representing the QR code in RGB format, scales it, and saves it to the specified file in PNG format. If
+ * the QR code image cannot be written to the file, an error is logged. A success message is logged once the QR
+ * code is successfully generated and saved.
+ *
+ * @param content The content to be encoded in the QR code.
+ * @param outputFilename The file path where the generated QR code image will be saved.
+ */
+void DataBase::ExportTOQRCode(const std::string& content, const std::string& outputFilename) {
+    // Create a QR code
+    qrcodegen::QrCode qr = qrcodegen::QrCode::encodeText(content.c_str(), qrcodegen::QrCode::Ecc::LOW);
+    
+    int size = qr.getSize();
+    int scale = 5;
+    int width = size * scale;
+    int height = size * scale;
+
+    unsigned char* image = new unsigned char[width * height * 3]; // RGB values
+
+    for ( int y = 0; y < height; ++y ) {
+        for ( int x = 0; x < width; ++x ) {
+            int qrX = x / scale;
+            int qrY = y / scale;
+
+            unsigned char color = qr.getModule(qrX, qrY) ? 0 : 255; // Black for 1, white for 0
+            image[( y * width + x ) * 3 + 0] = color; // R
+            image[( y * width + x ) * 3 + 1] = color; // G
+            image[( y * width + x ) * 3 + 2] = color; // B
+        }
+    }
+
+    if ( !stbi_write_png(outputFilename.c_str(), width, height, 3, image, width * 3) ) {
+        m_mainFrame->LogSQLError("Failed to write QR code to file.");
+    }
+
+    m_mainFrame->LogBackendMessage("QR code generated and saved to " + outputFilename);
+
+    delete[] image;
 }

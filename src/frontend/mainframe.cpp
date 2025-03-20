@@ -9,6 +9,7 @@
 // STD
 #include <filesystem> // exists(), absolute()
 #include <string>
+#include <fstream>
 
 /**
  * @brief Constructor for the MainFrame class, initializing the main window with a specified title.
@@ -560,6 +561,13 @@ void MainFrame::PromptMatchEdit(const Match& match) {
     }
 }
 
+/**
+ * @brief Resets the grid by clearing row labels and cell values.
+ *
+ * This function retrieves the grid object using the identifier `kEditItemGrid`. If the grid is found, it iterates
+ * over all the rows and clears the values in the first column (cell values) and resets the row labels to a default
+ * placeholder ("...").
+ */
 void MainFrame::DefaultEditGrid() {
     // get grid object
     wxGrid* grid = ( wxGrid* ) FindWindow(kEditItemGrid);
@@ -593,8 +601,11 @@ wxMenuBar* MainFrame::CreateMenuBar() {
 
     /// CSV
     wxMenu* exportCSV = new wxMenu;
-    wxMenuItem* exportTeamDataCSV = new wxMenuItem(NULL, kExportTeamDataCSV, "Team Data CSVV File");
-    wxMenuItem* exportMatchDataCSV = new wxMenuItem(NULL, kExportMatchDataCSV, "Match Data As .CSV File");
+    wxMenuItem* exportTeamDataCSV = new wxMenuItem(NULL, kExportTeamDataCSV, "Team Data As CSV and QR Code");
+    wxMenuItem* exportMatchDataCSV = new wxMenuItem(NULL, kExportMatchDataCSV, "Match Data As CSV and QR Code");
+
+    Bind(wxEVT_MENU, &MainFrame::OnExportTeamDataCSV, this, kExportTeamDataCSV);
+    Bind(wxEVT_MENU, &MainFrame::OnExportMatchDataCSV, this, kExportMatchDataCSV);
 
     // Add options to main exportCSV menu
     exportCSV->Append(exportTeamDataCSV);
@@ -878,6 +889,17 @@ void MainFrame::FillMatchRow(int row, const Match& match) {
     m_matchListView->SetItem(row, 9, std::to_string(match.Team6().teamNum));
 }
 
+/**
+ * @brief Logs a message to the SQL history text box with a specified text color.
+ *
+ * This function retrieves the SQL history text box, checks if it is valid, and logs the provided message to it.
+ * The message is displayed in the specified text color. If the message is empty or if the text box is not found,
+ * the function exits without performing any further actions. After appending the message, the text color is reset
+ * to the default style of the text box.
+ *
+ * @param msg The message to be logged and displayed in the text box.
+ * @param colour The color in which the message text will be displayed.
+ */
 void MainFrame::LogMessage(std::string msg, wxColour colour) {
     wxTextCtrl* SQLHistoryTextBox = ( wxTextCtrl* ) FindWindow(kSQLHistoryTextBox);
     if ( !SQLHistoryTextBox )
@@ -1203,6 +1225,76 @@ void MainFrame::OnDeleteMatch(wxCommandEvent& event) {
     m_displayedMatchCount--;
 
     LogMessage("Successfully deleted match " + std::to_string(match.matchNum) + "\n\n", *wxRED);
+}
+
+/**
+ * @brief Exports team data to a CSV file and generates a QR code for the data.
+ *
+ * This function opens a file dialog for the user to select the path and file name to save the team data as a CSV file.
+ * It checks if the database is available, and if not, logs an error message. If the database is available, it exports
+ * the team data from the database to the CSV file. After saving the file, it reads the CSV file into a string and generates
+ * a QR code based on the CSV data, saving the QR code as an image file ("TeamData.png").
+ *
+ * @param event The wxCommandEvent triggered by the user action (e.g., button click).
+ */
+void MainFrame::OnExportTeamDataCSV(wxCommandEvent& event) {
+    wxFileDialog fileDialog(this, "Save Team Data as CSV", "", "", "CSV files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    int res = fileDialog.ShowModal();
+    if ( res != wxID_OK )
+        return;
+
+    wxString path = fileDialog.GetPath();
+
+    if ( !g_DataBase ) {
+        LogSQLError("Database not available, cannot export team data.");
+        return;
+    }
+
+    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    db->ExportTableToCSV(TEAM_TABLE, path.ToStdString());
+
+    // Read csv file into a string
+    std::ifstream file(path.ToStdString());
+    std::string csvData(( std::istreambuf_iterator< char >(file) ), std::istreambuf_iterator< char >());
+    file.close();
+
+    db->ExportTOQRCode(csvData, "TeamData.png");
+}
+
+/**
+ * @brief Exports match data to a CSV file and generates a QR code for the data.
+ *
+ * This function opens a file dialog for the user to select the path and file name to save the match data as a CSV file.
+ * It checks if the database is available, and if not, logs an error message. If the database is available, it exports
+ * the match data from the database to the CSV file. After saving the file, it reads the CSV file into a string and generates
+ * a QR code based on the CSV data, saving the QR code as an image file ("MatchData.png").
+ *
+ * @param event The wxCommandEvent triggered by the user action (e.g., button click).
+ */
+void MainFrame::OnExportMatchDataCSV(wxCommandEvent& event) {
+    wxFileDialog fileDialog(this, "Save Match Data as CSV", "", "", "CSV files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    int res = fileDialog.ShowModal();
+    if ( res != wxID_OK )
+        return;
+
+    wxString path = fileDialog.GetPath();
+
+    if ( !g_DataBase ) {
+        LogSQLError("Database not available, cannot export team data.");
+        return;
+    }
+
+    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    db->ExportTableToCSV(MATCH_TABLE, path.ToStdString());
+
+    // Read csv file into a string
+    std::ifstream file(path.ToStdString());
+    std::string csvData(( std::istreambuf_iterator< char >(file) ), std::istreambuf_iterator< char >());
+    file.close();
+
+    db->ExportTOQRCode(csvData, "MatchData.png");
 }
 
 /**

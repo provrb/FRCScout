@@ -100,7 +100,8 @@ private:
     void OnCreateNewMatch(wxCommandEvent& event);
     void OnDeleteTeam(wxCommandEvent& event);
     void OnDeleteMatch(wxCommandEvent& event);
-
+    void OnExportTeamDataCSV(wxCommandEvent& event);
+    void OnExportMatchDataCSV(wxCommandEvent& event);
     void OnGridCellChange(wxGridEvent& event);
 
     bool m_isEditModeEnabled;

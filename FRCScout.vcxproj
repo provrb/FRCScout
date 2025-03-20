@@ -205,6 +205,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ext\qrcodegen.cpp" />
     <ClCompile Include="src\backend\data.cpp" />
     <ClCompile Include="src\backend\match.cpp" />
     <ClCompile Include="src\backend\team.cpp" />
@@ -224,8 +225,10 @@
     <ClInclude Include="api\frontend\wxids.h" />
     <ClInclude Include="ext\json.hpp" />
     <ClInclude Include="ext\json_fwd.hpp" />
+    <ClInclude Include="ext\qrcodegen.hpp" />
     <ClInclude Include="ext\sqlite3.h" />
     <ClInclude Include="ext\sqlite3ext.h" />
+    <ClInclude Include="ext\stb_image_write.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="out\release\FRCScout.exe" />
