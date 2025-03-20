@@ -1205,7 +1205,19 @@ void MainFrame::OnDeleteMatch(wxCommandEvent& event) {
     LogMessage("Successfully deleted match " + std::to_string(match.matchNum) + "\n\n", *wxRED);
 }
 
-// TODO: Update the row the item is in
+/**
+ * @brief Handles changes to cells in the wxGrid.
+ * 
+ * This function is triggered when a cell in the wxGrid is modified. It determines 
+ * whether the user is editing team data or match data based on the row label, 
+ * updates the corresponding `Team` or `Match` object, and updates the database 
+ * accordingly.
+ * 
+ * @param event The wxGridEvent containing information about the changed cell.
+ * 
+ * @note The function assumes that cell values can be safely converted to integers 
+ *       where applicable. It does not handle conversion errors.
+ */
 void MainFrame::OnGridCellChange(wxGridEvent& event) {
     int row = event.GetRow();
     int col = event.GetCol();
