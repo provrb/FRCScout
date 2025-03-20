@@ -3,8 +3,6 @@
 #include <wx/app.h>
 #include <wx/display.h>
 
-#define APP_NAME "FRCScout"
-
 /**
  * @brief The main application class for the wxWidgets UI.
  *

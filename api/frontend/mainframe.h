@@ -11,6 +11,8 @@
 #include "backend/team.h" // Team struct
 #include "backend/match.h" // Match struct
 
+#define APP_NAME "FRCScout"
+
 /**
  * Global database used by the frontend to communicate
  * with the backend
@@ -69,9 +71,11 @@ private:
     void ShowMatchEditGrid(); // show options for editing a match struct in the editing grid
     void PromptTeamEdit(const Team& team);
     void PromptMatchEdit(const Match& match);
+    void DefaultEditGrid(); // set the editing grid to default values
+
     void CreateTeamRow(const Team& team); // create a row with info from 'team' in teamListView
     void CreateMatchRow(const Match& match); // create a row with info from 'match' in matchListView
-    void RefreshTeamRow(int teamNum);
+    void RefreshTeamRow(int uid);
     void RefreshMatchRow(int matchNum);
     void FillMatchRow(int row, const Match& match);
     void FillTeamRow(int row, const Team& team);
@@ -80,7 +84,8 @@ private:
     const Match GetMatchFromRow(int row);
 
     wxTextCtrl* CreateSQLOutputBox(wxPanel* panel); // Create a wxTextCtrl that will show all SQL output
-    void LogSQLQuery(std::string queryHistory); // add a completed query to SQL output
+    void LogMessage(std::string msg, wxColour colour = *wxBLACK); // log a message to the SQL output with text colour 'colour'
+    void LogSQLQuery(std::string query); // add a completed query to SQL output
     void LogSQLError(std::string errorMsg); // print a red error message in SQL output with prefix "ERROR>"
     void LogBackendMessage(std::string msg); // print a blue message in SQL output with prefix "MSG>"
 

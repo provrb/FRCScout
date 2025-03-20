@@ -6,6 +6,10 @@
 // Backend
 #include "backend/data.h" // DataBase class
 
+// STD
+#include <filesystem> // exists(), absolute()
+#include <string>
+
 /**
  * @brief Constructor for the MainFrame class, initializing the main window with a specified title.
  *
@@ -25,8 +29,12 @@ MainFrame::MainFrame(const wxString& title)
     : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(800, 600)) // Initial window size
 {
     // Create global database
-    DataBase* db = new DataBase("data.db", this);
+    DataBase* db = new DataBase(DB_PATH, this);
     g_DataBase = reinterpret_cast< void* >( db );
+
+    // set the window title to app name - database path
+    // e.g: "FRCScout - C:\Users\user\Desktop\data.db"
+    this->SetTitle(std::string(APP_NAME) + " - " + std::filesystem::absolute(DB_PATH).string());
 
     // Panels
     wxPanel* panel = new wxPanel(this, wxID_ANY);
@@ -66,8 +74,11 @@ MainFrame::MainFrame(const wxString& title)
 
     // Add menu bar
     CreateMenuBar();
-    
+   
     DisplayExistingData();
+
+    CreateStatusBar();
+    SetStatusText(wxString::Format("FRCScout - %d Teams, %d Matches", m_displayedTeamCount, m_displayedMatchCount));
 }
 
 /**
@@ -157,13 +168,13 @@ void MainFrame::AddTeamListColumns() {
     m_teamListView->AppendColumn("Out", wxLIST_FORMAT_CENTER, teamListWidth * 0.05);
     m_teamListView->AppendColumn("Hang Attempt", wxLIST_FORMAT_CENTER, teamListWidth * 0.1);
     m_teamListView->AppendColumn("Hang Success", wxLIST_FORMAT_CENTER, teamListWidth * 0.1);
-    m_teamListView->AppendColumn("Robot Cycle Speed", wxLIST_FORMAT_CENTER, teamListWidth * 0.12);
+    m_teamListView->AppendColumn("Cycle Speed", wxLIST_FORMAT_CENTER, teamListWidth * 0.085);
     m_teamListView->AppendColumn("Coral Points", wxLIST_FORMAT_CENTER, teamListWidth * 0.085);
     m_teamListView->AppendColumn("Defense", wxLIST_FORMAT_CENTER, teamListWidth * 0.06);
     m_teamListView->AppendColumn("Auto. Points", wxLIST_FORMAT_CENTER, teamListWidth * 0.085);
     m_teamListView->AppendColumn("Driver Skill", wxLIST_FORMAT_CENTER, teamListWidth * 0.08);
     m_teamListView->AppendColumn("Fouls", wxLIST_FORMAT_CENTER, teamListWidth * 0.06);
-    m_teamListView->AppendColumn("Ranking Points", wxLIST_FORMAT_CENTER, teamListWidth * 0.1);
+    m_teamListView->AppendColumn("Rank Points", wxLIST_FORMAT_CENTER, teamListWidth * 0.085);
     m_teamListView->AppendColumn("PPM", wxLIST_FORMAT_CENTER, teamListWidth * 0.06); // points per match
 }
 
@@ -276,8 +287,10 @@ wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
     grid->SetColSize(0, 230);
     grid->SetRowSize(35, 31);
 
+    DefaultEditGrid();
+
     // Set row size, disable row resize, and set default row value for all rows
-    for ( int i = 0; i < 36; i++ ) {
+    for ( int i = 0; i < grid->GetNumberRows(); i++ ) {
         if ( i % 2 == 0 ) {
             grid->SetLabelBackgroundColour(LIGHT_GRAY_ACCENT_1);
             grid->SetCellBackgroundColour(i, 0, LIGHT_GRAY_ACCENT_1);
@@ -288,7 +301,6 @@ wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
         }
         grid->DisableRowResize(i);
         grid->SetRowSize(i, 25);
-        grid->SetRowLabelValue(i, "...");
     }
 
     grid->Bind(wxEVT_GRID_CELL_CHANGED, &MainFrame::OnGridCellChange, this);
@@ -336,6 +348,14 @@ wxTextCtrl* MainFrame::CreateSQLOutputBox(wxPanel* rightPanel) {
     // Set the font
     sqlOutput->SetFont(font);
 
+    // Title above the box
+    wxStaticText* gridTitle = new wxStaticText(rightPanel, kEditingDataTitle, "Log Output", wxPoint(425, 10), wxDefaultSize, 0);
+    gridTitle->SetFont(wxFontInfo(18).Bold());
+
+    // Description above the box
+    wxStaticText* gridDesc = new wxStaticText(rightPanel, kEditingDataDesc, "Real-time logs", wxPoint(425, 41), wxDefaultSize, 0);
+    gridDesc->SetFont(wxFontInfo(10));
+
     return sqlOutput;
 }
 
@@ -351,6 +371,8 @@ void MainFrame::ShowTeamEditGrid() {
     wxGrid* grid = ( wxGrid* ) FindWindow(kEditItemGrid);
     if ( !grid )
         return;
+
+    DefaultEditGrid();
 
     grid->SetReadOnly(kRowTeamNum, 0, false);
     grid->SetRowLabelValue(kRowTeamNum, "Team #");
@@ -380,6 +402,8 @@ void MainFrame::ShowMatchEditGrid() {
     if ( !grid )
         return;
 
+    DefaultEditGrid();
+
     grid->SetReadOnly(kRowMatchNum, 0, true);
     grid->SetRowLabelValue(kRowMatchNum, "Match #");
     grid->SetRowLabelValue(kRowPlayed, "Finished (Y/N)");
@@ -393,6 +417,27 @@ void MainFrame::ShowMatchEditGrid() {
     grid->SetRowLabelValue(kRowTeam6, "Team 6 #");
 }
 
+/**
+ * @brief Displays the team details in an editable grid for modification.
+ *
+ * This function sets up the editing grid for a given team, where the user can modify
+ * various attributes of the team, such as overall performance, robot cycle speed,
+ * defense, and other statistics. The grid is populated with the team's data and
+ * appropriate cell editors are set to allow for different types of input. It also
+ * updates the grid's title and description based on whether editing mode is enabled.
+ *
+ * @param team The team object whose details are displayed and can be edited.
+ *
+ * @note The grid allows for editing numerical values (e.g., team number, overall points, etc.)
+ * and selection-based values (e.g., eliminated status, hang attempt, etc.).
+ *
+ * @note If editing mode is disabled, the grid will display the team’s information in
+ * read-only mode.
+ *
+ * @see wxGridCellNumberEditor
+ * @see wxGridCellChoiceEditor
+ * @see ShowTeamEditGrid()
+ */
 void MainFrame::PromptTeamEdit(const Team& team) {
     // show details of team in editing grid
     ShowTeamEditGrid();
@@ -426,14 +471,14 @@ void MainFrame::PromptTeamEdit(const Team& team) {
     grid->SetCellEditor(kRowEliminated, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
     grid->SetCellEditor(kRowHangAttempt, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
     grid->SetCellEditor(kRowHangSuccess, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
-    grid->SetCellEditor(kRowRobotCycleSpeed, 0, new wxGridCellNumberEditor(0));
-    grid->SetCellEditor(kRowCoralPoints, 0, new wxGridCellNumberEditor(0));
+    grid->SetCellEditor(kRowRobotCycleSpeed, 0, new wxGridCellNumberEditor());
+    grid->SetCellEditor(kRowCoralPoints, 0, new wxGridCellNumberEditor());
     grid->SetCellEditor(kRowDefense, 0, new wxGridCellNumberEditor(0, 100));
-    grid->SetCellEditor(kRowAutonomousPoints, 0, new wxGridCellNumberEditor(0));
+    grid->SetCellEditor(kRowAutonomousPoints, 0, new wxGridCellNumberEditor());
     grid->SetCellEditor(kRowDriverSkill, 0, new wxGridCellNumberEditor(0, 100));
-    grid->SetCellEditor(kRowFouls, 0, new wxGridCellNumberEditor(0));
-    grid->SetCellEditor(kRowRankingPoints, 0, new wxGridCellNumberEditor(0));
-    grid->SetCellEditor(kRowPPM, 0, new wxGridCellNumberEditor(0));
+    grid->SetCellEditor(kRowFouls, 0, new wxGridCellNumberEditor());
+    grid->SetCellEditor(kRowRankingPoints, 0, new wxGridCellNumberEditor());
+    grid->SetCellEditor(kRowPPM, 0, new wxGridCellNumberEditor());
 
     // Set grid title and description
     wxStaticText* gridTitle = ( wxStaticText* ) FindWindow(kEditingDataTitle);
@@ -449,6 +494,21 @@ void MainFrame::PromptTeamEdit(const Team& team) {
     }
 }
 
+/**
+ * @brief Prompts the user to edit details of a given match in an editable grid.
+ *
+ * This function displays a grid for editing match details, populating it with values from the
+ * provided match object. The user can either view or modify the match details based on the
+ * current edit mode setting.
+ *
+ * @param match The match object containing the match details to be displayed and edited.
+ *
+ * @note This function updates grid cell values with match data such as the match number,
+ *       teams participating, and match results (e.g., red and blue team wins).
+ *       It also sets up cell editors for numeric values and choice cells (e.g., "Y" or "N").
+ *       The grid is displayed with appropriate titles and descriptions indicating whether
+ *       the user is in edit or view mode.
+ */
 void MainFrame::PromptMatchEdit(const Match& match) {
     std::string matchNum = std::to_string(match.matchNum);
 
@@ -500,6 +560,19 @@ void MainFrame::PromptMatchEdit(const Match& match) {
     }
 }
 
+void MainFrame::DefaultEditGrid() {
+    // get grid object
+    wxGrid* grid = ( wxGrid* ) FindWindow(kEditItemGrid);
+    if ( !grid )
+        return;
+
+    // Remove any existing data in row labels
+    for ( int i = 0; i < grid->GetNumberRows(); i++ ) {
+        grid->SetCellValue(i, 0, "");
+        grid->SetRowLabelValue(i, "...");
+    }
+}
+
 /**
  * @brief Creates and returns the main menu bar for the application.
  *
@@ -542,9 +615,9 @@ wxMenuBar* MainFrame::CreateMenuBar() {
     // Add a submenu 'Export CSV Options' to Export menu
     menuExport->AppendSubMenu(exportJSON, "&Export JSON Options");
 
-    // Import options
+    // TODO: Import options
 
-
+    // Setup Menu Bar
     wxMenuBar* menuBar = new wxMenuBar;
     menuBar->Append(menuFile, "&File");
     menuBar->Append(menuExport, "&Export");
@@ -554,22 +627,36 @@ wxMenuBar* MainFrame::CreateMenuBar() {
     return menuBar;
 }
 
+/**
+ * @brief Retrieves a Team object corresponding to a specific row in the team list view.
+ *
+ * This function retrieves the unique identifier (UID) for the team from the specified row
+ * and queries the database to return the corresponding Team object.
+ *
+ * @param row The row index from which to retrieve the team.
+ *
+ * @return A Team object corresponding to the row, or an empty Team object if the row index is invalid.
+ */
 const Team MainFrame::GetTeamFromRow(int row) {
-    if ( row > this->m_displayedTeamCount || !g_DataBase ) {
-        LogBackendMessage("Row (" + std::to_string(row) + 
-            ") is greater than displayed team count (" 
-            + std::to_string(this->m_displayedTeamCount) + ")");
+    if ( row > this->m_displayedTeamCount || !g_DataBase )
         return {};
-    }
 
     DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
     int uid = m_teamListView->GetItemData(row);
 
-    LogBackendMessage("Getting team with UID: " + std::to_string(uid));
-
     return db->GetTeam(uid);
 }
 
+/**
+ * @brief Retrieves a Match object corresponding to a specific row in the match list view.
+ *
+ * This function extracts the match number from the specified row and queries the database
+ * to return the corresponding Match object.
+ *
+ * @param row The row index from which to retrieve the match.
+ *
+ * @return A Match object corresponding to the row, or an empty Match object if the row index is invalid.
+ */
 const Match MainFrame::GetMatchFromRow(int row) {
     if ( row > this->m_displayedMatchCount || !g_DataBase )
         return {};
@@ -622,7 +709,8 @@ void MainFrame::CreateTeamRow(const Team& team) {
 
     m_currentSelectedTeamRow = m_displayedTeamCount;
     m_teamListView->SetItemData(itemId, team.uid);
-    LogBackendMessage("Set item metadata for team uid " + std::to_string(team.uid));
+
+    SetStatusText(wxString::Format("FRCScout - %d Teams, %d Matches", m_displayedTeamCount, m_displayedMatchCount));
 }
 
 /**
@@ -659,20 +747,35 @@ void MainFrame::CreateMatchRow(const Match& match) {
     m_matchListView->Bind(wxEVT_LIST_ITEM_RIGHT_CLICK, &MainFrame::OnMatchRowRightClicked, this);
 
     m_currentSelectedMatchRow = m_displayedMatchCount;
+
+    SetStatusText(wxString::Format("FRCScout - %d Teams, %d Matches", m_displayedTeamCount, m_displayedMatchCount));
 }
 
-void MainFrame::RefreshTeamRow(int teamNum) {
+/**
+ * @brief Refreshes the row displaying a team's data in the team list view.
+ *
+ * This function retrieves the latest data for a given team from the database
+ * and updates the corresponding row in the team list view.
+ *
+ * @param uid The UID of the team to refresh
+ *
+ * @note If the team is not found in the displayed list, the function exits without making changes.
+ *
+ * @see FillTeamRow
+ */
+void MainFrame::RefreshTeamRow(int uid) {
     if ( !m_teamListView || !g_DataBase )
         return;
 
     DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
-    const Team team = db->GetTeam(teamNum);
+    const Team team = db->GetTeam(uid);
 
     // Find the row with the team number
     int row = -1;
-    for ( int i = 0; i < m_displayedTeamCount; i++ ) {
-        if ( m_teamListView->GetItemText(i) == std::to_string(teamNum) ) {
-            row = i;
+    for ( int tempRow = 0; tempRow < m_displayedTeamCount; tempRow++ ) {
+        // check item data (saved team uid) is equal to team uid to update
+        if ( m_teamListView->GetItemData(tempRow) == uid ) {
+            row = tempRow;
             break;
         }
     }
@@ -684,6 +787,18 @@ void MainFrame::RefreshTeamRow(int teamNum) {
     FillTeamRow(row, team);
 }
 
+/**
+ * @brief Refreshes the row displaying a match's data in the match list view.
+ *
+ * This function retrieves the latest data for a given match from the database
+ * and updates the corresponding row in the match list view.
+ *
+ * @param matchNum The match number to refresh.
+ *
+ * @note If the match is not found in the displayed list, the function exits without making changes.
+ *
+ * @see FillMatchRow
+ */
 void MainFrame::RefreshMatchRow(int matchNum) {
     if ( !m_matchListView || !g_DataBase )
         return;
@@ -707,6 +822,17 @@ void MainFrame::RefreshMatchRow(int matchNum) {
     FillMatchRow(row, match);
 }
 
+/**
+ * @brief Fills a row in the team list view with data from a Team object.
+ *
+ * This function updates the list view with details such as team number, performance metrics,
+ * match statistics, and ranking points.
+ *
+ * @param row The row index to update in the team list view.
+ * @param team The Team object containing the data to populate the row.
+ *
+ * @note If the list view is not initialized, the function exits without making changes.
+ */
 void MainFrame::FillTeamRow(int row, const Team& team) {
     if ( !m_teamListView )
         return;
@@ -726,6 +852,16 @@ void MainFrame::FillTeamRow(int row, const Team& team) {
     m_teamListView->SetItem(row, 12, std::to_string(team.ppm));
 }
 
+/**
+ * @brief Fills a row in the match list view with data from a Match object.
+ *
+ * This function updates the list view with details such as match number, teams, and match outcomes.
+ *
+ * @param row The row index to update in the match list view.
+ * @param match The Match object containing the data to populate the row.
+ *
+ * @note If the list view is not initialized, the function exits without making changes.
+ */
 void MainFrame::FillMatchRow(int row, const Match& match) {
     if ( !m_matchListView )
         return;
@@ -742,24 +878,31 @@ void MainFrame::FillMatchRow(int row, const Match& match) {
     m_matchListView->SetItem(row, 9, std::to_string(match.Team6().teamNum));
 }
 
+void MainFrame::LogMessage(std::string msg, wxColour colour) {
+    wxTextCtrl* SQLHistoryTextBox = ( wxTextCtrl* ) FindWindow(kSQLHistoryTextBox);
+    if ( !SQLHistoryTextBox )
+        return;
+
+    if ( msg.empty() )
+        return;
+
+    static const wxTextAttr defaultAttr = SQLHistoryTextBox->GetDefaultStyle();
+    SQLHistoryTextBox->SetDefaultStyle(wxTextAttr(colour)); // change text colour to red
+    SQLHistoryTextBox->AppendText(msg);
+    SQLHistoryTextBox->SetDefaultStyle(defaultAttr); // reset text colour
+}
+
 /**
  * @brief Updates the SQL query history in the text box.
  *
  * This function appends an SQL query that was ran by the backend, prefixed by
  * "SQL> ". Used to display all executed SQL queries for debugging purposes.
  *
- * @param queryHistory The SQL query string to append.
+ * @param query The SQL query string to append.
  */
-void MainFrame::LogSQLQuery(std::string queryHistory) {
-    wxTextCtrl* SQLHistoryTextBox = ( wxTextCtrl* ) FindWindow(kSQLHistoryTextBox);
-    if ( !SQLHistoryTextBox )
-        return;
-
-    if ( queryHistory.empty() )
-        return;
-
-    queryHistory = "SQL> " + queryHistory + "\n\n";
-    SQLHistoryTextBox->AppendText(queryHistory);
+void MainFrame::LogSQLQuery(std::string query) {
+    query = "SQL> " + query + "\n\n";
+    LogMessage(query);
 
     return;
 }
@@ -773,19 +916,8 @@ void MainFrame::LogSQLQuery(std::string queryHistory) {
  * @param errorMsg The error message to log.
  */
 void MainFrame::LogSQLError(std::string errorMsg) {
-    wxTextCtrl* SQLHistoryTextBox = ( wxTextCtrl* ) FindWindow(kSQLHistoryTextBox);
-    if ( !SQLHistoryTextBox )
-        return;
-
-    if ( errorMsg.empty() )
-        return;
-
     errorMsg = "ERROR> " + errorMsg + "\n\n";
-
-    const wxTextAttr defaultAttr = SQLHistoryTextBox->GetDefaultStyle();
-    SQLHistoryTextBox->SetDefaultStyle(wxTextAttr(*wxRED)); // change text colour to red
-    SQLHistoryTextBox->AppendText(errorMsg);
-    SQLHistoryTextBox->SetDefaultStyle(defaultAttr); // reset text colour
+    LogMessage(errorMsg, *wxRED);
 }
 
 /**
@@ -797,19 +929,8 @@ void MainFrame::LogSQLError(std::string errorMsg) {
  * @param msg The backend message to log.
  */
 void MainFrame::LogBackendMessage(std::string msg) {
-    wxTextCtrl* SQLHistoryTextBox = ( wxTextCtrl* ) FindWindow(kSQLHistoryTextBox);
-    if ( !SQLHistoryTextBox )
-        return;
-
-    if ( msg.empty() )
-        return;
-
     msg = "MSG> " + msg + "\n\n";
-
-    const wxTextAttr defaultAttr = SQLHistoryTextBox->GetDefaultStyle();
-    SQLHistoryTextBox->SetDefaultStyle(wxTextAttr(*wxBLUE)); // set text colour to blue
-    SQLHistoryTextBox->AppendText(msg);
-    SQLHistoryTextBox->SetDefaultStyle(defaultAttr); // reset text colour
+    LogMessage(msg, *wxBLUE);
 }
 
 /**
@@ -826,7 +947,6 @@ void MainFrame::OnTeamRowLeftClicked(wxCommandEvent& event) {
     if ( m_currentSelectedTeamRow == row ) // information would already be displayed, don't bother recalculating
         return;
 
-    LogBackendMessage("Team row selected: " + std::to_string(row));
     m_currentSelectedTeamRow = row;
     const Team team = GetTeamFromRow(row);
 
@@ -976,7 +1096,7 @@ void MainFrame::OnToggleEditMode(wxCommandEvent& event) {
 void MainFrame::OnCreateNewTeam(wxCommandEvent& event) {
     // check if database is active and add it to database, otherwise return
     if ( !g_DataBase ) {
-        LogBackendMessage("Database not available, cannot save team. Closing this app will delete all progress.");
+        LogMessage("Database not available, cannot save team. Closing this app will delete all progress.", *wxRED);
         return;
     }
 
@@ -1007,7 +1127,7 @@ void MainFrame::OnCreateNewMatch(wxCommandEvent& event) {
 
     // data base check
     if ( !g_DataBase ) {
-        LogBackendMessage("Database not available, cannot save team. Closing this app will delete all progress.");
+        LogMessage("Database not available, cannot save team. Closing this app will delete all progress.", *wxRED);
         return;
     }
 
@@ -1047,6 +1167,8 @@ void MainFrame::OnDeleteTeam(wxCommandEvent& event) {
     // remove team from list view
     m_teamListView->DeleteItem(m_currentSelectedTeamRow);
     m_displayedTeamCount--;
+
+    LogMessage("Successfully deleted team " + std::to_string(team.teamNum) + "\n\n", *wxRED);
 }
 
 /**
@@ -1079,24 +1201,127 @@ void MainFrame::OnDeleteMatch(wxCommandEvent& event) {
     // remove match from list view
     m_matchListView->DeleteItem(m_currentSelectedMatchRow);
     m_displayedMatchCount--;
+
+    LogMessage("Successfully deleted match " + std::to_string(match.matchNum) + "\n\n", *wxRED);
 }
 
-// TODO: Update the row the team is in
+// TODO: Update the row the item is in
 void MainFrame::OnGridCellChange(wxGridEvent& event) {
-    //int row = event.GetRow();
-    //int col = event.GetCol();
-    //wxGrid* grid = reinterpret_cast< wxGrid* >( event.GetEventObject() );
-    //
-    //if ( !grid )
-    //    return;
+    int row = event.GetRow();
+    int col = event.GetCol();
+    wxGrid* grid = reinterpret_cast< wxGrid* >( event.GetEventObject() );
+    
+    if ( !grid )
+        return;
 
-    //wxString val = grid->GetCellValue(row, col);
-    //const Team team = GetTeamFromRow(m_currentSelectedTeamRow);
+    if ( !g_DataBase )
+        return;
 
-    //switch ( row ) {
-    //case kColTeamNum: {
-    //    // team number
-    //    
-    //    break;
-    //}
+    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+
+    wxString val = grid->GetCellValue(row, col);
+    bool editingTeam = grid->GetRowLabelValue(kRowTeamNum).Contains("Team");
+
+    if ( editingTeam ) {
+        Team team = GetTeamFromRow(m_currentSelectedTeamRow);
+        switch ( row ) {
+        case kRowTeamNum:
+            // team number
+            team.teamNum = std::stoi(val.ToStdString());
+            break;
+        case kRowOverall:
+            // overall score
+            team.overall = std::stoi(val.ToStdString());
+            break;
+        case kRowEliminated:
+            // eliminated status
+            team.eliminated = (val == "Y");
+            break;
+        case kRowHangAttempt:
+            // hang attempt
+            team.hangAttempt = ( val == "Y" );
+            break;
+        case kRowHangSuccess:
+            // hang success
+            team.hangSuccess = ( val == "Y" );
+            break;
+        case kRowRobotCycleSpeed:
+            // robot cycle speed
+            team.robotCycleSpeed = std::stoi(val.ToStdString());
+            break;
+        case kRowCoralPoints:
+            // coral points
+            team.coralPoints = std::stoi(val.ToStdString());
+            break;
+        case kRowDefense:
+            // defense
+            team.defense = std::stoi(val.ToStdString());
+            break;
+        case kRowAutonomousPoints:
+            // autonomous points
+            team.autonomousPoints = std::stoi(val.ToStdString());
+            break;
+        case kRowDriverSkill:
+            // driver skill
+            team.driverSkill = std::stoi(val.ToStdString());
+            break;
+        case kRowFouls:
+            // fouls
+            team.fouls = std::stoi(val.ToStdString());
+            break;
+        case kRowRankingPoints:
+            // ranking points
+            team.rankingPoints = std::stoi(val.ToStdString());
+            break;
+        case kRowPPM: 
+            // points per match
+            team.ppm = std::stoi(val.ToStdString());
+            break;
+        }
+        
+        db->UpdateTeam(team);
+        RefreshTeamRow(team.uid);
+        return;
+    }
+
+    Match match = GetMatchFromRow(m_currentSelectedMatchRow);
+    switch ( row ) {
+    case kRowMatchNum:
+        // match number
+        match.matchNum = std::stoi(val.ToStdString());
+        break;
+    case kRowPlayed:
+        // played status
+        match.played = ( val == "Y" );
+        break;
+    case kRowRedWin:
+        // red win status
+        match.redWin = ( val == "Y" );
+        break;
+    case kRowBlueWin:
+        // blue win status
+        match.blueWin = ( val == "Y" );
+        break;
+    case kRowTeam1:
+        match.teams[0].teamNum = std::stoi(val.ToStdString());
+        break;
+    case kRowTeam2:
+        match.teams[1].teamNum = std::stoi(val.ToStdString());
+        break;
+    case kRowTeam3:
+        match.teams[2].teamNum = std::stoi(val.ToStdString());
+        break;
+    case kRowTeam4:
+        match.teams[3].teamNum = std::stoi(val.ToStdString());
+        break;
+    case kRowTeam5:
+        match.teams[4].teamNum = std::stoi(val.ToStdString());
+        break;
+    case kRowTeam6:
+        match.teams[5].teamNum = std::stoi(val.ToStdString());
+        break;
+    }
+
+    db->UpdateMatch(match);
+    RefreshMatchRow(match.matchNum);
 }
