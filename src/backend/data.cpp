@@ -254,7 +254,7 @@ void DataBase::UpdateTeam(const Team& team) {
     sqlite3_bind_int(stmt, 10, team.penaltys);
     sqlite3_bind_int(stmt, 11, team.overall);
     sqlite3_bind_int(stmt, 12, team.rankingPoints);
-    sqlite3_bind_int(stmt, 14, team.uid);
+    sqlite3_bind_int(stmt, 13, team.uid);
 
     AddQueryToHistory(stmt);
 

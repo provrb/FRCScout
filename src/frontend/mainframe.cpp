@@ -456,12 +456,12 @@ void MainFrame::ShowMatchEditGrid() {
     grid->SetRowLabelValue(kRowMatchNum, "Match #");
     grid->SetRowLabelValue(kRowRedWin, "Red Win (Y/N)");
     grid->SetRowLabelValue(kRowBlueWin, "Blue Win (Y/N)");
-    grid->SetRowLabelValue(kRowRed1, "Team 1 #");
-    grid->SetRowLabelValue(kRowRed2, "Team 2 #");
-    grid->SetRowLabelValue(kRowRed3, "Team 3 #");
-    grid->SetRowLabelValue(kRowBlue4, "Team 4 #");
-    grid->SetRowLabelValue(kRowBlue5, "Team 5 #");
-    grid->SetRowLabelValue(kRowBlue6, "Team 6 #");
+    grid->SetRowLabelValue(kRowRed1, "Red 1");
+    grid->SetRowLabelValue(kRowRed2, "Red 2");
+    grid->SetRowLabelValue(kRowRed3, "Red 3");
+    grid->SetRowLabelValue(kRowBlue4, "Blue 4");
+    grid->SetRowLabelValue(kRowBlue5, "Blue 5");
+    grid->SetRowLabelValue(kRowBlue6, "Blue 6");
 }
 
 /**
@@ -500,8 +500,8 @@ void MainFrame::PromptTeamEdit(const Team& team) {
 
     // Set cell values
     grid->SetCellValue(kRowTeamNum, 0, teamNum);
-    grid->SetCellValue(kRowOverall, 0, std::to_string(team.overall));
     grid->SetCellValue(kRowInMatchNum, 0, std::to_string(team.matchNum));
+    grid->SetCellValue(kRowOverall, 0, std::to_string(team.overall));
     grid->SetCellValue(kRowHangAttempt, 0, ( team.hangAttempt ) ? "Y" : "N");
     grid->SetCellValue(kRowHangSuccess, 0, ( team.hangSuccess ) ? "Y" : "N");
     grid->SetCellValue(kRowRobotCycleSpeed, 0, std::to_string(team.robotCycleSpeed));
@@ -513,8 +513,8 @@ void MainFrame::PromptTeamEdit(const Team& team) {
     grid->SetCellValue(kRowRankingPoints, 0, std::to_string(team.rankingPoints));
 
     grid->SetCellEditor(kRowTeamNum, 0, new wxGridCellNumberEditor(0, 10000));
-    grid->SetCellEditor(kRowOverall, 0, new wxGridCellNumberEditor(0, 100));
     grid->SetCellEditor(kRowInMatchNum, 0, new wxGridCellNumberEditor(0, 1000));
+    grid->SetCellEditor(kRowOverall, 0, new wxGridCellNumberEditor(0, 100));
     grid->SetCellEditor(kRowHangAttempt, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
     grid->SetCellEditor(kRowHangSuccess, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
     grid->SetCellEditor(kRowRobotCycleSpeed, 0, new wxGridCellNumberEditor());
@@ -898,8 +898,8 @@ void MainFrame::FillTeamRow(int row, const Team& team) {
         return;
 
     m_teamListView->SetItem(row, 0, std::to_string(team.teamNum));
-    m_teamListView->SetItem(row, 1, std::to_string(team.overall));
-    m_teamListView->SetItem(row, 2, std::to_string(team.matchNum));
+    m_teamListView->SetItem(row, 1, std::to_string(team.matchNum));
+    m_teamListView->SetItem(row, 2, std::to_string(team.overall));
     m_teamListView->SetItem(row, 3, ( team.hangAttempt ) ? "Y" : "N");
     m_teamListView->SetItem(row, 4, ( team.hangSuccess ) ? "Y" : "N");
     m_teamListView->SetItem(row, 5, std::to_string(team.robotCycleSpeed));
@@ -1510,13 +1510,13 @@ void MainFrame::OnGridCellChange(wxGridEvent& event) {
             // team number
             team.teamNum = std::stoi(val.ToStdString());
             break;
-        case kRowOverall:
-            // overall score
-            team.overall = std::stoi(val.ToStdString());
-            break;
         case kRowInMatchNum:
             // eliminated status
             team.matchNum = std::stoi(val.ToStdString());
+            break;
+        case kRowOverall:
+            // overall score
+            team.overall = std::stoi(val.ToStdString());
             break;
         case kRowHangAttempt:
             // hang attempt
