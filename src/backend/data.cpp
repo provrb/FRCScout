@@ -110,7 +110,7 @@ void DataBase::NewTeamTable() {
         "CREATE TABLE IF NOT EXISTS " TEAM_TABLE " ("
         "uid INTEGER, "
         "teamNum INTEGER, "
-        "eliminated INTEGER, "
+        "matchNum INTEGAR, "
         "hangAttempt INTEGER, "
         "hangSuccess INTEGER, "
         "robotCycleSpeed INTEGER, "
@@ -118,10 +118,9 @@ void DataBase::NewTeamTable() {
         "defense INTEGER, "
         "autonomousPoints INTEGER, "
         "driverSkill INTEGER, "
-        "fouls INTEGER, "
+        "penaltys INTEGER, "
         "overall INTEGER, "
         "rankingPoints INTEGER, "
-        "ppm INTEGER, "
         "PRIMARY KEY (uid, teamNUm)"
         ");";
 
@@ -145,7 +144,6 @@ void DataBase::NewMatchesTable() {
     const char* query =
         "CREATE TABLE IF NOT EXISTS " MATCH_TABLE " ("
         "matchNum INTEGER PRIMARY KEY, "
-        "played INTEGER, "
         "redWin INTEGER, "
         "blueWin INTEGER, "
         "team1 INTEGAR, "
@@ -232,9 +230,9 @@ void DataBase::SQLBackendError(const char* errMsg) {
 void DataBase::UpdateTeam(const Team& team) {
     const char* query =
         "UPDATE " TEAM_TABLE " SET "
-        "teamNum = ?, eliminated = ?, hangAttempt = ?, hangSuccess = ?, robotCycleSpeed = ?, "
-        "coralPoints = ?, defense = ?, autonomousPoints = ?, driverSkill = ?, fouls = ?, overall = ?, "
-        "rankingPoints = ?, ppm = ? "
+        "teamNum = ?, matchNum = ?, hangAttempt = ?, hangSuccess = ?, robotCycleSpeed = ?, "
+        "coralPoints = ?, defense = ?, autonomousPoints = ?, driverSkill = ?, penaltys = ?, overall = ?, "
+        "rankingPoints = ? "
         "WHERE uid = ?";
     
     sqlite3_stmt* stmt;
@@ -245,7 +243,7 @@ void DataBase::UpdateTeam(const Team& team) {
 
     // Bind each field of 'team' to sql query 'query'
     sqlite3_bind_int(stmt, 1, team.teamNum);
-    sqlite3_bind_int(stmt, 2, team.eliminated);
+    sqlite3_bind_int(stmt, 2, team.matchNum);
     sqlite3_bind_int(stmt, 3, team.hangAttempt);
     sqlite3_bind_int(stmt, 4, team.hangSuccess);
     sqlite3_bind_int(stmt, 5, team.robotCycleSpeed);
@@ -253,10 +251,9 @@ void DataBase::UpdateTeam(const Team& team) {
     sqlite3_bind_int(stmt, 7, team.defense);
     sqlite3_bind_int(stmt, 8, team.autonomousPoints);
     sqlite3_bind_int(stmt, 9, team.driverSkill);
-    sqlite3_bind_int(stmt, 10, team.fouls);
+    sqlite3_bind_int(stmt, 10, team.penaltys);
     sqlite3_bind_int(stmt, 11, team.overall);
     sqlite3_bind_int(stmt, 12, team.rankingPoints);
-    sqlite3_bind_int(stmt, 13, team.ppm);
     sqlite3_bind_int(stmt, 14, team.uid);
 
     AddQueryToHistory(stmt);
@@ -293,7 +290,7 @@ void DataBase::UpdateMatch(const Match& match) {
         
     const char* query =
         "UPDATE " MATCH_TABLE " SET "
-        "played = ?, redWin = ?, blueWin = ?, "
+        "redWin = ?, blueWin = ?, "
         "team1 = ?, team2 = ?, team3 = ?, team4 = ?, team5 = ?, "
         "team6 = ? WHERE matchNum = ?";
 
@@ -304,16 +301,15 @@ void DataBase::UpdateMatch(const Match& match) {
     }
 
     // Bind each field of 'team' to sql query 'query'
-    sqlite3_bind_int(stmt, 1, match.played);
-    sqlite3_bind_int(stmt, 2, match.redWin);
-    sqlite3_bind_int(stmt, 3, match.blueWin);
-    sqlite3_bind_int(stmt, 4, match.Team1().teamNum);
-    sqlite3_bind_int(stmt, 5, match.Team2().teamNum);
-    sqlite3_bind_int(stmt, 6, match.Team3().teamNum);
-    sqlite3_bind_int(stmt, 7, match.Team4().teamNum);
-    sqlite3_bind_int(stmt, 8, match.Team5().teamNum);
-    sqlite3_bind_int(stmt, 9, match.Team6().teamNum);
-    sqlite3_bind_int(stmt, 10, match.matchNum);
+    sqlite3_bind_int(stmt, 1, match.redWin);
+    sqlite3_bind_int(stmt, 2, match.blueWin);
+    sqlite3_bind_int(stmt, 3, match.Team1().teamNum);
+    sqlite3_bind_int(stmt, 4, match.Team2().teamNum);
+    sqlite3_bind_int(stmt, 5, match.Team3().teamNum);
+    sqlite3_bind_int(stmt, 6, match.Team4().teamNum);
+    sqlite3_bind_int(stmt, 7, match.Team5().teamNum);
+    sqlite3_bind_int(stmt, 8, match.Team6().teamNum);
+    sqlite3_bind_int(stmt, 9, match.matchNum);
 
     AddQueryToHistory(stmt);
 
@@ -501,10 +497,10 @@ bool DataBase::TeamInMatch(int teamNum, int matchNum) {
 void DataBase::AddTeam(Team& team) {
     const char* query =
         "INSERT OR REPLACE INTO " TEAM_TABLE " " // INSERT OR REPLACE INTO Teams
-        "(uid, teamNum, eliminated, hangAttempt, hangSuccess, robotCycleSpeed, "
-        "coralPoints, defense, autonomousPoints, driverSkill, fouls, overall, "
-        "rankingPoints, ppm) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        "(uid, teamNum, matchNum, hangAttempt, hangSuccess, robotCycleSpeed, "
+        "coralPoints, defense, autonomousPoints, driverSkill, penaltys, overall, "
+        "rankingPoints) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
     sqlite3_stmt* stmt;
     int res = sqlite3_prepare_v2(m_db, query, -1, &stmt, nullptr);
@@ -516,7 +512,7 @@ void DataBase::AddTeam(Team& team) {
     // Bind each field of 'team' to sql query 'query'
     sqlite3_bind_int(stmt, 1, team.uid);
     sqlite3_bind_int(stmt, 2, team.teamNum);
-    sqlite3_bind_int(stmt, 3, team.eliminated);
+    sqlite3_bind_int(stmt, 3, team.matchNum);
     sqlite3_bind_int(stmt, 4, team.hangAttempt);
     sqlite3_bind_int(stmt, 5, team.hangSuccess);
     sqlite3_bind_int(stmt, 6, team.robotCycleSpeed);
@@ -524,10 +520,9 @@ void DataBase::AddTeam(Team& team) {
     sqlite3_bind_int(stmt, 8, team.defense);
     sqlite3_bind_int(stmt, 9, team.autonomousPoints);
     sqlite3_bind_int(stmt, 10, team.driverSkill);
-    sqlite3_bind_int(stmt, 11, team.fouls);
+    sqlite3_bind_int(stmt, 11, team.penaltys);
     sqlite3_bind_int(stmt, 12, team.overall);
     sqlite3_bind_int(stmt, 13, team.rankingPoints);
-    sqlite3_bind_int(stmt, 14, team.ppm);
 
     AddQueryToHistory(stmt);
 
@@ -584,9 +579,9 @@ void DataBase::AddTeamToMatch(int uid, int matchNum) {
 void DataBase::AddMatch(const Match& match) {
     const char* query =
         "INSERT OR REPLACE INTO " MATCH_TABLE " "
-        "(matchNum, played, redWin, blueWin, "
+        "(matchNum, redWin, blueWin, "
         "team1, team2, team3, team4, team5, team6) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
     sqlite3_stmt* stmt;
     int res = sqlite3_prepare_v2(m_db, query, -1, &stmt, nullptr);
@@ -597,15 +592,14 @@ void DataBase::AddMatch(const Match& match) {
 
     // Bind each field of Match to stmt
     sqlite3_bind_int(stmt, 1, match.matchNum);
-    sqlite3_bind_int(stmt, 2, match.played);
-    sqlite3_bind_int(stmt, 3, match.redWin);
-    sqlite3_bind_int(stmt, 4, match.blueWin);
-    sqlite3_bind_int(stmt, 5, match.Team1().teamNum);
-    sqlite3_bind_int(stmt, 6, match.Team2().teamNum);
-    sqlite3_bind_int(stmt, 7, match.Team3().teamNum);
-    sqlite3_bind_int(stmt, 8, match.Team4().teamNum);
-    sqlite3_bind_int(stmt, 9, match.Team5().teamNum);
-    sqlite3_bind_int(stmt, 10, match.Team6().teamNum);
+    sqlite3_bind_int(stmt, 2, match.redWin);
+    sqlite3_bind_int(stmt, 3, match.blueWin);
+    sqlite3_bind_int(stmt, 4, match.Team1().teamNum);
+    sqlite3_bind_int(stmt, 5, match.Team2().teamNum);
+    sqlite3_bind_int(stmt, 6, match.Team3().teamNum);
+    sqlite3_bind_int(stmt, 7, match.Team4().teamNum);
+    sqlite3_bind_int(stmt, 8, match.Team5().teamNum);
+    sqlite3_bind_int(stmt, 9, match.Team6().teamNum);
 
     AddQueryToHistory(stmt);
 

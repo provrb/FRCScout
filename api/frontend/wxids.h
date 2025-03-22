@@ -42,18 +42,17 @@ enum ItemIds {
  */
 enum TeamGridRowIds {
     kRowTeamNum = 0,
-    kRowOverall = 1,
-    kRowEliminated = 2,
-    kRowHangAttempt = 3,
-    kRowHangSuccess = 4,
-    kRowRobotCycleSpeed = 5,
-    kRowCoralPoints = 6,
-    kRowDefense = 7,
-    kRowAutonomousPoints = 8,
-    kRowDriverSkill = 9,
-    kRowFouls = 10,
-    kRowRankingPoints = 11,
-    kRowPPM = 12,
+    kRowInMatchNum, // the match the team participated in when being tracked
+    kRowOverall,
+    kRowHangAttempt,
+    kRowHangSuccess,
+    kRowRobotCycleSpeed,
+    kRowCoralPoints,
+    kRowDefense,
+    kRowAutonomousPoints,
+    kRowDriverSkill,
+    kRowPenaltys,
+    kRowRankingPoints,
 };
 
 /**
@@ -65,13 +64,12 @@ enum TeamGridRowIds {
  */
 enum MatchGridRowIds {
     kRowMatchNum = 0,
-    kRowPlayed = 1,
-    kRowRedWin = 2,
-    kRowBlueWin = 3,
-    kRowTeam1 = 4,
-    kRowTeam2 = 5,
-    kRowTeam3 = 6,
-    kRowTeam4 = 7,
-    kRowTeam5 = 8,
-    kRowTeam6 = 9,
+    kRowRedWin,
+    kRowBlueWin,
+    kRowRed1,
+    kRowRed2,
+    kRowRed3,
+    kRowBlue4,
+    kRowBlue5,
+    kRowBlue6,
 };

@@ -37,7 +37,6 @@ struct Match {
     uint8_t teamCount; // number of teams in the match
 
     int matchNum; // unique number or match index
-    bool played; // has the match concluded
 
     // Match Results. if both are true, the match was a tie
     bool redWin; // red alliance won the match

@@ -211,9 +211,7 @@
     <ClCompile Include="src\backend\team.cpp" />
     <ClCompile Include="ext\shell.c" />
     <ClCompile Include="ext\sqlite3.c" />
-    <ClCompile Include="src\backend\main.cpp" />
     <ClCompile Include="src\frontend\app.cpp" />
-    <ClCompile Include="src\frontend\events.cpp" />
     <ClCompile Include="src\frontend\mainframe.cpp" />
   </ItemGroup>
   <ItemGroup>

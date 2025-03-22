@@ -16,12 +16,11 @@
 Match Match::FromSQLStatment(sqlite3_stmt* stmt) {
     Match match = {};
     match.matchNum = sqlite3_column_int(stmt, 0);
-    match.played = sqlite3_column_int(stmt, 1);
-    match.redWin = sqlite3_column_int(stmt, 2);
-    match.blueWin = sqlite3_column_int(stmt, 3);
+    match.redWin = sqlite3_column_int(stmt, 1);
+    match.blueWin = sqlite3_column_int(stmt, 2);
 
     for ( int i = 0; i < 6; i++ ) {
-        int teamNum = sqlite3_column_int(stmt, i + 4);
+        int teamNum = sqlite3_column_int(stmt, i + 3);
         if ( teamNum == 0 ) // Skip if there is no team number
             continue;
 
