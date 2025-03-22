@@ -24,7 +24,7 @@ bool App::OnInit() {
     // Maximize the window and set constraints
     mainFrame->Maximize();
     mainFrame->SetClientSize(dimensions.GetWidth(), dimensions.GetHeight());
-    mainFrame->SetMinClientSize(wxSize(800, 600));
+    //mainFrame->SetMinClientSize(wxSize(800, 600));
 
     return true;
 }

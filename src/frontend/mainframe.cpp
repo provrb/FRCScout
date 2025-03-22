@@ -43,8 +43,9 @@ MainFrame::MainFrame(const wxString& title)
     wxBoxSizer* leftSizer = new wxBoxSizer(wxVERTICAL);
 
     // Create two list panels
-    leftSizer->Add(CreateListPanel(panel, kTeamListView, "Teams", "View and edit specific fields of any team."), 1, wxEXPAND | wxALL, 10);
-    leftSizer->Add(CreateListPanel(panel, kMatchListView, "Matches", "View and modify individual fields of a match."), 1, wxEXPAND | wxALL, 10);
+    leftSizer->Add(CreateListPanel(panel, kTeamListView, "Teams", "View and edit specific fields of any team.", 0), 1, wxEXPAND | wxALL, 10);
+    leftSizer->Add(CreateListPanel(panel, kMatchListView, "Matches", "View and modify individual fields of a match.", 0), 1, wxEXPAND | wxALL, 10);
+
 
     // Get list views
     m_teamListView = ( wxListCtrl* ) FindWindow(kTeamListView);
@@ -56,18 +57,22 @@ MainFrame::MainFrame(const wxString& title)
 
     // Create the grid panel on the right side
     wxPanel* rightPanel = new wxPanel(panel, wxID_ANY);
-    wxBoxSizer* rightSizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* rightSizer = new wxBoxSizer(wxHORIZONTAL);  // Use HORIZONTAL sizer
 
-    wxGrid* grid = CreateEditingGrid(rightPanel);
-    wxTextCtrl* sqlOutput = CreateSQLOutputBox(rightPanel);
+    // Create the grid and SQL output
+    wxBoxSizer* grid = CreateEditingGrid(rightPanel);
+    wxBoxSizer* sqlOutput = CreateSQLOutputBox(rightPanel);
 
-    // Add grid to the rightSizer
-    rightSizer->Add(grid, 1, wxEXPAND | wxALL, 10);
-    rightSizer->Add(sqlOutput, 1, wxEXPAND | wxALL, 10);  // Text box will share the same space and dimensions
+    // Add grid and sqlOutput to the horizontal sizer
+    rightSizer->Add(grid, 1, wxEXPAND | wxALL, 10);  // Grid takes up available space
+    rightSizer->Add(sqlOutput, 1, wxEXPAND | wxALL, 10);  // Add some space between them
 
-    // Add the leftSizer (team list & match list) and rightSizer (grid) to the mainSizer
-    mainSizer->Add(leftSizer, 0, wxEXPAND | wxALL, 10);
-    mainSizer->Add(rightPanel, 0, wxEXPAND | wxALL, 10);
+    rightPanel->SetSizerAndFit(rightSizer);
+
+    // Add the leftSizer (team list & match list) and rightPanel (grid + sqlOutput) to the mainSizer
+    mainSizer->Add(leftSizer, 1, wxEXPAND | wxALL, 5);
+    mainSizer->Add(rightPanel, 0, wxEXPAND | wxLEFT, 10);
+
 
     // Set sizer for the panel
     panel->SetSizer(mainSizer);
@@ -107,9 +112,7 @@ MainFrame::MainFrame(const wxString& title)
  * @note The width of the list view is calculated as 1.3 times the width of the parent window.
  *       The list view is set to have a height of 200px.
  */
-wxBoxSizer* MainFrame::CreateListPanel(wxWindow* parent, int listId, wxString titleName, wxString description) {
-    int listWidth = this->GetSize().GetWidth() * 1.27;
-
+wxBoxSizer* MainFrame::CreateListPanel(wxWindow* parent, int listId, wxString titleName, wxString description, int ySize) {
     // Sizers
     wxBoxSizer* listSizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* topSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -136,7 +139,7 @@ wxBoxSizer* MainFrame::CreateListPanel(wxWindow* parent, int listId, wxString ti
     topSizer->Add(addButton, 0, wxALIGN_BOTTOM | wxALIGN_RIGHT);
 
     // List view
-    wxListCtrl* listCtrl = new wxListCtrl(parent, listId, wxDefaultPosition, wxSize(listWidth, 200), wxLC_REPORT);
+    wxListCtrl* listCtrl = new wxListCtrl(parent, listId, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
 
     // Add topSizer and list view to listSizer
     listSizer->Add(topSizer, 0, wxEXPAND | wxBOTTOM, 5);
@@ -169,18 +172,21 @@ void MainFrame::AddTeamListColumns() {
     m_teamListView->SetFont(wxFontInfo(9).Bold());
 
     // Add team list columns
-    m_teamListView->AppendColumn("Team #", wxLIST_FORMAT_CENTER, teamListWidth * 0.055);
-    m_teamListView->AppendColumn("Match #", wxLIST_FORMAT_CENTER, teamListWidth * 0.06);
-    m_teamListView->AppendColumn("OVR", wxLIST_FORMAT_CENTER, teamListWidth * 0.05);
-    m_teamListView->AppendColumn("Hang Attempt", wxLIST_FORMAT_CENTER, teamListWidth * 0.1);
-    m_teamListView->AppendColumn("Hang Success", wxLIST_FORMAT_CENTER, teamListWidth * 0.1);
-    m_teamListView->AppendColumn("Cycle Speed", wxLIST_FORMAT_CENTER, teamListWidth * 0.085);
-    m_teamListView->AppendColumn("Coral Points", wxLIST_FORMAT_CENTER, teamListWidth * 0.085);
-    m_teamListView->AppendColumn("Defense", wxLIST_FORMAT_CENTER, teamListWidth * 0.06);
-    m_teamListView->AppendColumn("Auto. Points", wxLIST_FORMAT_CENTER, teamListWidth * 0.085);
-    m_teamListView->AppendColumn("Driver Skill", wxLIST_FORMAT_CENTER, teamListWidth * 0.08);
-    m_teamListView->AppendColumn("Penaltys", wxLIST_FORMAT_CENTER, teamListWidth * 0.0625);
-    m_teamListView->AppendColumn("Rank Points", wxLIST_FORMAT_CENTER, teamListWidth * 0.085);
+    m_teamListView->AppendColumn("Team #", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_teamListView->AppendColumn("Match #", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_teamListView->AppendColumn("OVR", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_teamListView->AppendColumn("Hang Attempt", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_teamListView->AppendColumn("Hang Success", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_teamListView->AppendColumn("Cycle Speed", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_teamListView->AppendColumn("Coral Points", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_teamListView->AppendColumn("Defense", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_teamListView->AppendColumn("Auto. Points", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_teamListView->AppendColumn("Driver Skill", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_teamListView->AppendColumn("Penaltys", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_teamListView->AppendColumn("Rank Points", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_teamListView->SetColumnWidth(0, teamListWidth * 0.2);
+
+    m_teamListView->AppendColumn("", wxLIST_FORMAT_CENTER, 200);
 }
 
 /**
@@ -206,21 +212,27 @@ void MainFrame::AddMatchListColumns() {
     if ( !m_matchListView )
         return;
 
+    // Get the total width of the list control
     const int matchListWidth = m_matchListView->GetSize().GetWidth();
 
     // Set bold column headers
     m_matchListView->SetFont(wxFontInfo(9).Bold());
 
-    // Add match list columns
-    m_matchListView->AppendColumn("Match #", wxLIST_FORMAT_CENTER, matchListWidth * 0.08);
-    m_matchListView->AppendColumn("Red Win", wxLIST_FORMAT_CENTER, matchListWidth * 0.07);
-    m_matchListView->AppendColumn("Blue Win", wxLIST_FORMAT_CENTER, matchListWidth * 0.07);
-    m_matchListView->AppendColumn("Red 1", wxLIST_FORMAT_CENTER, matchListWidth * 0.07);
-    m_matchListView->AppendColumn("Red 2 #", wxLIST_FORMAT_CENTER, matchListWidth * 0.07);
-    m_matchListView->AppendColumn("Red 3 #", wxLIST_FORMAT_CENTER, matchListWidth * 0.07);
-    m_matchListView->AppendColumn("Blue 4 #", wxLIST_FORMAT_CENTER, matchListWidth * 0.07);
-    m_matchListView->AppendColumn("Blue 5 #", wxLIST_FORMAT_CENTER, matchListWidth * 0.07);
-    m_matchListView->AppendColumn("Blue 6 #", wxLIST_FORMAT_CENTER, matchListWidth * 0.07);
+    // Add match list columns with proper alignment
+    m_matchListView->AppendColumn("Match #", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_matchListView->AppendColumn("Red Win", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_matchListView->AppendColumn("Blue Win", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_matchListView->AppendColumn("Red 1", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_matchListView->AppendColumn("Red 2", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_matchListView->AppendColumn("Red 3", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_matchListView->AppendColumn("Blue 4", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_matchListView->AppendColumn("Blue 5", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+    m_matchListView->AppendColumn("Blue 6", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
+
+    m_matchListView->SetColumnWidth(0, matchListWidth * 0.2);
+
+    // Add the last blank column with the remaining width
+    m_matchListView->AppendColumn("", wxLIST_FORMAT_CENTER, 580);
 }
 
 /**
@@ -274,19 +286,45 @@ void MainFrame::DisplayExistingData() {
  *
  * @return wxGrid* A pointer to the created grid for editing values.
  */
-wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
+wxBoxSizer* MainFrame::CreateEditingGrid(wxPanel* panel) {
+    // Create a sizer for the top section (static text and button)
+    wxBoxSizer* topSizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* textSizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* gridSizer = new wxBoxSizer(wxVERTICAL);
+
+    // Title above the grid
+    wxStaticText* gridTitle = new wxStaticText(panel, kEditingDataTitle, "Edit and View", wxDefaultPosition, wxDefaultSize, 0);
+    gridTitle->SetFont(wxFontInfo(18).Bold());
+
+    // Description above the grid
+    wxStaticText* gridDesc = new wxStaticText(panel, kEditingDataDesc, "Edit and view fields of objects", wxDefaultPosition, wxDefaultSize, 0);
+    gridDesc->SetFont(wxFontInfo(10));
+
+    // Add title and description to the topSizer
+    textSizer->Add(gridTitle, 0, wxALIGN_LEFT);
+    textSizer->Add(gridDesc, 0, wxALIGN_LEFT | wxTOP, 2);
+
+    // Add edit and view mode button
+    wxButton* editModeButton = new wxButton(panel, kEditModeButton, "Edit", wxDefaultPosition, wxSize(50, 30));
+    editModeButton->Bind(wxEVT_BUTTON, &MainFrame::OnToggleEditMode, this);
+
+    // Add the button to the topSizer
+    topSizer->Add(textSizer, 1, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
+    topSizer->AddSpacer(10);
+    topSizer->Add(editModeButton, 0, wxALIGN_BOTTOM | wxALIGN_RIGHT);
+
     // Create the grid
-    wxGrid* grid = new wxGrid(panel, kEditItemGrid, wxPoint(0, 65), wxSize(400, 900));
+    wxGrid* grid = new wxGrid(panel, kEditItemGrid, wxPoint(1000, 1000), wxSize(400, 200), wxLC_REPORT);
     grid->CreateGrid(34, 1);
 
-    // Options
+    // Grid Options
     grid->SetColLabelValue(0, "Value");
     grid->DisableColResize(0);
     grid->SetLabelBackgroundColour(wxColour(255, 255, 255));
     grid->SetRowLabelAlignment(wxALIGN_LEFT, wxALIGN_TOP);
     grid->SetLabelFont(wxFontInfo(9).Bold());
 
-    // Sizing
+    // Sizing for grid rows and columns
     grid->SetRowLabelSize(150);
     grid->SetColSize(0, 250);
 
@@ -308,20 +346,10 @@ wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
 
     grid->Bind(wxEVT_GRID_CELL_CHANGED, &MainFrame::OnGridCellChange, this);
 
-    // Title above the grid
-    wxStaticText* gridTitle = new wxStaticText(panel, kEditingDataTitle, "Edit and View", wxPoint(0, 10), wxDefaultSize, 0);
-    gridTitle->SetFont(wxFontInfo(18).Bold());
+    gridSizer->Add(topSizer, 0, wxEXPAND | wxBOTTOM, 5);
+    gridSizer->Add(grid, 1, wxEXPAND);
 
-    // Description above the grid
-    wxStaticText* gridDesc = new wxStaticText(panel, kEditingDataDesc, "Edit and view fields of objects", wxPoint(0, 41), wxDefaultSize, 0);
-    gridDesc->SetFont(wxFontInfo(10));
-
-    // Add edit and view mode button
-    wxButton* editModeButton = new wxButton(panel, kEditModeButton, "Edit", wxPoint(350, 30), wxSize(50, 30));
-    editModeButton->SetBackgroundColour(LIGHT_GRAY_ACCENT_3);
-    editModeButton->Bind(wxEVT_BUTTON, &MainFrame::OnToggleEditMode, this);
-
-    return grid;
+    return gridSizer;
 }
 
 /**
@@ -332,14 +360,38 @@ wxGrid* MainFrame::CreateEditingGrid(wxPanel* panel) {
  * @param rightPanel The wxPanel in which the SQL output text box will be placed.
  * @return wxTextCtrl* A pointer to the created SQL output text box.
  */
-wxTextCtrl* MainFrame::CreateSQLOutputBox(wxPanel* rightPanel) {
+wxBoxSizer* MainFrame::CreateSQLOutputBox(wxPanel* rightPanel) {
+    // Sizers
+    wxBoxSizer* textCtrlSizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* topSizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* textSizer = new wxBoxSizer(wxVERTICAL);  // New vertical sizer for title and description
+    
+    // Title above the box
+    wxStaticText* gridTitle = new wxStaticText(rightPanel, kEditingDataTitle, "Log Output", wxDefaultPosition, wxDefaultSize, 0);
+    gridTitle->SetFont(wxFontInfo(18).Bold());
+
+    // Description above the box
+    wxStaticText* gridDesc = new wxStaticText(rightPanel, kEditingDataDesc, "Real-time logs", wxDefaultPosition, wxDefaultSize, 0);
+    gridDesc->SetFont(wxFontInfo(10));
+
+    // Add clear button
+    wxButton* clearButton = new wxButton(rightPanel, kClearOutputButton, "Clear", wxDefaultPosition, wxSize(50, 30));
+    clearButton->Bind(wxEVT_BUTTON, &MainFrame::ClearOutput, this);
+    
+    textSizer->Add(gridTitle, 0, wxALIGN_LEFT);
+    textSizer->Add(gridDesc, 0, wxALIGN_LEFT | wxTOP, 2);  // Small space between title and description
+
+    topSizer->Add(textSizer, 1, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);  // Add title + desc stack
+    topSizer->AddSpacer(10);  // Some space before buttons
+    topSizer->Add(clearButton, 0, wxALIGN_BOTTOM | wxALIGN_RIGHT);
+
     // Create a text box that is read only
     wxTextCtrl* sqlOutput = new wxTextCtrl(
         rightPanel,
         kSQLHistoryTextBox,
         wxEmptyString,
-        wxPoint(425, 65),
-        wxSize(400, 900),
+        wxDefaultPosition,
+        wxDefaultSize,
         wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH2
     );
 
@@ -350,19 +402,10 @@ wxTextCtrl* MainFrame::CreateSQLOutputBox(wxPanel* rightPanel) {
     // Set the font
     sqlOutput->SetFont(font);
 
-    // Title above the box
-    wxStaticText* gridTitle = new wxStaticText(rightPanel, kEditingDataTitle, "Log Output", wxPoint(425, 10), wxDefaultSize, 0);
-    gridTitle->SetFont(wxFontInfo(18).Bold());
+    textCtrlSizer->Add(topSizer, 0, wxEXPAND | wxBOTTOM, 5);
+    textCtrlSizer->Add(sqlOutput, 1, wxEXPAND);
 
-    // Description above the box
-    wxStaticText* gridDesc = new wxStaticText(rightPanel, kEditingDataDesc, "Real-time logs", wxPoint(425, 41), wxDefaultSize, 0);
-    gridDesc->SetFont(wxFontInfo(10));
-
-    // Add clear button
-    wxButton* clearButton = new wxButton(rightPanel, kClearOutputButton, "Clear", wxPoint(775, 30), wxSize(50, 30));
-    clearButton->Bind(wxEVT_BUTTON, &MainFrame::ClearOutput, this);
-
-    return sqlOutput;
+    return textCtrlSizer;
 }
 
 /**

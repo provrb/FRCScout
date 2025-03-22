@@ -66,7 +66,8 @@ private:
         wxWindow* parent,
         int listId,
         wxString titleName,
-        wxString description
+        wxString description,
+        int ySize
     );
 
     // Columns
@@ -74,7 +75,7 @@ private:
     void AddMatchListColumns(); // Add header columns to m_matchListView
 
     // Editing grid UI
-    wxGrid* CreateEditingGrid(wxPanel* panel); // create a spreedsheets-like grid to edit items
+    wxBoxSizer* CreateEditingGrid(wxPanel* panel); // create a spreedsheets-like grid to edit items
     void ShowTeamEditGrid(); // show options for editing a team struct in the editing grid
     void ShowMatchEditGrid(); // show options for editing a match struct in the editing grid
     void PromptTeamEdit(const Team& team);
@@ -93,7 +94,7 @@ private:
     const Match GetMatchFromRow(int row);
 
     // Logging
-    wxTextCtrl* CreateSQLOutputBox(wxPanel* panel); // Create a wxTextCtrl that will show all SQL output
+    wxBoxSizer* CreateSQLOutputBox(wxPanel* panel); // Create a wxTextCtrl that will show all SQL output
     void LogMessage(std::string msg, wxColour colour = *wxBLACK); // log a message to the SQL output with text colour 'colour'
     void LogSQLQuery(std::string query); // add a completed query to SQL output
     void LogSQLError(std::string errorMsg); // print a red error message in SQL output with prefix "ERROR>"
