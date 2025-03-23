@@ -343,3 +343,6 @@ FodyWeavers.xsd
 *.vcxproj.filters
 *.vcxproj.user
 *.db
+.vcpkg_installed/
+.vcpkg.json
+.vcpkg-configuration.json
