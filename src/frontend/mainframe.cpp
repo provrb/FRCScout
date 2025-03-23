@@ -510,7 +510,7 @@ void MainFrame::PromptTeamEdit(const Team& team) {
     grid->SetCellValue(kRowPenaltys, 0, std::to_string(team.penaltys));
     grid->SetCellValue(kRowRankingPoints, 0, std::to_string(team.rankingPoints));
 
-    grid->SetCellEditor(kRowTeamNum, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kRowTeamNum, 0, new wxGridCellNumberEditor(0, 20000));
     grid->SetCellEditor(kRowInMatchNum, 0, new wxGridCellNumberEditor(0, 1000));
     grid->SetCellEditor(kRowOverall, 0, new wxGridCellNumberEditor(0, 100));
     grid->SetCellEditor(kRowHangAttempt, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
@@ -577,15 +577,15 @@ void MainFrame::PromptMatchEdit(const Match& match) {
     grid->SetCellValue(kRowBlue6, 0, std::to_string(match.Team6().teamNum));
 
     // Set grid editor
-    grid->SetCellEditor(kRowMatchNum, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kRowMatchNum, 0, new wxGridCellNumberEditor(0, 20000));
     grid->SetCellEditor(kRowRedWin, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
     grid->SetCellEditor(kRowBlueWin, 0, new wxGridCellChoiceEditor(2, new wxString[]{ "Y", "N" }));
-    grid->SetCellEditor(kRowRed1, 0, new wxGridCellNumberEditor(0, 10000));
-    grid->SetCellEditor(kRowRed2, 0, new wxGridCellNumberEditor(0, 10000));
-    grid->SetCellEditor(kRowRed3, 0, new wxGridCellNumberEditor(0, 10000));
-    grid->SetCellEditor(kRowBlue4, 0, new wxGridCellNumberEditor(0, 10000));
-    grid->SetCellEditor(kRowBlue5, 0, new wxGridCellNumberEditor(0, 10000));
-    grid->SetCellEditor(kRowBlue6, 0, new wxGridCellNumberEditor(0, 10000));
+    grid->SetCellEditor(kRowRed1, 0, new wxGridCellNumberEditor(0, 20000));
+    grid->SetCellEditor(kRowRed2, 0, new wxGridCellNumberEditor(0, 20000));
+    grid->SetCellEditor(kRowRed3, 0, new wxGridCellNumberEditor(0, 20000));
+    grid->SetCellEditor(kRowBlue4, 0, new wxGridCellNumberEditor(0, 20000));
+    grid->SetCellEditor(kRowBlue5, 0, new wxGridCellNumberEditor(0, 20000));
+    grid->SetCellEditor(kRowBlue6, 0, new wxGridCellNumberEditor(0, 20000));
 
     // Set grid title and description
     wxStaticText* gridTitle = ( wxStaticText* ) FindWindow(kEditingDataTitle);
