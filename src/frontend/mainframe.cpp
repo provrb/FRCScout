@@ -46,7 +46,6 @@ MainFrame::MainFrame(const wxString& title)
     leftSizer->Add(CreateListPanel(panel, kTeamListView, "Teams", "View and edit specific fields of any team.", 0), 1, wxEXPAND | wxALL, 10);
     leftSizer->Add(CreateListPanel(panel, kMatchListView, "Matches", "View and modify individual fields of a match.", 0), 1, wxEXPAND | wxALL, 10);
 
-
     // Get list views
     m_teamListView = ( wxListCtrl* ) FindWindow(kTeamListView);
     m_matchListView = ( wxListCtrl* ) FindWindow(kMatchListView);
@@ -72,7 +71,6 @@ MainFrame::MainFrame(const wxString& title)
     // Add the leftSizer (team list & match list) and rightPanel (grid + sqlOutput) to the mainSizer
     mainSizer->Add(leftSizer, 1, wxEXPAND | wxALL, 5);
     mainSizer->Add(rightPanel, 0, wxEXPAND | wxLEFT, 10);
-
 
     // Set sizer for the panel
     panel->SetSizer(mainSizer);
@@ -367,19 +365,19 @@ wxBoxSizer* MainFrame::CreateSQLOutputBox(wxPanel* rightPanel) {
     wxBoxSizer* textSizer = new wxBoxSizer(wxVERTICAL);  // New vertical sizer for title and description
     
     // Title above the box
-    wxStaticText* gridTitle = new wxStaticText(rightPanel, kEditingDataTitle, "Log Output", wxDefaultPosition, wxDefaultSize, 0);
-    gridTitle->SetFont(wxFontInfo(18).Bold());
+    wxStaticText* title = new wxStaticText(rightPanel, kEditingDataTitle, "Log Output", wxDefaultPosition, wxDefaultSize, 0);
+    title->SetFont(wxFontInfo(18).Bold());
 
     // Description above the box
-    wxStaticText* gridDesc = new wxStaticText(rightPanel, kEditingDataDesc, "Real-time logs", wxDefaultPosition, wxDefaultSize, 0);
-    gridDesc->SetFont(wxFontInfo(10));
+    wxStaticText* desc = new wxStaticText(rightPanel, kEditingDataDesc, "Real-time logs", wxDefaultPosition, wxDefaultSize, 0);
+    desc->SetFont(wxFontInfo(10));
 
     // Add clear button
     wxButton* clearButton = new wxButton(rightPanel, kClearOutputButton, "Clear", wxDefaultPosition, wxSize(50, 30));
     clearButton->Bind(wxEVT_BUTTON, &MainFrame::ClearOutput, this);
     
-    textSizer->Add(gridTitle, 0, wxALIGN_LEFT);
-    textSizer->Add(gridDesc, 0, wxALIGN_LEFT | wxTOP, 2);  // Small space between title and description
+    textSizer->Add(title, 0, wxALIGN_LEFT);
+    textSizer->Add(desc, 0, wxALIGN_LEFT | wxTOP, 2);  // Small space between title and description
 
     topSizer->Add(textSizer, 1, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);  // Add title + desc stack
     topSizer->AddSpacer(10);  // Some space before buttons
@@ -897,18 +895,18 @@ void MainFrame::FillTeamRow(int row, const Team& team) {
     if ( !m_teamListView )
         return;
 
-    m_teamListView->SetItem(row, 0, std::to_string(team.teamNum));
-    m_teamListView->SetItem(row, 1, std::to_string(team.matchNum));
-    m_teamListView->SetItem(row, 2, std::to_string(team.overall));
-    m_teamListView->SetItem(row, 3, ( team.hangAttempt ) ? "Y" : "N");
-    m_teamListView->SetItem(row, 4, ( team.hangSuccess ) ? "Y" : "N");
-    m_teamListView->SetItem(row, 5, std::to_string(team.robotCycleSpeed));
-    m_teamListView->SetItem(row, 6, std::to_string(team.coralPoints));
-    m_teamListView->SetItem(row, 7, std::to_string(team.defense));
-    m_teamListView->SetItem(row, 8, std::to_string(team.autonomousPoints));
-    m_teamListView->SetItem(row, 9, std::to_string(team.driverSkill));
-    m_teamListView->SetItem(row, 10, std::to_string(team.penaltys));
-    m_teamListView->SetItem(row, 11, std::to_string(team.rankingPoints));
+    m_teamListView->SetItem(row, kRowTeamNum, std::to_string(team.teamNum));
+    m_teamListView->SetItem(row, kRowInMatchNum, std::to_string(team.matchNum));
+    m_teamListView->SetItem(row, kRowOverall, std::to_string(team.overall));
+    m_teamListView->SetItem(row, kRowHangAttempt, ( team.hangAttempt ) ? "Y" : "N");
+    m_teamListView->SetItem(row, kRowHangSuccess, ( team.hangSuccess ) ? "Y" : "N");
+    m_teamListView->SetItem(row, kRowRobotCycleSpeed, std::to_string(team.robotCycleSpeed));
+    m_teamListView->SetItem(row, kRowCoralPoints, std::to_string(team.coralPoints));
+    m_teamListView->SetItem(row, kRowDefense, std::to_string(team.defense));
+    m_teamListView->SetItem(row, kRowAutonomousPoints, std::to_string(team.autonomousPoints));
+    m_teamListView->SetItem(row, kRowDriverSkill, std::to_string(team.driverSkill));
+    m_teamListView->SetItem(row, kRowPenaltys, std::to_string(team.penaltys));
+    m_teamListView->SetItem(row, kRowRankingPoints, std::to_string(team.rankingPoints));
 }
 
 /**
@@ -1017,7 +1015,6 @@ void MainFrame::ClearOutput(wxCommandEvent&) {
     SQLHistoryTextBox->Clear();
 }
 
-
 /**
  * @brief Handles left-click events on a team row.
  *
@@ -1029,8 +1026,10 @@ void MainFrame::ClearOutput(wxCommandEvent&) {
 void MainFrame::OnTeamRowLeftClicked(wxCommandEvent& event) {
     // Check the row # that is selected
     int row = m_teamListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    if ( m_currentSelectedTeamRow == row ) // information would already be displayed, don't bother recalculating
+    if ( m_displayedTeamCount > 2 && m_currentSelectedTeamRow == row ) // information would already be displayed, don't bother recalculating
         return;
+
+    m_matchListView->SetItemState(m_currentSelectedMatchRow, 0, wxLIST_STATE_SELECTED); // unselect any selected match rows
 
     m_currentSelectedTeamRow = row;
     const Team team = GetTeamFromRow(row);
@@ -1050,6 +1049,8 @@ void MainFrame::OnMatchRowLeftClicked(wxCommandEvent& event) {
     int row = m_matchListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     if ( m_displayedMatchCount > 2 && m_currentSelectedMatchRow == row )
         return;
+
+    m_teamListView->SetItemState(m_currentSelectedTeamRow, 0, wxLIST_STATE_SELECTED); // unselect any selected team rows
 
     m_currentSelectedMatchRow = row;
     const Match match = GetMatchFromRow(row);

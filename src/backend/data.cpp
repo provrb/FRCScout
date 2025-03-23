@@ -265,8 +265,6 @@ void DataBase::UpdateTeam(const Team& team) {
     }
 
     sqlite3_finalize(stmt);
-
-    // TODO: Update matches team is in if any. change old team number in match to new
 }
 
 /**
