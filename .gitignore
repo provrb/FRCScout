@@ -342,3 +342,4 @@ FodyWeavers.xsd
 
 *.vcxproj.filters
 *.vcxproj.user
+*.db
