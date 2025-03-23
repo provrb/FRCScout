@@ -120,6 +120,8 @@ private:
     void OnExportMatchDataJSON(wxCommandEvent& event);
     void OnGridCellChange(wxGridEvent& event);
     void OnAddButton(wxCommandEvent& event);
+    void OnImportTeamDataCSV(wxCommandEvent& event);
+    void OnImportMatchDataCSV(wxCommandEvent& event);
 
     bool m_isEditModeEnabled;
     int m_currentSelectedTeamRow = -1; // team number of team that is currently selected

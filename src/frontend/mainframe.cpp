@@ -648,11 +648,8 @@ wxMenuBar* MainFrame::CreateMenuBar() {
     Bind(wxEVT_MENU, &MainFrame::OnExportMatchDataCSV, this, kExportMatchDataCSV);
 
     // Add options to main exportCSV menu
-    exportCSV->Append(exportTeamDataCSV);
-    exportCSV->Append(exportMatchDataCSV);
-
-    // Add a submenu 'Export CSV Options' to Export menu
-    menuExport->AppendSubMenu(exportCSV, "&Export CSV Options");
+    menuExport->Append(exportTeamDataCSV);
+    menuExport->Append(exportMatchDataCSV);
 
     /// JSON
     wxMenu* exportJSON = new wxMenu;
@@ -663,19 +660,24 @@ wxMenuBar* MainFrame::CreateMenuBar() {
     Bind(wxEVT_MENU, &MainFrame::OnExportMatchDataJSON, this, kExportMatchDataJSON);
 
     // Add options to main exportCSV menu
-    exportJSON->Append(exportTeamDataJSON);
-    exportJSON->Append(exportMatchDataJSON);
-
-    // Add a submenu 'Export CSV Options' to Export menu
-    menuExport->AppendSubMenu(exportJSON, "&Export JSON Options");
+    menuExport->Append(exportTeamDataJSON);
+    menuExport->Append(exportMatchDataJSON);
 
     // TODO: Import options
+    wxMenuItem* importTeamDataCSV = new wxMenuItem(NULL, kImportTeamDataCSV, "Import Team Data From CSV");
+    wxMenuItem* importMatchDataCSV = new wxMenuItem(NULL, kImportMatchDataCSV, "Import Match Data From CSV");
+
+    Bind(wxEVT_MENU, &MainFrame::OnImportTeamDataCSV, this, kImportTeamDataCSV);
+    Bind(wxEVT_MENU, &MainFrame::OnImportMatchDataCSV, this, kImportMatchDataCSV);
+
+    menuImport->Append(importTeamDataCSV);
+    menuImport->Append(importMatchDataCSV);
 
     // Setup Menu Bar
     wxMenuBar* menuBar = new wxMenuBar;
     menuBar->Append(menuFile, "&File");
     menuBar->Append(menuExport, "&Export");
-    //menuBar->Append(menuImport, "&Import");
+    menuBar->Append(menuImport, "&Import");
     SetMenuBar(menuBar);
 
     return menuBar;
@@ -1622,4 +1624,54 @@ void MainFrame::OnAddButton(wxCommandEvent& event) {
         OnCreateNewTeam(event);
     else if ( buttonData == kMatchListView )
         OnCreateNewMatch(event);
+}
+
+void MainFrame::OnImportTeamDataCSV(wxCommandEvent& event) {
+    wxFileDialog fileDialog(this, "Import Team Data from CSV", "", "", "CSV files (*.csv)|*.csv", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    
+    int res = fileDialog.ShowModal();
+    if ( res != wxID_OK )
+        return;
+    
+    wxString path = fileDialog.GetPath();
+    
+    if ( !g_DataBase ) {
+        LogSQLError("Database not available, cannot import team data.");
+        return;
+    }
+
+    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    db->ImportTableFromCSV(TEAM_TABLE, path.ToStdString());
+
+    // Refresh the team list view
+    m_teamListView->DeleteAllItems();
+    m_displayedTeamCount = 0;
+    std::vector<Team> teams = db->GetTeams();
+    for ( const Team& team : teams )
+        CreateTeamRow(team);
+}
+
+void MainFrame::OnImportMatchDataCSV(wxCommandEvent& event) {
+    wxFileDialog fileDialog(this, "Import Match Data from CSV", "", "", "CSV files (*.csv)|*.csv", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    int res = fileDialog.ShowModal();
+    if ( res != wxID_OK )
+        return;
+
+    wxString path = fileDialog.GetPath();
+
+    if ( !g_DataBase ) {
+        LogSQLError("Database not available, cannot import match data.");
+        return;
+    }
+
+    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    db->ImportTableFromCSV(MATCH_TABLE, path.ToStdString());
+
+    // Refresh the match list view
+    m_matchListView->DeleteAllItems();
+    m_displayedMatchCount = 0;
+    std::vector<Match> matches = db->GetMatches();
+    for ( const Match& match : matches )
+        CreateMatchRow(match);
 }

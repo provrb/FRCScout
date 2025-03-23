@@ -981,8 +981,11 @@ void DataBase::ExportTableToCSV(const std::string& tableName, const std::string&
     while ( sqlite3_step(stmt) == SQLITE_ROW ) {
 
         // write each column from the row
-        // start at 1 to skip the uid column
-        for ( int i = 1; i < columnCount; i++ ) {
+        int i = 0;
+        if ( tableName == TEAM_TABLE )
+            i = 1; // start at 1 so we don't write the team uid to file
+
+        for (; i < columnCount; i++ ) {
             const char* text = ( const char* ) sqlite3_column_text(stmt, i);
             if ( text )
                 csvfile << text;
@@ -1042,4 +1045,75 @@ void DataBase::ExportTOQRCode(const std::string& content, const std::string& out
     m_mainFrame->LogBackendMessage("QR code generated and saved to " + outputFilename);
 
     delete[] image;
+}
+
+void DataBase::ImportTableFromCSV(const std::string& tableName, const std::string& inputFilename) {
+    std::ifstream csvfile(inputFilename);
+    
+    if ( !csvfile.is_open() ) {
+        m_mainFrame->LogSQLError("Failed to open CSV file for import.");
+        return;
+    }
+    
+    std::string line;
+    
+    auto SplitString = [](std::string& s, char split) -> std::vector<std::string> {
+        std::vector<std::string> result;
+        std::string token;
+        for ( char ch : s ) {
+            if ( ch == split ) {
+                result.push_back(token);
+                token.clear();
+            }
+            else
+                token += ch;
+        }
+
+        if ( !token.empty() )
+            result.push_back(token);
+        
+        return result;
+    };
+
+    while ( std::getline(csvfile, line) ) {
+        std::vector<std::string> values = SplitString(line, ',');
+
+        if ( tableName == MATCH_TABLE ) {
+            Match match = {};
+            match.matchNum = std::stoi(values[0]);
+            match.redWin = std::stoi(values[1]);
+            match.blueWin = std::stoi(values[2]);
+            match.teams[0].teamNum = std::stoi(values[3]);
+            match.teams[1].teamNum = std::stoi(values[4]);
+            match.teams[2].teamNum = std::stoi(values[5]);
+            match.teams[3].teamNum = std::stoi(values[6]);
+            match.teams[4].teamNum = std::stoi(values[7]);
+            match.teams[5].teamNum = std::stoi(values[8]);
+
+            AddMatch(match);
+        }
+        else if ( tableName == TEAM_TABLE ) {
+            Team team = {};
+            team.uid = GetNextTeamUID();
+            team.teamNum = std::stoi(values[0]);
+            team.matchNum = std::stoi(values[1]);
+            team.overall = std::stoi(values[2]);
+            team.hangAttempt = std::stoi(values[3]);
+            team.hangSuccess = std::stoi(values[4]);
+            team.robotCycleSpeed = std::stoi(values[5]);
+            team.coralPoints = std::stoi(values[6]);
+            team.defense = std::stoi(values[7]);
+            team.autonomousPoints = std::stoi(values[8]);
+            team.driverSkill = std::stoi(values[9]);
+            team.penaltys = std::stoi(values[10]);
+            team.rankingPoints = std::stoi(values[11]);
+
+            AddTeam(team);
+        }
+        else {
+            m_mainFrame->LogBackendMessage("Invalid table for import.");
+            return;
+        }
+    }
+    m_mainFrame->LogBackendMessage("Data imported from " + inputFilename + " to " + tableName);
 }

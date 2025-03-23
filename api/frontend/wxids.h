@@ -25,6 +25,8 @@ enum ItemIds {
     kExportMatchDataJSON,
     kExportTeamDataCSV,
     kExportMatchDataCSV,
+    kImportTeamDataCSV,
+    kImportMatchDataCSV,
     kSQLHistoryTextBox,
     kEditingDataTitle, // e.g "Editing Team #1" title
     kEditingDataDesc, // e.g "Modify values for Team #1" description
