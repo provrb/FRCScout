@@ -346,3 +346,4 @@ FodyWeavers.xsd
 .vcpkg_installed/
 .vcpkg.json
 .vcpkg-configuration.json
+.env
