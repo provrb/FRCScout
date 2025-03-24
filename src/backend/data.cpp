@@ -1117,3 +1117,4 @@ void DataBase::ImportTableFromCSV(const std::string& tableName, const std::strin
     }
     m_mainFrame->LogBackendMessage("Data imported from " + inputFilename + " to " + tableName);
 }
+

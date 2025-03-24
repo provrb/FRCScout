@@ -32,11 +32,7 @@ MainFrame::MainFrame(const wxString& title)
 {
     // Create global database
     DataBase* db = new DataBase(DB_PATH, this);
-    g_DataBase = reinterpret_cast< void* >( db );
-
-    // Create global predictor
-    RFPredictor* predictor = new RFPredictor(this);
-    g_Predictor = reinterpret_cast< void* >( predictor );
+    m_dataBase = reinterpret_cast< void* >( db );
 
     // set the window title to app name - database path
     // e.g: "FRCScout - C:\Users\user\Desktop\data.db"
@@ -89,7 +85,9 @@ MainFrame::MainFrame(const wxString& title)
     CreateStatusBar();
     SetStatusText(wxString::Format("FRCScout - %d Teams, %d Matches", m_displayedTeamCount, m_displayedMatchCount));
 
-    predictor->TrainModel("C:\\Users\\ethan\\Desktop\\FRCScout\\test.csv");
+    // Create global predictor
+    RFPredictor* predictor = new RFPredictor(this, db, "model.xml");
+    m_predictor = reinterpret_cast< void* >( predictor );
 }
 
 /**
@@ -256,12 +254,12 @@ void MainFrame::AddMatchListColumns() {
  *
  */
 void MainFrame::DisplayExistingData() {
-    if ( !m_teamListView || !g_DataBase )
+    if ( !m_teamListView || !m_dataBase )
         return;
 
     m_teamListView->DeleteAllItems();
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase ); // cast database
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase ); // cast database
 
     // show teams
     std::vector<Team> teams = db->GetTeams();
@@ -701,10 +699,10 @@ wxMenuBar* MainFrame::CreateMenuBar() {
  * @return A Team object corresponding to the row, or an empty Team object if the row index is invalid.
  */
 const Team MainFrame::GetTeamFromRow(int row) {
-    if ( row > this->m_displayedTeamCount || !g_DataBase )
+    if ( row > this->m_displayedTeamCount || !m_dataBase )
         return {};
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
     int uid = m_teamListView->GetItemData(row);
 
     return db->GetTeam(uid);
@@ -721,10 +719,10 @@ const Team MainFrame::GetTeamFromRow(int row) {
  * @return A Match object corresponding to the row, or an empty Match object if the row index is invalid.
  */
 const Match MainFrame::GetMatchFromRow(int row) {
-    if ( row > this->m_displayedMatchCount || !g_DataBase )
+    if ( row > this->m_displayedMatchCount || !m_dataBase )
         return {};
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
 
     wxString colText = m_matchListView->GetItemText(row);
     int matchNumber = std::stoi(colText.ToStdString());
@@ -831,10 +829,10 @@ void MainFrame::CreateMatchRow(const Match& match) {
  * @see FillTeamRow
  */
 void MainFrame::RefreshTeamRow(int uid) {
-    if ( !m_teamListView || !g_DataBase )
+    if ( !m_teamListView || !m_dataBase )
         return;
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
     const Team team = db->GetTeam(uid);
 
     // Find the row with the team number
@@ -867,10 +865,10 @@ void MainFrame::RefreshTeamRow(int uid) {
  * @see FillMatchRow
  */
 void MainFrame::RefreshMatchRow(int matchNum) {
-    if ( !m_matchListView || !g_DataBase )
+    if ( !m_matchListView || !m_dataBase )
         return;
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
     const Match match = db->GetMatch(matchNum);
 
     // Find the row with the match number
@@ -1198,12 +1196,12 @@ void MainFrame::OnToggleEditMode(wxCommandEvent& event) {
  */
 void MainFrame::OnCreateNewTeam(wxCommandEvent& event) {
     // check if database is active and add it to database, otherwise return
-    if ( !g_DataBase ) {
+    if ( !m_dataBase ) {
         LogMessage("Database not available, cannot save team. Closing this app will delete all progress.", *wxRED);
         return;
     }
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
 
     Team team = {};
     team.uid = db->GetNextTeamUID();
@@ -1229,12 +1227,12 @@ void MainFrame::OnCreateNewMatch(wxCommandEvent& event) {
     CreateMatchRow(match);
 
     // data base check
-    if ( !g_DataBase ) {
+    if ( !m_dataBase ) {
         LogMessage("Database not available, cannot save team. Closing this app will delete all progress.", *wxRED);
         return;
     }
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
     db->AddMatch(match);
 
     PromptMatchEdit(match);
@@ -1251,12 +1249,12 @@ void MainFrame::OnCreateNewMatch(wxCommandEvent& event) {
  */
 void MainFrame::OnDuplicateTeam(wxCommandEvent& event) {
     // data base check
-    if ( !g_DataBase ) {
+    if ( !m_dataBase ) {
         LogMessage("Database not available, cannot save team.", *wxRED);
         return;
     }
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
     const Team team = GetTeamFromRow(m_currentSelectedTeamRow);
 
     Team newTeam = team;
@@ -1285,12 +1283,12 @@ void MainFrame::OnDuplicateMatch(wxCommandEvent& event) {
     CreateMatchRow(newMatch);
 
     // data base check
-    if ( !g_DataBase ) {
+    if ( !m_dataBase ) {
         LogMessage("Database not available, cannot save team. Closing this app will delete all progress.", *wxRED);
         return;
     }
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
     db->AddMatch(newMatch);
     PromptMatchEdit(newMatch);
 }
@@ -1314,12 +1312,12 @@ void MainFrame::OnDeleteTeam(wxCommandEvent& event) {
         return;
 
     // remove team from database
-    if ( !g_DataBase ) {
+    if ( !m_dataBase ) {
         LogBackendMessage("Database not available, cannot delete team.");
         return;
     }
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
     db->RemoveTeam(team.uid);
 
     // remove team from list view
@@ -1348,12 +1346,12 @@ void MainFrame::OnDeleteMatch(wxCommandEvent& event) {
         return;
 
     // remove match from database
-    if ( !g_DataBase ) {
+    if ( !m_dataBase ) {
         LogBackendMessage("Database not available, cannot delete match.");
         return;
     }
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
     db->RemoveMatch(match.matchNum);
 
     // remove match from list view
@@ -1382,12 +1380,12 @@ void MainFrame::OnExportTeamDataCSV(wxCommandEvent& event) {
 
     wxString path = fileDialog.GetPath();
 
-    if ( !g_DataBase ) {
+    if ( !m_dataBase ) {
         LogSQLError("Database not available, cannot export team data.");
         return;
     }
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
     db->ExportTableToCSV(TEAM_TABLE, path.ToStdString());
 
     // Read csv file into a string
@@ -1417,12 +1415,12 @@ void MainFrame::OnExportMatchDataCSV(wxCommandEvent& event) {
 
     wxString path = fileDialog.GetPath();
 
-    if ( !g_DataBase ) {
+    if ( !m_dataBase ) {
         LogSQLError("Database not available, cannot export team data.");
         return;
     }
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
     db->ExportTableToCSV(MATCH_TABLE, path.ToStdString());
 
     // Read csv file into a string
@@ -1449,12 +1447,12 @@ void MainFrame::OnExportTeamDataJSON(wxCommandEvent& event) {
         return;
 
     wxString path = fileDialog.GetPath();
-    if ( !g_DataBase ) {
+    if ( !m_dataBase ) {
         LogSQLError("Database not available, cannot export team data.");
         return;
     }
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
     db->ExportTableToJSON(TEAM_TABLE, path.ToStdString());
 }
 
@@ -1475,12 +1473,12 @@ void MainFrame::OnExportMatchDataJSON(wxCommandEvent& event) {
 
     wxString path = fileDialog.GetPath();
 
-    if ( !g_DataBase ) {
+    if ( !m_dataBase ) {
         LogSQLError("Database not available, cannot export team data.");
         return;
     }
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
     db->ExportTableToJSON(MATCH_TABLE, path.ToStdString());
 }
 
@@ -1505,10 +1503,10 @@ void MainFrame::OnGridCellChange(wxGridEvent& event) {
     if ( !grid )
         return;
 
-    if ( !g_DataBase )
+    if ( !m_dataBase )
         return;
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
 
     wxString val = grid->GetCellValue(row, col);
     bool editingTeam = grid->GetRowLabelValue(kRowTeamNum).Contains("Team");
@@ -1642,12 +1640,12 @@ void MainFrame::OnImportTeamDataCSV(wxCommandEvent& event) {
     
     wxString path = fileDialog.GetPath();
     
-    if ( !g_DataBase ) {
+    if ( !m_dataBase ) {
         LogSQLError("Database not available, cannot import team data.");
         return;
     }
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
     db->ImportTableFromCSV(TEAM_TABLE, path.ToStdString());
 
     // Refresh the team list view
@@ -1667,12 +1665,12 @@ void MainFrame::OnImportMatchDataCSV(wxCommandEvent& event) {
 
     wxString path = fileDialog.GetPath();
 
-    if ( !g_DataBase ) {
+    if ( !m_dataBase ) {
         LogSQLError("Database not available, cannot import match data.");
         return;
     }
 
-    DataBase* db = reinterpret_cast< DataBase* >( g_DataBase );
+    DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
     db->ImportTableFromCSV(MATCH_TABLE, path.ToStdString());
 
     // Refresh the match list view

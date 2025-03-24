@@ -18,24 +18,6 @@
 #define APP_NAME "FRCScout"
 
 /**
- * Global database used by the frontend to communicate
- * with the backend
- *
- * Type: DataBase*
- *
- * This is the method used to include DataBase
- * without circular dependencies and is how the frontend
- * will communicate with the backend.
- *
- * The backend can directly communicate with the frontend
- * because it has a MainFrame* member variable.
- * This is initialized in the constructor of MainFrame
-*/
-static void* g_DataBase = nullptr;
-
-static void* g_Predictor = nullptr;
-
-/**
  * @class MainFrame
  * @brief The main user interface window for the application.
  *
@@ -134,4 +116,23 @@ private:
     int m_displayedMatchCount; // number of match rows in match list view
     wxListCtrl* m_teamListView; // container that holds rows about teams
     wxListCtrl* m_matchListView; // container that holds rows about matches
+
+    /**
+     * Ddatabase used by the frontend to communicate
+     * with the backend
+     *
+     * Type: DataBase*
+     *
+     * This is the method used to include DataBase
+     * without circular dependencies and is how the frontend
+     * will communicate with the backend.
+     *
+     * The backend can directly communicate with the frontend
+     * because it has a MainFrame* member variable.
+     * This is initialized in the constructor of MainFrame
+    */
+    void* m_dataBase = nullptr;
+
+
+    void* m_predictor = nullptr;
 };
