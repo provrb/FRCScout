@@ -52,23 +52,21 @@ for match in matches:
     elif redScore > blueScore:
         matchInfo["blue_win"] = 0
         matchInfo["red_win"] = 1
-
+    matchInfo["blue_score"] = blueScore
+    matchInfo["red_score"] = redScore
     matchInfo['teams'] = teams
     matchData.append(matchInfo)
 
+print()
+
 # print out as csv format
 for match in matchData:
-    print(match['match_id'].strip("match").strip("a"), end=",")
-    print(match['red_win'], end=",")
-    print(match['blue_win'], end=",")
+    mid = match['match_id'].strip("match").strip("a")
+    row = f"{mid},{match["red_win"]},{match["blue_win"]},"
+
+    for i in range(1, 7):
+        row += match['teams'].get(f'team_{i}', 'N/A')
+        if i < 6:
+            row += ","
     
-    # Print red teams (team_4 to team_6)
-    for i in range(4, 7):
-        print(match['teams'].get(f'team_{i}', 'N/A'), end=",")
-    
-    # Print blue teams first (team_1 to team_3)
-    for i in range(1, 4):
-        print(match['teams'].get(f'team_{i}', 'N/A'), end=",")
-    
-    
-    print()  # New line after each match
+    print(row)  # New line after each match

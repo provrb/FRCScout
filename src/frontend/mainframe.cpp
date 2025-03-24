@@ -5,6 +5,7 @@
 #include "backend/data.h" // DataBase class
 #include "backend/team.h"
 #include "backend/match.h"
+#include "backend/rfpredict.h"
 
 // STD
 #include <filesystem> // exists(), absolute()
@@ -32,6 +33,10 @@ MainFrame::MainFrame(const wxString& title)
     // Create global database
     DataBase* db = new DataBase(DB_PATH, this);
     g_DataBase = reinterpret_cast< void* >( db );
+
+    // Create global predictor
+    RFPredictor* predictor = new RFPredictor(this);
+    g_Predictor = reinterpret_cast< void* >( predictor );
 
     // set the window title to app name - database path
     // e.g: "FRCScout - C:\Users\user\Desktop\data.db"
@@ -83,6 +88,8 @@ MainFrame::MainFrame(const wxString& title)
 
     CreateStatusBar();
     SetStatusText(wxString::Format("FRCScout - %d Teams, %d Matches", m_displayedTeamCount, m_displayedMatchCount));
+
+    predictor->TrainModel("C:\\Users\\ethan\\Desktop\\FRCScout\\test.csv");
 }
 
 /**

@@ -33,6 +33,8 @@
 */
 static void* g_DataBase = nullptr;
 
+static void* g_Predictor = nullptr;
+
 /**
  * @class MainFrame
  * @brief The main user interface window for the application.
@@ -57,6 +59,12 @@ public:
     friend class DataBase; // Database needs to access functions to display backend data on the UI
 
     explicit MainFrame(const wxString& title);
+
+    // Logging
+    void LogMessage(std::string msg, wxColour colour = *wxBLACK); // log a message to the SQL output with text colour 'colour'
+    void LogSQLQuery(std::string query); // add a completed query to SQL output
+    void LogSQLError(std::string errorMsg); // print a red error message in SQL output with prefix "ERROR>"
+    void LogBackendMessage(std::string msg); // print a blue message in SQL output with prefix "MSG>"
 private:
     // Initialization
     void DisplayExistingData(); // display already existing data from the db to ui
@@ -95,10 +103,6 @@ private:
 
     // Logging
     wxBoxSizer* CreateSQLOutputBox(wxPanel* panel); // Create a wxTextCtrl that will show all SQL output
-    void LogMessage(std::string msg, wxColour colour = *wxBLACK); // log a message to the SQL output with text colour 'colour'
-    void LogSQLQuery(std::string query); // add a completed query to SQL output
-    void LogSQLError(std::string errorMsg); // print a red error message in SQL output with prefix "ERROR>"
-    void LogBackendMessage(std::string msg); // print a blue message in SQL output with prefix "MSG>"
     void ClearOutput(wxCommandEvent&);
 
     // Events (events.cpp)
