@@ -344,6 +344,9 @@ FodyWeavers.xsd
 *.vcxproj.user
 *.db
 vcpkg_installed/
+.intermediate/
 .vcpkg.json
 .vcpkg-configuration.json
 .env
+*.csv
+*.xml
