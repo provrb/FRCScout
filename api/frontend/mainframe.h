@@ -108,6 +108,7 @@ private:
     void OnAddButton(wxCommandEvent& event);
     void OnImportTeamDataCSV(wxCommandEvent& event);
     void OnImportMatchDataCSV(wxCommandEvent& event);
+    void OnPredictMatch(wxCommandEvent& event);
 
     bool m_isEditModeEnabled;
     int m_currentSelectedTeamRow = -1; // team number of team that is currently selected
@@ -132,7 +133,6 @@ private:
      * This is initialized in the constructor of MainFrame
     */
     void* m_dataBase = nullptr;
-
 
     void* m_predictor = nullptr;
 };

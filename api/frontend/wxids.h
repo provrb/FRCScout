@@ -20,7 +20,7 @@ enum WinIds {
  * menu items, text boxes, and other components within the UI.
  */
 enum ItemIds {
-    kExportCSVMenuItem = 0xB0,
+    kExportCSVMenuItem = 0xFBB,
     kExportTeamDataJSON,
     kExportMatchDataJSON,
     kExportTeamDataCSV,
@@ -33,6 +33,7 @@ enum ItemIds {
     kEditItemGrid, // grid to input new values for an item
     kEditModeButton,
     kClearOutputButton,
+    kPredictMatch, // right click context menu button for predicting match outcome
 };
 
 /**

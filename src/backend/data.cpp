@@ -839,6 +839,45 @@ std::vector<Match> DataBase::GetMatches() {
 }
 
 /**
+ * @brief Calculates the win rate of a team based on their performance in matches.
+ *
+ * This function checks all matches in which the specified team participated,
+ * counts the number of wins and losses, and calculates the win rate as a percentage.
+ *
+ * @param uid The unique identifier of the team.
+ * @return The win rate of the team as a percent (e.g. 75% win rate).
+ */
+double DataBase::GetTeamWinRate(int uid) {
+    const Team team = GetTeam(uid);
+    const std::vector<Match> matches = GetMatches();
+    
+    // statistics
+    double wins = 0;
+    int matchesPlayed = 0;
+
+    // check all matches team is in
+    for ( const Match& match : matches ) {
+        // team did not compete in match
+        if ( !TeamInMatch(uid, match) )
+            continue;
+
+        // team competed in match
+        matchesPlayed++;
+
+        // team won their match if they are on red alliance and red won
+        // otherwise, they lost
+        if ( match.RedWon() && match.RedAllianceTeam(team.teamNum) )
+            wins++;
+    }
+
+    // catch divide by zero error
+    if ( matchesPlayed == 0 )
+        return 0.0;
+
+    return (wins / matchesPlayed) * 100;
+}
+
+/**
  * @brief Generates a unique team UID (User Identifier) that does not already exist.
  *
  * This function generates a random 4-digit integer UID (between 1000 and 9999) using a random number generator.

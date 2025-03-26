@@ -45,6 +45,7 @@ public:
     Match GetMatch(int matchNum); // Get a Match struct from SQL DB of matchNum
     std::vector<Team> GetTeams();
     std::vector<Match> GetMatches();
+    double GetTeamWinRate(int uid);
 
     // Generate a unique ID for a new team that is not in use
     int GetNextTeamUID(); 

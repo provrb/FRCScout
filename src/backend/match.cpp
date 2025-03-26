@@ -89,6 +89,23 @@ void Match::RemoveCompetitor(int teamNum) {
 }
 
 /**
+ * @brief Checks if the given team is on the red alliance.
+ *
+ * This function checks if the specified team (identified by its team number)
+ * is part of the red alliance. In the match structure, the red alliance is
+ * assumed to be represented by the first three teams in the `teams` vector.
+ *
+ * @param teamNum The team number to check.
+ * @return true if the team is on the red alliance, false otherwise.
+ */
+bool Match::RedAllianceTeam(int teamNum) const {
+    // Check if the team is on the red alliance (first 3 teams)
+    return std::any_of(this->teams.begin(), this->teams.begin() + 3, [&teamNum](const Team& t) {
+        return teamNum == t.teamNum;
+    });
+}
+
+/**
  * @brief Checks if the red alliance won the match.
  *
  * @return true if the red alliance won, false otherwise.

@@ -14,13 +14,16 @@ class RFPredictor {
 public:
     RFPredictor(MainFrame* mainFrame, DataBase* dataBase, const std::string& modelPath);
 
-    uint8_t PredictMatchOutcome(int matchNum);
-    uint8_t PredictMatchOutcome(const Match& match);
+    bool PredictMatchOutcome(int matchNum);
 private:
     bool LoadModel(const std::string& modelPath);
     void TrainModel(
         const std::string& featuresPath, 
         const std::string& labelsPath
+    );
+    bool PredictMatchOutcome(
+        const Match& match,
+        std::vector<double> teamWinRates
     );
 
     mlpack::RandomForest<> m_rf;

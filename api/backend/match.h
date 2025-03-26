@@ -50,6 +50,7 @@ struct Match {
     bool TeamInMatch(int teamNum); // return true or false whether or not the team number is in 'teams'
     void AddCompetitor(Team team); // Add a team to the match
     void RemoveCompetitor(int teamNum); // Remove a team from the match
+    bool RedAllianceTeam(int teamNum) const; // Check if a team is on the red alliance
 
     const Team& Team1() const; // return Team from self.teams[0]
     const Team& Team2() const; // return Team from self.teams[1]

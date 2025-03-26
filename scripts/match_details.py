@@ -7,7 +7,7 @@ import string
 
 load_dotenv()
 
-url = "https://frc-api.firstinspires.org/v3.0/2025/matches/ONWAT?tournamentLevel=Qualification"
+url = "https://frc-api.firstinspires.org/v3.0/2024/matches/ONWAT?tournamentLevel=Playoff"
 
 username = os.getenv("API_USERNAME")
 api_key = os.getenv("API_KEY")
@@ -27,13 +27,17 @@ response = requests.get(url, headers=headers).json()
 # match #, red win, blue win, red 1, red 2, red 3, blue....
 
 for match in response["Matches"]:
-    matchNum = match["matchNumber"]
-    
     # statistics
     redScore = match["scoreRedFinal"]
     blueScore = match["scoreBlueFinal"]
+    if redScore == None or blueScore == None:
+        continue
+    
     redWin = int(redScore > blueScore)
     blueWin = int(blueScore > redScore)
+    
+    # info
+    matchNum = match["matchNumber"]
 
     # teams
     teams = match["teams"]
