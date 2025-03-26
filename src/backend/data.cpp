@@ -756,12 +756,12 @@ Match DataBase::GetMatch(int matchNum) {
         return match;
 
     // Fill out each team information
-    for ( Team& team : match.teams ) {
-        // if the team exists add the new comptitor from sql db
-        if ( TeamExists(team.teamNum) ) {
-            team = GetTeam(team.uid);
-        }
-    }
+    //for ( Team& team : match.teams ) {
+    //    // if the team exists add the new comptitor from sql db
+    //    if ( TeamExists(team.teamNum) ) {
+    //        team = GetTeam(team.uid);
+    //    }
+    //}
 
     return match;
 }

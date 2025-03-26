@@ -22,7 +22,7 @@
 void MainFrame::OnTeamRowLeftClicked(wxCommandEvent& event) {
     // Check the row # that is selected
     int row = m_teamListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    if ( m_currentSelectedTeamRow == row ) // information would already be displayed, don't bother recalculating
+    if ( m_currentSelectedTeamRow > 2 && m_currentSelectedTeamRow == row ) // information would already be displayed, don't bother recalculating
         return;
 
     m_matchListView->SetItemState(m_currentSelectedMatchRow, 0, wxLIST_STATE_SELECTED); // unselect any selected match rows
@@ -43,7 +43,7 @@ void MainFrame::OnTeamRowLeftClicked(wxCommandEvent& event) {
  */
 void MainFrame::OnMatchRowLeftClicked(wxCommandEvent& event) {
     int row = m_matchListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    if ( m_currentSelectedMatchRow == row )
+    if ( m_currentSelectedMatchRow > 2 && m_currentSelectedMatchRow == row )
         return;
 
     m_teamListView->SetItemState(m_currentSelectedTeamRow, 0, wxLIST_STATE_SELECTED); // unselect any selected team rows
