@@ -345,6 +345,7 @@ FodyWeavers.xsd
 *.db
 vcpkg_installed/
 intermediate/
+intermediate/FRCScout.tlog
 .vcpkg.json
 .vcpkg-configuration.json
 .env

@@ -105,8 +105,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UI|x64'">
     <OutDir>$(SolutionDir)\out\release\</OutDir>
-    <IntDir>$(SolutionDir)\.intermediate\</IntDir>
-    <IncludePath>C:\Users\ethan\Desktop\FRCScout\api;C:\Users\ethan\Desktop\FRCScout\ext;C:\Users\ethan\Desktop\FRCScout\api\backend;C:\wxWidgets-3.2.6\include\msvc;$(IncludePath)</IncludePath>
+    <IntDir>$(SolutionDir)\intermediate\</IntDir>
+    <IncludePath>C:\Users\ethan\Desktop\FRCScout\api;C:\Users\ethan\Desktop\FRCScout\ext;C:\Users\ethan\Desktop\FRCScout\api\backend;C:\wxWidgets-3.2.6\include\msvc;C:\Users\ethan\Desktop\FRCScout\vcpkg_installed\vcpkg\pkgs\mlpack_x64-windows\include;C:\Users\ethan\Desktop\FRCScout\vcpkg_installed\vcpkg\pkgs\armadillo_x64-windows\include;C:\Users\ethan\Desktop\FRCScout\vcpkg_installed\vcpkg\pkgs\cereal_x64-windows\include;C:\Users\ethan\Desktop\FRCScout\vcpkg_installed\vcpkg\pkgs\ensmallen_x64-windows\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -205,6 +205,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\backend\rfpredict.cpp" />
     <ClCompile Include="ext\qrcodegen.cpp" />
     <ClCompile Include="src\backend\data.cpp" />
     <ClCompile Include="src\backend\match.cpp" />
@@ -212,11 +213,13 @@
     <ClCompile Include="ext\shell.c" />
     <ClCompile Include="ext\sqlite3.c" />
     <ClCompile Include="src\frontend\app.cpp" />
+    <ClCompile Include="src\frontend\events.cpp" />
     <ClCompile Include="src\frontend\mainframe.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="api\backend\data.h" />
     <ClInclude Include="api\backend\match.h" />
+    <ClInclude Include="api\backend\rfpredict.h" />
     <ClInclude Include="api\backend\team.h" />
     <ClInclude Include="api\frontend\app.h" />
     <ClInclude Include="api\frontend\colours.h" />
