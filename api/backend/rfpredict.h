@@ -10,9 +10,14 @@
 // Backend
 #include "backend/data.h"
 
+// Paths regarding model
+#define FEATURES_CSV_PATH "./model/feats.csv"
+#define LABELS_CSV_PATH "./model/labels.csv"
+#define MODEL_EXPORT_PATH "./model/model.xml"
+
 class RFPredictor {
 public:
-    RFPredictor(MainFrame* mainFrame, DataBase* dataBase, const std::string& modelPath);
+    RFPredictor(MainFrame* mainFrame, DataBase* dataBase);
 
     bool PredictMatchOutcome(int matchNum);
 private:
@@ -29,5 +34,4 @@ private:
     mlpack::RandomForest<> m_rf;
     MainFrame* m_mainFrame;
     DataBase* m_dataBase;
-    std::string m_modelPath;
 };

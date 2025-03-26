@@ -1,12 +1,11 @@
 #include "rfpredict.h"
 
-RFPredictor::RFPredictor(MainFrame* mainFrame, DataBase* dataBase, const std::string& modelPath)
-    : m_mainFrame(mainFrame), m_dataBase(dataBase), m_modelPath(modelPath)
+RFPredictor::RFPredictor(MainFrame* mainFrame, DataBase* dataBase)
+    : m_mainFrame(mainFrame), m_dataBase(dataBase)
 {
-    //if ( !LoadModel(m_modelPath) ) {
+    if ( !LoadModel(MODEL_EXPORT_PATH) ) // No model exists at the correct path
         // Train and create a model
-        TrainModel("feats.csv", "labels.csv");
-    //}
+        TrainModel(FEATURES_CSV_PATH, LABELS_CSV_PATH);
 }
 
 bool RFPredictor::PredictMatchOutcome(int matchNum) {
@@ -96,11 +95,11 @@ void RFPredictor::TrainModel(
 
     // Calculate accuracy of predictions
     size_t correct = arma::accu(predictions == testLabels);
-    double accuracy = ( double ) correct / ( double ) testLabels.n_elem;
-    m_mainFrame->LogMessage("Accuracy: " + std::to_string(accuracy) + "%\n");
+    double accuracy = (( double ) correct / ( double ) testLabels.n_elem) * 100;
+    m_mainFrame->LogMessage("Trained RF Model with an accuracy of : " + std::to_string(accuracy) + "%\n");
 
     // save to file
-    mlpack::data::Save(m_modelPath, "model", m_rf);
+    mlpack::data::Save(MODEL_EXPORT_PATH, "model", m_rf);
 }
 
 bool RFPredictor::LoadModel(const std::string& modelPath) {

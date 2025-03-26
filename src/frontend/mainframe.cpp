@@ -85,7 +85,7 @@ MainFrame::MainFrame(const wxString& title)
     SetStatusText(wxString::Format("FRCScout - %d Teams, %d Matches", m_displayedTeamCount, m_displayedMatchCount));
 
     // Create global predictor
-    RFPredictor* predictor = new RFPredictor(this, db, "model.xml");
+    RFPredictor* predictor = new RFPredictor(this, db);
     m_predictor = reinterpret_cast< void* >( predictor );
 }
 
