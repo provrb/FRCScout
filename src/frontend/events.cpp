@@ -22,12 +22,12 @@
 void MainFrame::OnTeamRowLeftClicked(wxCommandEvent& event) {
     // Check the row # that is selected
     int row = m_teamListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    if ( m_currentSelectedTeamRow > 2 && m_currentSelectedTeamRow == row ) // information would already be displayed, don't bother recalculating
+    if ( m_selectedTeamRow > 2 && m_selectedTeamRow == row ) // information would already be displayed, don't bother recalculating
         return;
 
-    m_matchListView->SetItemState(m_currentSelectedMatchRow, 0, wxLIST_STATE_SELECTED); // unselect any selected match rows
+    m_matchListView->SetItemState(m_selectedMatchRow, 0, wxLIST_STATE_SELECTED); // unselect any selected match rows
 
-    m_currentSelectedTeamRow = row;
+    m_selectedTeamRow = row;
     const Team team = GetTeamFromRow(row);
 
     PromptTeamEdit(team);
@@ -43,12 +43,12 @@ void MainFrame::OnTeamRowLeftClicked(wxCommandEvent& event) {
  */
 void MainFrame::OnMatchRowLeftClicked(wxCommandEvent& event) {
     int row = m_matchListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    if ( m_currentSelectedMatchRow > 2 && m_currentSelectedMatchRow == row )
+    if ( m_selectedMatchRow > 2 && m_selectedMatchRow == row )
         return;
 
-    m_teamListView->SetItemState(m_currentSelectedTeamRow, 0, wxLIST_STATE_SELECTED); // unselect any selected team rows
+    m_teamListView->SetItemState(m_selectedTeamRow, 0, wxLIST_STATE_SELECTED); // unselect any selected team rows
 
-    m_currentSelectedMatchRow = row;
+    m_selectedMatchRow = row;
     const Match match = GetMatchFromRow(row);
 
     PromptMatchEdit(match);
@@ -247,7 +247,7 @@ void MainFrame::OnDuplicateTeam(wxCommandEvent& event) {
     }
 
     DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
-    const Team team = GetTeamFromRow(m_currentSelectedTeamRow);
+    const Team team = GetTeamFromRow(m_selectedTeamRow);
 
     Team newTeam = team;
     newTeam.uid = db->GetNextTeamUID();
@@ -268,7 +268,7 @@ void MainFrame::OnDuplicateTeam(wxCommandEvent& event) {
  * @param event The `wxCommandEvent` triggered by the duplication action.
  */
 void MainFrame::OnDuplicateMatch(wxCommandEvent& event) {
-    const Match match = GetMatchFromRow(m_currentSelectedMatchRow);
+    const Match match = GetMatchFromRow(m_selectedMatchRow);
 
     Match newMatch = match;
     newMatch.matchNum = m_displayedMatchCount + 1;
@@ -299,7 +299,7 @@ void MainFrame::OnDeleteTeam(wxCommandEvent& event) {
         return;
 
     // get team number
-    const Team team = GetTeamFromRow(m_currentSelectedTeamRow);
+    const Team team = GetTeamFromRow(m_selectedTeamRow);
     if ( team.teamNum == 0 )
         return;
 
@@ -313,7 +313,7 @@ void MainFrame::OnDeleteTeam(wxCommandEvent& event) {
     db->RemoveTeam(team.uid);
 
     // remove team from list view
-    m_teamListView->DeleteItem(m_currentSelectedTeamRow);
+    m_teamListView->DeleteItem(m_selectedTeamRow);
     m_displayedTeamCount--;
 
     LogMessage("Successfully deleted team " + std::to_string(team.teamNum) + "\n\n", *wxRED);
@@ -333,8 +333,8 @@ void MainFrame::OnDeleteMatch(wxCommandEvent& event) {
         return;
 
     // get match number
-    const Match match = GetMatchFromRow(m_currentSelectedMatchRow);
-    if ( match.matchNum == 0 )
+    const int matchNum = GetSelectedRowMatchNum();
+    if ( matchNum == 0 )
         return;
 
     // remove match from database
@@ -344,13 +344,13 @@ void MainFrame::OnDeleteMatch(wxCommandEvent& event) {
     }
 
     DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
-    db->RemoveMatch(match.matchNum);
+    db->RemoveMatch(matchNum);
 
     // remove match from list view
-    m_matchListView->DeleteItem(m_currentSelectedMatchRow);
+    m_matchListView->DeleteItem(m_selectedMatchRow);
     m_displayedMatchCount--;
 
-    LogMessage("Successfully deleted match " + std::to_string(match.matchNum) + "\n\n", *wxRED);
+    LogMessage("Successfully deleted match " + std::to_string(matchNum) + "\n\n", *wxRED);
 }
 
 /**
@@ -504,7 +504,7 @@ void MainFrame::OnGridCellChange(wxGridEvent& event) {
     bool editingTeam = grid->GetRowLabelValue(kRowTeamNum).Contains("Team");
 
     if ( editingTeam ) {
-        Team team = GetTeamFromRow(m_currentSelectedTeamRow);
+        Team team = GetTeamFromRow(m_selectedTeamRow);
         switch ( row ) {
         case kRowTeamNum:
             // team number
@@ -561,7 +561,7 @@ void MainFrame::OnGridCellChange(wxGridEvent& event) {
         return;
     }
 
-    Match match = GetMatchFromRow(m_currentSelectedMatchRow);
+    Match match = GetMatchFromRow(m_selectedMatchRow);
     switch ( row ) {
     case kRowMatchNum:
         // match number
@@ -679,20 +679,20 @@ void MainFrame::OnPredictMatch(wxCommandEvent& event) {
         return;
     }
 
-    const Match match = GetMatchFromRow(m_currentSelectedMatchRow);
+    const int matchNum = GetSelectedRowMatchNum();
     
     // output messages
-    std::string firstMsg = "Predicting the outcome of match " + std::to_string(match.matchNum) +
+    std::string firstMsg = "Predicting the outcome of match " + std::to_string(matchNum) +
         " with Random Forest Machine Learning model to determine if the match will"
         " be a red alliance win or blue alliance win. Results may be inaccurate...\n\n";
     LogMessage(firstMsg);
 
     // predict based on match data and team win rates
     RFPredictor* predictor = reinterpret_cast< RFPredictor* >( m_predictor );
-    bool redWin = predictor->PredictMatchOutcome(match.matchNum);
+    bool redWin = predictor->PredictMatchOutcome(matchNum);
     std::string winnerAllianceName = ( redWin ) ? "red" : "blue";
 
-    std::string predictionMsg = "The results are in. The team to predicted to win match " + std::to_string(match.matchNum) +
+    std::string predictionMsg = "The results are in. The team to predicted to win match " + std::to_string(matchNum) +
         " is the " + winnerAllianceName + " team!\n\n";
 
     LogMessage(predictionMsg);

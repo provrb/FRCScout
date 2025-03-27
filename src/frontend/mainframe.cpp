@@ -729,6 +729,14 @@ const Match MainFrame::GetMatchFromRow(int row) {
     return db->GetMatch(matchNumber);
 }
 
+const int MainFrame::GetSelectedRowMatchNum() {
+    wxString colText = m_matchListView->GetItemText(m_selectedMatchRow, 0);
+    if ( !colText.IsNumber() )
+        return 0;
+
+    return std::stoi(colText.ToStdWstring());
+}
+
 /**
  * @brief Creates and inserts a new row in the team list view.
  *
@@ -769,7 +777,7 @@ void MainFrame::CreateTeamRow(const Team& team) {
     m_teamListView->Bind(wxEVT_LIST_ITEM_SELECTED, &MainFrame::OnTeamRowLeftClicked, this);
     m_teamListView->Bind(wxEVT_LIST_ITEM_RIGHT_CLICK, &MainFrame::OnTeamRowRightClicked, this);
 
-    m_currentSelectedTeamRow = m_displayedTeamCount;
+    m_selectedTeamRow = m_displayedTeamCount;
     m_teamListView->SetItemData(itemId, team.uid);
 
     SetStatusText(wxString::Format("FRCScout - %d Teams, %d Matches", m_displayedTeamCount, m_displayedMatchCount));
@@ -810,7 +818,7 @@ void MainFrame::CreateMatchRow(const Match& match) {
     m_matchListView->Bind(wxEVT_LIST_ITEM_SELECTED, &MainFrame::OnMatchRowLeftClicked, this);
     m_matchListView->Bind(wxEVT_LIST_ITEM_RIGHT_CLICK, &MainFrame::OnMatchRowRightClicked, this);
 
-    m_currentSelectedMatchRow = m_displayedMatchCount;
+    m_selectedMatchRow = m_displayedMatchCount;
 
     SetStatusText(wxString::Format("FRCScout - %d Teams, %d Matches", m_displayedTeamCount, m_displayedMatchCount));
 }
