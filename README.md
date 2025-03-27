@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
   <h1>FRCScout</h1>
   <p><em>Empowering teams to make data-driven decisions and succeed together.</em></p>
 
@@ -20,8 +20,7 @@ A scouting application designed for FRC (FIRST Robotics Competition) teams to ef
 ## Features
 - **📊 Data Collection**: Gather real-time match data on teams and robots.
 - **🖥️ User-Friendly UI**: Simple and efficient interface built with wxWidgets.
-- **🌐 Offline & Online Mode**: Store data locally or sync with a remote database.
-- **💻 Cross-Platform Compatibility**: Works on Windows and Linux.
+- **🌐 Data Bass**: Store data locally using SQLite.
 - **🤖 Machine Learning Predictions**: Uses Random Forest to predict match outcomes based on team performance data.
 - **📤 QR Code Export**: Export team and match data as QR codes for quick data transfer.
 
