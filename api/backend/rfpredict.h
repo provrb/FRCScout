@@ -20,6 +20,7 @@ public:
     RFPredictor(MainFrame* mainFrame, DataBase* dataBase);
 
     bool PredictMatchOutcome(int matchNum);
+    inline bool IsModelAvailable() const { return this->m_available; }
 private:
     bool LoadModel(const std::string& modelPath);
     void TrainModel(
@@ -30,6 +31,11 @@ private:
         const Match& match,
         std::vector<double> teamWinRates
     );
+
+    // if the random forest model is available to predict.
+    // if this is false all calls to predict match outcome
+    // will return 0.
+    bool m_available;
 
     mlpack::RandomForest<> m_rf;
     MainFrame* m_mainFrame;

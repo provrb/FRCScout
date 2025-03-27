@@ -43,9 +43,9 @@ public:
     explicit MainFrame(const wxString& title);
 
     // Logging
-    void LogMessage(std::string msg, wxColour colour = *wxBLACK); // log a message to the SQL output with text colour 'colour'
+    void LogMessage(std::string& msg, wxColour colour = *wxBLACK); // log a message to the SQL output with text colour 'colour'
     void LogSQLQuery(std::string query); // add a completed query to SQL output
-    void LogSQLError(std::string errorMsg); // print a red error message in SQL output with prefix "ERROR>"
+    void LogErrorMessage(std::string errorMsg); // print a red error message in output with prefix "ERROR>"
     void LogBackendMessage(std::string msg); // print a blue message in SQL output with prefix "MSG>"
 private:
     // Initialization

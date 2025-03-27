@@ -189,7 +189,7 @@ void MainFrame::OnToggleEditMode(wxCommandEvent& event) {
 void MainFrame::OnCreateNewTeam(wxCommandEvent& event) {
     // check if database is active and add it to database, otherwise return
     if ( !m_dataBase ) {
-        LogMessage("Database not available, cannot save team. Closing this app will delete all progress.", *wxRED);
+        LogErrorMessage("Database not available, cannot save team. Closing this app will delete all progress.");
         return;
     }
 
@@ -220,7 +220,7 @@ void MainFrame::OnCreateNewMatch(wxCommandEvent& event) {
 
     // data base check
     if ( !m_dataBase ) {
-        LogMessage("Database not available, cannot save team. Closing this app will delete all progress.", *wxRED);
+        LogErrorMessage("Database not available, cannot save team. Closing this app will delete all progress.");
         return;
     }
 
@@ -242,14 +242,17 @@ void MainFrame::OnCreateNewMatch(wxCommandEvent& event) {
 void MainFrame::OnDuplicateTeam(wxCommandEvent& event) {
     // data base check
     if ( !m_dataBase ) {
-        LogMessage("Database not available, cannot save team.", *wxRED);
+        // we cant even duplicate the team because the
+        // duplicated team needs a new uid, which the 
+        // database generates. the data base generates it
+        // because it compares against already used uid's.
+        LogErrorMessage("Database not available, cannot save team.");
         return;
     }
 
     DataBase* db = reinterpret_cast< DataBase* >( m_dataBase );
-    const Team team = GetTeamFromRow(m_selectedTeamRow);
-
-    Team newTeam = team;
+    
+    Team newTeam = GetTeamFromRow(m_selectedTeamRow);
     newTeam.uid = db->GetNextTeamUID();
 
     db->AddTeam(newTeam);
@@ -276,7 +279,7 @@ void MainFrame::OnDuplicateMatch(wxCommandEvent& event) {
 
     // data base check
     if ( !m_dataBase ) {
-        LogMessage("Database not available, cannot save team. Closing this app will delete all progress.", *wxRED);
+        LogErrorMessage("Database not available, cannot save match locally.");
         return;
     }
 
@@ -315,8 +318,6 @@ void MainFrame::OnDeleteTeam(wxCommandEvent& event) {
     // remove team from list view
     m_teamListView->DeleteItem(m_selectedTeamRow);
     m_displayedTeamCount--;
-
-    LogMessage("Successfully deleted team " + std::to_string(team.teamNum) + "\n\n", *wxRED);
 }
 
 /**
@@ -349,8 +350,6 @@ void MainFrame::OnDeleteMatch(wxCommandEvent& event) {
     // remove match from list view
     m_matchListView->DeleteItem(m_selectedMatchRow);
     m_displayedMatchCount--;
-
-    LogMessage("Successfully deleted match " + std::to_string(matchNum) + "\n\n", *wxRED);
 }
 
 /**
@@ -373,7 +372,7 @@ void MainFrame::OnExportTeamDataCSV(wxCommandEvent& event) {
     wxString path = fileDialog.GetPath();
 
     if ( !m_dataBase ) {
-        LogSQLError("Database not available, cannot export team data.");
+        LogErrorMessage("Database not available, cannot export team data.");
         return;
     }
 
@@ -408,7 +407,7 @@ void MainFrame::OnExportMatchDataCSV(wxCommandEvent& event) {
     wxString path = fileDialog.GetPath();
 
     if ( !m_dataBase ) {
-        LogSQLError("Database not available, cannot export team data.");
+        LogErrorMessage("Database not available, cannot export team data.");
         return;
     }
 
@@ -440,7 +439,7 @@ void MainFrame::OnExportTeamDataJSON(wxCommandEvent& event) {
 
     wxString path = fileDialog.GetPath();
     if ( !m_dataBase ) {
-        LogSQLError("Database not available, cannot export team data.");
+        LogErrorMessage("Database not available, cannot export team data.");
         return;
     }
 
@@ -466,7 +465,7 @@ void MainFrame::OnExportMatchDataJSON(wxCommandEvent& event) {
     wxString path = fileDialog.GetPath();
 
     if ( !m_dataBase ) {
-        LogSQLError("Database not available, cannot export team data.");
+        LogErrorMessage("Database not available, cannot export team data.");
         return;
     }
 
@@ -633,7 +632,7 @@ void MainFrame::OnImportTeamDataCSV(wxCommandEvent& event) {
     wxString path = fileDialog.GetPath();
 
     if ( !m_dataBase ) {
-        LogSQLError("Database not available, cannot import team data.");
+        LogErrorMessage("Database not available, cannot import team data.");
         return;
     }
 
@@ -658,7 +657,7 @@ void MainFrame::OnImportMatchDataCSV(wxCommandEvent& event) {
     wxString path = fileDialog.GetPath();
 
     if ( !m_dataBase ) {
-        LogSQLError("Database not available, cannot import match data.");
+        LogErrorMessage("Database not available, cannot import match data.");
         return;
     }
 
@@ -675,10 +674,17 @@ void MainFrame::OnImportMatchDataCSV(wxCommandEvent& event) {
 
 void MainFrame::OnPredictMatch(wxCommandEvent& event) {
     if ( !m_predictor ) {
-        LogSQLError("Database not available, cannot predict match.");
+        LogErrorMessage("Database not available, cannot predict match.");
         return;
     }
-
+    
+    // Cast m_predictor to RFPredictor class
+    RFPredictor* predictor = reinterpret_cast< RFPredictor* >( m_predictor );
+    if ( !predictor->IsModelAvailable() ) {
+        LogErrorMessage("Random Forest model is not available for predictions.");
+        return;
+    }
+    
     const int matchNum = GetSelectedRowMatchNum();
     
     // output messages
@@ -688,7 +694,6 @@ void MainFrame::OnPredictMatch(wxCommandEvent& event) {
     LogMessage(firstMsg);
 
     // predict based on match data and team win rates
-    RFPredictor* predictor = reinterpret_cast< RFPredictor* >( m_predictor );
     bool redWin = predictor->PredictMatchOutcome(matchNum);
     std::string winnerAllianceName = ( redWin ) ? "red" : "blue";
 

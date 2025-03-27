@@ -9,6 +9,9 @@ RFPredictor::RFPredictor(MainFrame* mainFrame, DataBase* dataBase)
 }
 
 bool RFPredictor::PredictMatchOutcome(int matchNum) {
+    if ( !m_available )
+        return false;
+
     const Match match = m_dataBase->GetMatch(matchNum);
     
     // indices 0-2: red team win rates
@@ -17,7 +20,7 @@ bool RFPredictor::PredictMatchOutcome(int matchNum) {
 
     // calculate each teams win %
     for ( const Team& team : match.teams ) {
-        double winRate = m_dataBase->GetTeamWinRate(team.uid);
+        double winRate = m_dataBase->GetTeamWinRate(team.teamNum);
         winRates.push_back(winRate);
     }
 
@@ -69,9 +72,14 @@ void RFPredictor::TrainModel(
 {
     arma::mat features;
     arma::Row<size_t> labels;
-
-    mlpack::data::Load(featuresPath, features, true);
-    mlpack::data::Load(labelsPath, labels, true);
+    
+    try {
+        mlpack::data::Load(featuresPath, features, true);
+        mlpack::data::Load(labelsPath, labels, true);
+    } catch ( std::runtime_error& err ) {
+        m_mainFrame->LogErrorMessage("Error loading data to train model. Predictions unavailable.");
+        return;
+    }
 
     arma::mat trainFeatures, testFeatures;
     arma::Row<size_t> trainLabels, testLabels;
@@ -96,12 +104,23 @@ void RFPredictor::TrainModel(
     // Calculate accuracy of predictions
     size_t correct = arma::accu(predictions == testLabels);
     double accuracy = (( double ) correct / ( double ) testLabels.n_elem) * 100;
-    m_mainFrame->LogMessage("Trained RF Model with an accuracy of : " + std::to_string(accuracy) + "%\n");
+    
+    // Output the accuracy of the model
+    std::string msg = "Trained RF Model with an accuracy of : " + std::to_string(accuracy) + "%";
+    m_mainFrame->LogMessage(msg);
+
+    // mark the random forest model as usable
+    m_available = true;
 
     // save to file
     mlpack::data::Save(MODEL_EXPORT_PATH, "model", m_rf);
 }
 
 bool RFPredictor::LoadModel(const std::string& modelPath) {
-    return mlpack::data::Load(modelPath, "model", m_rf);
+    try {
+        m_available = mlpack::data::Load(modelPath, "model", m_rf);
+    } catch ( std::runtime_error& err ) {
+        m_mainFrame->LogErrorMessage("Error loading model. Predictions unavailable.");
+    }
+    return m_available;
 }

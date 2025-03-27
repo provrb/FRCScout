@@ -179,6 +179,9 @@ void DataBase::AddQueryToHistory(sqlite3_stmt* stmt) {
         return;
 
     const char* expanded = sqlite3_expanded_sql(stmt);
+    if ( !expanded )
+        return;
+
     this->m_queryHistory.push_back(expanded);
     this->m_mainFrame->LogSQLQuery(expanded);
 }
@@ -190,28 +193,10 @@ void DataBase::AddQueryToHistory(sqlite3_stmt* stmt) {
  * for debugging purposes. If the input query is `nullptr`, the function does nothing.
  *
  * @param query A pointer to a null-terminated SQL query string.
- * @warning If `query` is `nullptr`, the function returns without adding anything.
  */
-void DataBase::AddQueryToHistory(const char* query) {
-    if ( !query )
-        return;
-
+void DataBase::AddQueryToHistory(std::string query) {
     this->m_queryHistory.push_back(query);
     this->m_mainFrame->LogSQLQuery(query);
-}
-
-/**
- * @brief Handles errors from the SQL backend and logs the error message.
- *
- * This function is called when an error occurs during SQL execution. It adds the
- * latest SQL query to the history and then logs the error message using
- * the `LogSQLError` method of the `MainFrame` class.
- *
- * @param stmt The SQLite statement object that caused the error.
- * @param errMsg The error message returned by the SQLite backend.
- */
-void DataBase::SQLBackendError(const char* errMsg) {
-    this->m_mainFrame->LogSQLError(errMsg);
 }
 
 /**
@@ -260,7 +245,7 @@ void DataBase::UpdateTeam(const Team& team) {
 
     int res = sqlite3_step(stmt); // execute
     if ( res != SQLITE_DONE ) {
-        SQLBackendError("There was an error updating a team. Try again or delete the team and retry.");
+        m_mainFrame->LogErrorMessage("There was an error updating a team. Try again or delete the team and retry.");
         return;
     }
 
@@ -294,7 +279,9 @@ void DataBase::UpdateMatch(const Match& match) {
 
     sqlite3_stmt* stmt;
     if ( sqlite3_prepare_v2(m_db, query, -1, &stmt, nullptr) != SQLITE_OK ) {
-        SQLBackendError((std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db))).c_str());
+        m_mainFrame->LogErrorMessage(
+            std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db))
+        );
         return;
     }
 
@@ -313,7 +300,9 @@ void DataBase::UpdateMatch(const Match& match) {
 
     int res = sqlite3_step(stmt); // execute
     if ( res != SQLITE_DONE ) {
-        SQLBackendError("There was an error updating a match. Try again or delete the match and retry.");
+        m_mainFrame->LogErrorMessage(
+            "There was an error updating a match. Try again or delete the match and retry."
+        );
         return;
     }
 
@@ -352,7 +341,9 @@ bool DataBase::TeamExists(int teamNum) {
     sqlite3_stmt* stmt;
     int res = sqlite3_prepare_v2(m_db, query.c_str(), -1, &stmt, NULL);
     if ( res != SQLITE_OK ) {
-        SQLBackendError(( std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) ).c_str());
+        m_mainFrame->LogErrorMessage(
+            std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) 
+        );
         return false;
     }
 
@@ -377,7 +368,9 @@ bool DataBase::TeamExistsUID(int uid) {
     sqlite3_stmt* stmt;
     int res = sqlite3_prepare_v2(m_db, query.c_str(), -1, &stmt, NULL);
     if ( res != SQLITE_OK ) {
-        SQLBackendError(( std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) ).c_str());
+        m_mainFrame->LogErrorMessage(
+            std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db))
+        );
         return false;
     }
 
@@ -417,7 +410,9 @@ bool DataBase::MatchExists(int matchNum) {
     sqlite3_stmt* stmt;
     int res = sqlite3_prepare_v2(m_db, query.c_str(), -1, &stmt, NULL);
     if ( res != SQLITE_OK ) {
-        SQLBackendError(( std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) ).c_str());
+        m_mainFrame->LogErrorMessage(
+            std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db))
+        );
         return false;
     }
 
@@ -446,17 +441,16 @@ bool DataBase::MatchExists(int matchNum) {
  *
  * @return `true` if the team is found in the match, `false` otherwise.
  */
-bool DataBase::TeamInMatch(int uid, const Match& match) {
+bool DataBase::TeamInMatch(int teamNum, const Match& match) {
     // iterate through each team comparing the 
     // team numbers to the one were looking for
     
     for ( const Team& team : match.teams )
-        if ( team.uid == uid )
+        if ( team.teamNum == teamNum )
            return true; // team is in match
     
     return false;
 }
-
 /**
  * @brief Checks if a team is participating in a match by match number.
  *
@@ -503,7 +497,9 @@ void DataBase::AddTeam(Team& team) {
     sqlite3_stmt* stmt;
     int res = sqlite3_prepare_v2(m_db, query, -1, &stmt, nullptr);
     if ( res != SQLITE_OK ) {
-        SQLBackendError(( std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) ).c_str());
+        m_mainFrame->LogErrorMessage(
+            std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db))
+        );
         return;
     }
 
@@ -526,7 +522,7 @@ void DataBase::AddTeam(Team& team) {
 
     res = sqlite3_step(stmt); // execute
     if ( res != SQLITE_DONE ) {
-        SQLBackendError("Failed to add the team to team database.");
+        m_mainFrame->LogErrorMessage("Failed to add the team to team database.");
         return;
     }
 
@@ -584,7 +580,9 @@ void DataBase::AddMatch(const Match& match) {
     sqlite3_stmt* stmt;
     int res = sqlite3_prepare_v2(m_db, query, -1, &stmt, nullptr);
     if ( res != SQLITE_OK ) {
-        SQLBackendError(( std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) ).c_str());
+        m_mainFrame->LogErrorMessage(
+            std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db))
+        );
         return;
     }
 
@@ -603,7 +601,7 @@ void DataBase::AddMatch(const Match& match) {
 
     res = sqlite3_step(stmt); // execute
     if ( res != SQLITE_DONE ) {
-        SQLBackendError("Failed to add the match to match database.");
+        m_mainFrame->LogErrorMessage("Failed to add the match to match database.");
         return;
     }
 
@@ -653,13 +651,13 @@ void DataBase::RemoveTeam(int uid) {
 
     int res = sqlite3_exec(m_db, query.c_str(), NULL, 0, NULL);
     if ( res != SQLITE_OK ) {
-        SQLBackendError("Failed to delete the team from team database.");
+        m_mainFrame->LogErrorMessage("Failed to delete the team from team database.");
         return;
     }
 
     // Remove team from matches if any, replace the teamnum with 0 in each match
     for ( Match& match : GetMatches() ) {
-        if ( !TeamInMatch(uid, match) )
+        if ( !TeamInMatch(teamNum, match) )
             continue;
         
         // Remove and update
@@ -683,7 +681,7 @@ void DataBase::RemoveMatch(int matchNum) {
 
     int res = sqlite3_exec(m_db, query.c_str(), NULL, 0, NULL);
     if ( res != SQLITE_OK ) {
-        SQLBackendError("Failed to remove the match from match database.");
+        m_mainFrame->LogErrorMessage("Failed to remove the match from match database.");
         return;
     }
 
@@ -708,7 +706,9 @@ Team DataBase::GetTeam(int uid) {
     sqlite3_stmt* stmt;
     int res = sqlite3_prepare_v2(m_db, query.c_str(), -1, &stmt, NULL);
     if ( res != SQLITE_OK ) {
-        SQLBackendError(( std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) ).c_str());
+        m_mainFrame->LogErrorMessage(
+            std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db))
+        );
         return team;
     }
 
@@ -740,7 +740,9 @@ Match DataBase::GetMatch(int matchNum) {
     sqlite3_stmt* stmt;
     int res = sqlite3_prepare_v2(m_db, query.c_str(), -1, &stmt, NULL);
     if ( res != SQLITE_OK ) {
-        SQLBackendError(( std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) ).c_str());
+        m_mainFrame->LogErrorMessage(
+            std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) 
+        );
         return match;
     }
 
@@ -754,14 +756,6 @@ Match DataBase::GetMatch(int matchNum) {
     // No team infromation needs to be processed and checked
     if ( match.teamCount == 0 )
         return match;
-
-    // Fill out each team information
-    //for ( Team& team : match.teams ) {
-    //    // if the team exists add the new comptitor from sql db
-    //    if ( TeamExists(team.teamNum) ) {
-    //        team = GetTeam(team.uid);
-    //    }
-    //}
 
     return match;
 }
@@ -784,7 +778,9 @@ std::vector<Team> DataBase::GetTeams() {
     sqlite3_stmt* stmt;
     int res = sqlite3_prepare_v2(m_db, query.c_str(), -1, &stmt, NULL);
     if ( res != SQLITE_OK ) {
-        SQLBackendError(( std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) ).c_str());
+        m_mainFrame->LogErrorMessage(
+            std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db))
+        );
         return teams;
     }
 
@@ -820,7 +816,9 @@ std::vector<Match> DataBase::GetMatches() {
     sqlite3_stmt* stmt;
     int res = sqlite3_prepare_v2(m_db, query.c_str(), -1, &stmt, NULL);
     if ( res != SQLITE_OK ) {
-        SQLBackendError(( std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) ).c_str());
+        m_mainFrame->LogErrorMessage(
+            std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db))
+        );
         return matches;
     }
 
@@ -847,8 +845,7 @@ std::vector<Match> DataBase::GetMatches() {
  * @param uid The unique identifier of the team.
  * @return The win rate of the team as a percent (e.g. 75% win rate).
  */
-double DataBase::GetTeamWinRate(int uid) {
-    const Team team = GetTeam(uid);
+double DataBase::GetTeamWinRate(int teamNum) {
     const std::vector<Match> matches = GetMatches();
     
     // statistics
@@ -858,7 +855,7 @@ double DataBase::GetTeamWinRate(int uid) {
     // check all matches team is in
     for ( const Match& match : matches ) {
         // team did not compete in match
-        if ( !TeamInMatch(uid, match) )
+        if ( !TeamInMatch(teamNum, match) )
             continue;
 
         // team competed in match
@@ -866,7 +863,7 @@ double DataBase::GetTeamWinRate(int uid) {
 
         // team won their match if they are on red alliance and red won
         // otherwise, they lost
-        if ( match.RedWon() && match.RedAllianceTeam(team.teamNum) )
+        if ( match.RedWon() && match.RedAllianceTeam(teamNum) )
             wins++;
     }
 
@@ -914,7 +911,9 @@ bool DataBase::TableExists(const std::string& tableName) {
 
     int res = sqlite3_prepare_v2(m_db, query.c_str(), -1, &stmt, NULL);
     if ( res != SQLITE_OK ) {
-        SQLBackendError(( std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) ).c_str());
+        m_mainFrame->LogErrorMessage(
+            std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) 
+        );
         return false;
     }
 
@@ -958,7 +957,9 @@ void DataBase::ExportTableToJSON(const std::string& tableName, const std::string
     std::string query = "SELECT * FROM " + tableName + ";";
     int res = sqlite3_prepare_v2(this->m_db, query.c_str(), -1, &stmt, nullptr);
     if ( res != SQLITE_OK ) {
-        SQLBackendError(( std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) ).c_str());
+        m_mainFrame->LogErrorMessage(
+            std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db))
+        );
         return;
     }
 
@@ -1005,7 +1006,9 @@ void DataBase::ExportTableToCSV(const std::string& tableName, const std::string&
 
     int res = sqlite3_prepare_v2(this->m_db, query.c_str(), -1, &stmt, nullptr);
     if ( res != SQLITE_OK ) {
-        SQLBackendError(( std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) ).c_str());
+        m_mainFrame->LogErrorMessage(
+            std::string("Failed to prepare SQL Statement") + std::string(sqlite3_errmsg(m_db)) 
+        );
         return;
     }
 
@@ -1078,7 +1081,7 @@ void DataBase::ExportTOQRCode(const std::string& content, const std::string& out
     }
 
     if ( !stbi_write_png(outputFilename.c_str(), width, height, 3, image, width * 3) ) {
-        m_mainFrame->LogSQLError("Failed to write QR code to file.");
+        m_mainFrame->LogErrorMessage("Failed to write QR code to file.");
     }
 
     m_mainFrame->LogBackendMessage("QR code generated and saved to " + outputFilename);
@@ -1090,7 +1093,7 @@ void DataBase::ImportTableFromCSV(const std::string& tableName, const std::strin
     std::ifstream csvfile(inputFilename);
     
     if ( !csvfile.is_open() ) {
-        m_mainFrame->LogSQLError("Failed to open CSV file for import.");
+        m_mainFrame->LogErrorMessage("Failed to open CSV file for import.");
         return;
     }
     
