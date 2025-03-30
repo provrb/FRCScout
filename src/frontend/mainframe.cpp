@@ -22,12 +22,10 @@
  * The constructor also sets up the menu bar and initializes a `DataBase` object for interacting with the SQLite database.
  *
  * @param title The title of the window.
- *
- * @note The initial window size is set to 800x600 pixels. The list panels display views for teams and matches,
- *       and the grid allows for editing of individual fields. The text box below the grid displays SQL query results.
+ * @param darkModeEnabled Whether or not App has set dark mode to true
  */
-MainFrame::MainFrame(const wxString& title)
-    : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(800, 600)) // Initial window size
+MainFrame::MainFrame(const wxString& title, bool darkModeEnabled)
+    : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(800, 600)), m_darkModeTheme(darkModeEnabled)
 {
     // Create global database
     DataBase* db = new DataBase(DB_PATH, this);
@@ -87,6 +85,9 @@ MainFrame::MainFrame(const wxString& title)
     // Create global predictor
     RFPredictor* predictor = new RFPredictor(this, db);
     m_predictor = reinterpret_cast< void* >( predictor );
+
+    if ( m_darkModeTheme )
+        this->SetBackgroundColour(DARK_GRAY_1);
 }
 
 /**
@@ -131,9 +132,14 @@ wxBoxSizer* MainFrame::CreateListPanel(wxWindow* parent, int listId, wxString ti
     textSizer->Add(titleText, 0, wxALIGN_LEFT);
     textSizer->Add(descText, 0, wxALIGN_LEFT | wxTOP, 2);  // Small space between title and description
 
-    wxButton* addButton = new wxButton(parent, wxID_ANY, "Add", wxDefaultPosition, wxSize(50, 30));
+    wxButton* addButton = new wxButton(parent, wxID_ANY, "Add", wxDefaultPosition, wxSize(50, 30), wxBORDER_NONE);
     addButton->SetClientData(reinterpret_cast< void* >( listId )); // save list id in metadata, e.g kTeamListView
     addButton->Bind(wxEVT_BUTTON, &MainFrame::OnAddButton, this);
+    
+    if ( m_darkModeTheme ) {
+        addButton->SetBackgroundColour(DARK_GRAY_4);
+        addButton->SetFont(wxFontInfo(9).Bold());
+    }
 
     // Add elements to the horizontal top sizer
     topSizer->Add(textSizer, 1, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);  // Add title + desc stack
@@ -141,13 +147,16 @@ wxBoxSizer* MainFrame::CreateListPanel(wxWindow* parent, int listId, wxString ti
     topSizer->Add(addButton, 0, wxALIGN_BOTTOM | wxALIGN_RIGHT);
 
     // List view
-    wxListCtrl* listCtrl = new wxListCtrl(parent, listId, wxDefaultPosition, wxDefaultSize, wxLC_REPORT);
+    wxListCtrl* listCtrl = new wxListCtrl(parent, listId, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxBORDER_NONE);
 
     // Add topSizer and list view to listSizer
     listSizer->Add(topSizer, 0, wxEXPAND | wxBOTTOM, 5);
     listSizer->Add(listCtrl, 1, wxEXPAND);
 
     listCtrl->Bind(wxEVT_CONTEXT_MENU, &MainFrame::OnListViewRightClick, this);
+    
+    if ( m_darkModeTheme )
+        listCtrl->SetBackgroundColour(DARK_GRAY_1);
 
     return listSizer;
 }
@@ -307,8 +316,13 @@ wxBoxSizer* MainFrame::CreateEditingGrid(wxPanel* panel) {
     textSizer->Add(gridDesc, 0, wxALIGN_LEFT | wxTOP, 2);
 
     // Add edit and view mode button
-    wxButton* editModeButton = new wxButton(panel, kEditModeButton, "Edit", wxDefaultPosition, wxSize(50, 30));
+    wxButton* editModeButton = new wxButton(panel, kEditModeButton, "Edit", wxDefaultPosition, wxSize(50, 30), wxBORDER_NONE);
     editModeButton->Bind(wxEVT_BUTTON, &MainFrame::OnToggleEditMode, this);
+
+    if ( m_darkModeTheme ) {
+        editModeButton->SetBackgroundColour(DARK_GRAY_4);  // Set background color
+        editModeButton->SetFont(wxFontInfo(9).Bold());
+    }
 
     // Add the button to the topSizer
     topSizer->Add(textSizer, 1, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
@@ -316,15 +330,15 @@ wxBoxSizer* MainFrame::CreateEditingGrid(wxPanel* panel) {
     topSizer->Add(editModeButton, 0, wxALIGN_BOTTOM | wxALIGN_RIGHT);
 
     // Create the grid
-    wxGrid* grid = new wxGrid(panel, kEditItemGrid, wxPoint(1000, 1000), wxSize(400, 200), wxLC_REPORT);
+    wxGrid* grid = new wxGrid(panel, kEditItemGrid, wxPoint(1000, 1000), wxSize(400, 200), wxLC_REPORT | wxBORDER_NONE);
     grid->CreateGrid(34, 1);
 
     // Grid Options
     grid->SetColLabelValue(0, "Value");
     grid->DisableColResize(0);
-    grid->SetLabelBackgroundColour(wxColour(255, 255, 255));
     grid->SetRowLabelAlignment(wxALIGN_LEFT, wxALIGN_TOP);
     grid->SetLabelFont(wxFontInfo(9).Bold());
+    grid->DisableOverlaySelection();
 
     // Sizing for grid rows and columns
     grid->SetRowLabelSize(150);
@@ -334,16 +348,20 @@ wxBoxSizer* MainFrame::CreateEditingGrid(wxPanel* panel) {
 
     // Set row size, disable row resize, and set default row value for all rows
     for ( int i = 0; i < grid->GetNumberRows(); i++ ) {
-        if ( i % 2 == 0 ) {
-            grid->SetLabelBackgroundColour(LIGHT_GRAY_ACCENT_1);
-            grid->SetCellBackgroundColour(i, 0, LIGHT_GRAY_ACCENT_1);
-        }
-        else {
-            grid->SetLabelBackgroundColour(LIGHT_GRAY_ACCENT_2);
-            grid->SetCellBackgroundColour(i, 0, LIGHT_GRAY_ACCENT_2);
-        }
         grid->DisableRowResize(i);
         grid->SetRowSize(i, 25);
+        
+        // alternate between colours
+        if ( i % 2 == 0 ) {
+            wxColour labelCol = ( m_darkModeTheme ) ? DARK_GRAY_2 : LIGHT_GRAY_ACCENT_1;
+            grid->SetLabelBackgroundColour(labelCol);
+            grid->SetCellBackgroundColour(i, 0, labelCol);
+        }
+        else {
+            wxColour labelCol = ( m_darkModeTheme ) ? DARK_GRAY_3 : LIGHT_GRAY_ACCENT_2;
+            grid->SetLabelBackgroundColour(labelCol);
+            grid->SetCellBackgroundColour(i, 0, labelCol);
+        }
     }
 
     grid->Bind(wxEVT_GRID_CELL_CHANGED, &MainFrame::OnGridCellChange, this);
@@ -394,7 +412,7 @@ wxBoxSizer* MainFrame::CreateSQLOutputBox(wxPanel* rightPanel) {
         wxEmptyString,
         wxDefaultPosition,
         wxDefaultSize,
-        wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH2
+        wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH2 | wxBORDER_NONE
     );
 
     // Create font to use in the SQL output text box
@@ -406,6 +424,9 @@ wxBoxSizer* MainFrame::CreateSQLOutputBox(wxPanel* rightPanel) {
 
     textCtrlSizer->Add(topSizer, 0, wxEXPAND | wxBOTTOM, 5);
     textCtrlSizer->Add(sqlOutput, 1, wxEXPAND);
+
+    if ( m_darkModeTheme )
+        sqlOutput->SetBackgroundColour(DARK_GRAY_2);
 
     return textCtrlSizer;
 }
@@ -767,13 +788,6 @@ void MainFrame::CreateTeamRow(const Team& team) {
     // Set each column value in the item
     FillTeamRow(itemId, team);
 
-    // change the background colour of the 
-    // row depending on itemId for readability
-    if ( itemId % 2 == 0 )
-        m_teamListView->SetItemBackgroundColour(itemId, LIGHT_GRAY_ACCENT_1);
-    else
-        m_teamListView->SetItemBackgroundColour(itemId, LIGHT_GRAY_ACCENT_2);
-
     m_teamListView->Bind(wxEVT_LIST_ITEM_SELECTED, &MainFrame::OnTeamRowLeftClicked, this);
     m_teamListView->Bind(wxEVT_LIST_ITEM_RIGHT_CLICK, &MainFrame::OnTeamRowRightClicked, this);
 
@@ -781,6 +795,17 @@ void MainFrame::CreateTeamRow(const Team& team) {
     m_teamListView->SetItemData(itemId, team.uid);
 
     SetStatusText(wxString::Format("FRCScout - %d Teams, %d Matches", m_displayedTeamCount, m_displayedMatchCount));
+
+    // change the background colour of the 
+    // row depending on itemId for readability
+    if ( itemId % 2 == 0 ) {
+        wxColour colour = ( m_darkModeTheme ) ? DARK_GRAY_2 : LIGHT_GRAY_ACCENT_1;
+        m_teamListView->SetItemBackgroundColour(itemId, colour);
+    }
+    else {
+        wxColour colour = ( m_darkModeTheme ) ? DARK_GRAY_3 : LIGHT_GRAY_ACCENT_2;
+        m_teamListView->SetItemBackgroundColour(itemId, colour);
+    }
 }
 
 /**
@@ -808,19 +833,27 @@ void MainFrame::CreateMatchRow(const Match& match) {
     // Set each column value in the item
     FillMatchRow(itemId, match);
 
-    // change the background colour of the 
-    // row depending on itemId for readability
-    if ( itemId % 2 == 0 )
-        m_matchListView->SetItemBackgroundColour(itemId, wxColour(245, 245, 245));
-    else
-        m_matchListView->SetItemBackgroundColour(itemId, wxColour(250, 250, 250));
-
     m_matchListView->Bind(wxEVT_LIST_ITEM_SELECTED, &MainFrame::OnMatchRowLeftClicked, this);
     m_matchListView->Bind(wxEVT_LIST_ITEM_RIGHT_CLICK, &MainFrame::OnMatchRowRightClicked, this);
 
     m_selectedMatchRow = m_displayedMatchCount;
 
     SetStatusText(wxString::Format("FRCScout - %d Teams, %d Matches", m_displayedTeamCount, m_displayedMatchCount));
+
+    // do not need to change colour of rows
+    if ( m_darkModeTheme )
+        return;
+
+    // change the background colour of the 
+    // row depending on itemId for readability
+    if ( itemId % 2 == 0 ) {
+        wxColour colour = ( m_darkModeTheme ) ? DARK_GRAY_2 : LIGHT_GRAY_ACCENT_1;
+        m_matchListView->SetItemBackgroundColour(itemId, colour);
+    }
+    else {
+        wxColour colour = ( m_darkModeTheme ) ? DARK_GRAY_3 : LIGHT_GRAY_ACCENT_2;
+        m_matchListView->SetItemBackgroundColour(itemId, colour);
+    }
 }
 
 /**
