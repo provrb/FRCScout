@@ -76,11 +76,10 @@ MainFrame::MainFrame(const wxString& title, bool darkModeEnabled)
 
     // Add menu bar
     CreateMenuBar();
-   
-    DisplayExistingData();
 
     CreateStatusBar();
-    SetStatusText(wxString::Format("FRCScout - %d Teams, %d Matches", m_displayedTeamCount, m_displayedMatchCount));
+    UpdateStatusBar();
+    DisplayExistingData();
 
     // Create global predictor
     RFPredictor* predictor = new RFPredictor(this, db);
@@ -154,9 +153,9 @@ wxBoxSizer* MainFrame::CreateListPanel(wxWindow* parent, int listId, wxString ti
     listSizer->Add(listCtrl, 1, wxEXPAND);
 
     listCtrl->Bind(wxEVT_CONTEXT_MENU, &MainFrame::OnListViewRightClick, this);
-    
+
     if ( m_darkModeTheme )
-        listCtrl->SetBackgroundColour(DARK_GRAY_1);
+        listCtrl->SetBackgroundColour(DARK_GRAY_5);
 
     return listSizer;
 }
@@ -197,7 +196,7 @@ void MainFrame::AddTeamListColumns() {
     m_teamListView->AppendColumn("Rank Points", wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
     m_teamListView->SetColumnWidth(0, teamListWidth * 0.2);
 
-    m_teamListView->AppendColumn("", wxLIST_FORMAT_CENTER, 200);
+    m_teamListView->AppendColumn("", wxLIST_FORMAT_CENTER, 180);
 }
 
 /**
@@ -285,6 +284,10 @@ void MainFrame::DisplayExistingData() {
         CreateMatchRow(match);
 }
 
+inline void MainFrame::UpdateStatusBar() {
+    SetStatusText(wxString::Format("FRCScout - %d Teams, %d Matches", m_displayedTeamCount, m_displayedMatchCount));
+}
+
 /**
  * @brief Creates a grid for editing values with labels and predefined settings.
  *
@@ -320,7 +323,7 @@ wxBoxSizer* MainFrame::CreateEditingGrid(wxPanel* panel) {
     editModeButton->Bind(wxEVT_BUTTON, &MainFrame::OnToggleEditMode, this);
 
     if ( m_darkModeTheme ) {
-        editModeButton->SetBackgroundColour(DARK_GRAY_4);  // Set background color
+        editModeButton->SetBackgroundColour(DARK_GRAY_4);
         editModeButton->SetFont(wxFontInfo(9).Bold());
     }
 
@@ -336,13 +339,14 @@ wxBoxSizer* MainFrame::CreateEditingGrid(wxPanel* panel) {
     // Grid Options
     grid->SetColLabelValue(0, "Value");
     grid->DisableColResize(0);
-    grid->SetRowLabelAlignment(wxALIGN_LEFT, wxALIGN_TOP);
+    grid->SetRowLabelAlignment(wxALIGN_LEFT, wxALIGN_CENTER);
     grid->SetLabelFont(wxFontInfo(9).Bold());
     grid->DisableOverlaySelection();
-
+    
     // Sizing for grid rows and columns
     grid->SetRowLabelSize(150);
     grid->SetColSize(0, 250);
+    grid->SetUseNativeColLabels(false);
 
     DefaultEditGrid();
 
@@ -354,16 +358,17 @@ wxBoxSizer* MainFrame::CreateEditingGrid(wxPanel* panel) {
         // alternate between colours
         if ( i % 2 == 0 ) {
             wxColour labelCol = ( m_darkModeTheme ) ? DARK_GRAY_2 : LIGHT_GRAY_ACCENT_1;
-            grid->SetLabelBackgroundColour(labelCol);
             grid->SetCellBackgroundColour(i, 0, labelCol);
         }
         else {
             wxColour labelCol = ( m_darkModeTheme ) ? DARK_GRAY_3 : LIGHT_GRAY_ACCENT_2;
-            grid->SetLabelBackgroundColour(labelCol);
             grid->SetCellBackgroundColour(i, 0, labelCol);
         }
     }
 
+    if ( m_darkModeTheme )
+        grid->SetLabelBackgroundColour(wxColour(DARK_GRAY_2));
+    
     grid->Bind(wxEVT_GRID_CELL_CHANGED, &MainFrame::OnGridCellChange, this);
 
     gridSizer->Add(topSizer, 0, wxEXPAND | wxBOTTOM, 5);
@@ -426,7 +431,7 @@ wxBoxSizer* MainFrame::CreateSQLOutputBox(wxPanel* rightPanel) {
     textCtrlSizer->Add(sqlOutput, 1, wxEXPAND);
 
     if ( m_darkModeTheme )
-        sqlOutput->SetBackgroundColour(DARK_GRAY_2);
+        sqlOutput->SetBackgroundColour(DARK_GRAY_5);
 
     return textCtrlSizer;
 }
@@ -642,7 +647,7 @@ void MainFrame::DefaultEditGrid() {
     // Remove any existing data in row labels
     for ( int i = 0; i < grid->GetNumberRows(); i++ ) {
         grid->SetCellValue(i, 0, "");
-        grid->SetRowLabelValue(i, "...");
+        grid->SetRowLabelValue(i, "");
     }
 }
 
@@ -794,8 +799,8 @@ void MainFrame::CreateTeamRow(const Team& team) {
     m_selectedTeamRow = m_displayedTeamCount;
     m_teamListView->SetItemData(itemId, team.uid);
 
-    SetStatusText(wxString::Format("FRCScout - %d Teams, %d Matches", m_displayedTeamCount, m_displayedMatchCount));
-
+    UpdateStatusBar();
+    
     // change the background colour of the 
     // row depending on itemId for readability
     if ( itemId % 2 == 0 ) {
@@ -838,11 +843,7 @@ void MainFrame::CreateMatchRow(const Match& match) {
 
     m_selectedMatchRow = m_displayedMatchCount;
 
-    SetStatusText(wxString::Format("FRCScout - %d Teams, %d Matches", m_displayedTeamCount, m_displayedMatchCount));
-
-    // do not need to change colour of rows
-    if ( m_darkModeTheme )
-        return;
+    UpdateStatusBar();
 
     // change the background colour of the 
     // row depending on itemId for readability

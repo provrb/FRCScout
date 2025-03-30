@@ -52,6 +52,8 @@ private:
     // Initialization
     void DisplayExistingData(); // display already existing data from the db to ui
 
+    inline void UpdateStatusBar(); // update the text in the status bar as well as background colour.
+
     // Panels
     wxBoxSizer* CreateListPanel(
         wxWindow* parent,

@@ -14,3 +14,4 @@ const wxColour DARK_GRAY_1 = wxColour(26, 26, 26);
 const wxColour DARK_GRAY_2 = wxColour(32, 32, 32);
 const wxColour DARK_GRAY_3 = wxColour(35, 35, 35);
 const wxColour DARK_GRAY_4 = wxColour(45, 45, 45);
+const wxColour DARK_GRAY_5 = wxColour(30, 30, 30);

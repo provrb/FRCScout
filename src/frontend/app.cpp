@@ -11,7 +11,7 @@
  * @return true Always returns true to indicate successful initialization.
  */
 bool App::OnInit() {
-    bool darkMode = false;
+    bool darkMode = MSWEnableDarkMode();
 
     // Create the main application window
     MainFrame* mainFrame = new MainFrame(APP_NAME, darkMode);
