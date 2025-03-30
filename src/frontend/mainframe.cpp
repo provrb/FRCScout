@@ -27,6 +27,18 @@
 MainFrame::MainFrame(const wxString& title, bool darkModeEnabled)
     : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(800, 600)), m_darkModeTheme(darkModeEnabled)
 {
+    // Add menu bar. Menu bar also correctly adjusts
+    // if dark mode is enabled or not since it will be white
+    // if dark mode is truly disable, or black if dark mode is truly enabled.
+    // 
+    // If you set your windows theme to light mode, MSWEnableDarkMode will return true
+    // even though it didn't actually enable since MSWEnableDarkMode only enables if 
+    // the system theme is dark. Because the return value is stored in m_darkModeTheme
+    // m_darkModeTheme will always be true even if the system theme isnt dark. This tricks
+    // the UI like list views, text ctrls, etc into thinking its dark mode, and thus switches
+    // colours to DARK_GRAY instead of the correct LIGHT_GRAY_X_ACCENT's
+    CreateMenuBar();
+
     // Create global database
     DataBase* db = new DataBase(DB_PATH, this);
     m_dataBase = reinterpret_cast< void* >( db );
@@ -73,9 +85,6 @@ MainFrame::MainFrame(const wxString& title, bool darkModeEnabled)
     // Set sizer for the panel
     panel->SetSizer(mainSizer);
     this->Layout();
-
-    // Add menu bar
-    CreateMenuBar();
 
     CreateStatusBar();
     UpdateStatusBar();
@@ -713,7 +722,14 @@ wxMenuBar* MainFrame::CreateMenuBar() {
     menuBar->Append(menuFile, "&File");
     menuBar->Append(menuExport, "&Export");
     menuBar->Append(menuImport, "&Import");
+
     SetMenuBar(menuBar);
+    
+    wxColour col = menuBar->GetBackgroundColour();
+    if ( col == wxColour(240, 240, 240) )
+        m_darkModeTheme = false;
+    else if ( col == wxColour(32, 32, 32) )
+        m_darkModeTheme = true;
 
     return menuBar;
 }

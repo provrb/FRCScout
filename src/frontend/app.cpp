@@ -12,7 +12,7 @@
  */
 bool App::OnInit() {
     bool darkMode = MSWEnableDarkMode();
-
+    
     // Create the main application window
     MainFrame* mainFrame = new MainFrame(APP_NAME, darkMode);
     mainFrame->Show(true);
