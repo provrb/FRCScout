@@ -400,9 +400,14 @@ wxBoxSizer* MainFrame::CreateSQLOutputBox(wxPanel* rightPanel) {
     desc->SetFont(wxFontInfo(10));
 
     // Add clear button
-    wxButton* clearButton = new wxButton(rightPanel, kClearOutputButton, "Clear", wxDefaultPosition, wxSize(50, 30));
+    wxButton* clearButton = new wxButton(rightPanel, kClearOutputButton, "Clear", wxDefaultPosition, wxSize(50, 30), wxBORDER_NONE);
     clearButton->Bind(wxEVT_BUTTON, &MainFrame::ClearOutput, this);
     
+    if ( m_darkModeTheme ) {
+        clearButton->SetBackgroundColour(DARK_GRAY_4);
+        clearButton->SetFont(wxFontInfo(9).Bold());
+    }
+
     textSizer->Add(title, 0, wxALIGN_LEFT);
     textSizer->Add(desc, 0, wxALIGN_LEFT | wxTOP, 2);  // Small space between title and description
 
