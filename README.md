@@ -9,6 +9,8 @@
 
 A scouting application designed for FRC (FIRST Robotics Competition) teams to efficiently collect, analyze, and manage match and team performance data.
 
+![App](docs/app.png)
+
 ## Table of Contents
 - [Features](#features)
 - [Installation](#installation)
