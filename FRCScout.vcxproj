@@ -106,7 +106,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UI|x64'">
     <OutDir>$(SolutionDir)\out\release\</OutDir>
     <IntDir>$(SolutionDir)\intermediate\</IntDir>
-    <IncludePath>C:\Users\ethan\Desktop\FRCScout\api;C:\Users\ethan\Desktop\FRCScout\ext;C:\Users\ethan\Desktop\FRCScout\api\backend;C:\wxWidgets-3.2.6\include\msvc;C:\Users\ethan\Desktop\FRCScout\vcpkg_installed\vcpkg\pkgs\mlpack_x64-windows\include;C:\Users\ethan\Desktop\FRCScout\vcpkg_installed\vcpkg\pkgs\armadillo_x64-windows\include;C:\Users\ethan\Desktop\FRCScout\vcpkg_installed\vcpkg\pkgs\cereal_x64-windows\include;C:\Users\ethan\Desktop\FRCScout\vcpkg_installed\vcpkg\pkgs\ensmallen_x64-windows\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\ethan\Desktop\FRCScout\api;C:\Users\ethan\Desktop\FRCScout\ext;C:\Users\ethan\Desktop\FRCScout\api\backend;C:\wxWidgets-3.3.0\include\msvc;C:\Users\ethan\Desktop\FRCScout\vcpkg_installed\vcpkg\pkgs\mlpack_x64-windows\include;C:\Users\ethan\Desktop\FRCScout\vcpkg_installed\vcpkg\pkgs\armadillo_x64-windows\include;C:\Users\ethan\Desktop\FRCScout\vcpkg_installed\vcpkg\pkgs\cereal_x64-windows\include;C:\Users\ethan\Desktop\FRCScout\vcpkg_installed\vcpkg\pkgs\ensmallen_x64-windows\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -194,14 +194,14 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.2.6\include\msvc;C:\wxWidgets-3.2.6\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.3.0\include\msvc;C:\wxWidgets-3.3.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\wxWidgets-3.2.6\lib\vc_x64_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.3.0\lib\vc_x64_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -214,6 +214,7 @@
     <ClCompile Include="ext\sqlite3.c" />
     <ClCompile Include="src\frontend\app.cpp" />
     <ClCompile Include="src\frontend\events.cpp" />
+    <ClCompile Include="src\frontend\logging.cpp" />
     <ClCompile Include="src\frontend\mainframe.cpp" />
   </ItemGroup>
   <ItemGroup>

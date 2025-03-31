@@ -1,4 +1,3 @@
-
 #include "frontend/app.h"
 #include "frontend/mainframe.h"
 
@@ -12,8 +11,10 @@
  * @return true Always returns true to indicate successful initialization.
  */
 bool App::OnInit() {
+    bool darkMode = MSWEnableDarkMode();
+    
     // Create the main application window
-    MainFrame* mainFrame = new MainFrame(APP_NAME);
+    MainFrame* mainFrame = new MainFrame(APP_NAME, darkMode);
     mainFrame->Show(true);
     // mainFrame->SetIcon(wxICON(IDI_ICON1));
 

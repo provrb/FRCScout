@@ -21,7 +21,12 @@ void MainFrame::LogMessage(std::string& msg, wxColour colour) {
         return;
 
     static const wxTextAttr defaultAttr = SQLHistoryTextBox->GetDefaultStyle();
-    SQLHistoryTextBox->SetDefaultStyle(wxTextAttr(colour)); // change text colour to red
+
+    if ( !m_darkModeTheme )
+        SQLHistoryTextBox->SetDefaultStyle(wxTextAttr(colour)); // change text colour to red
+    else // dark mode output will always be white. other colous look terrible
+        SQLHistoryTextBox->SetDefaultStyle(wxTextAttr(LIGHT_GRAY_ACCENT_2));
+
     SQLHistoryTextBox->AppendText(msg);
     SQLHistoryTextBox->SetDefaultStyle(defaultAttr); // reset text colour
 }

@@ -6,6 +6,7 @@
 #include <wx/frame.h> // wxFrame
 #include <wx/listctrl.h> // wxListCtrl
 #include <wx/grid.h> // wxGrid
+#include <wx/sysopt.h>
 
 // Backend
 #include "backend/team.h" // Team struct
@@ -40,7 +41,7 @@ class MainFrame : public wxFrame {
 public:
     friend class DataBase; // Database needs to access functions to display backend data on the UI
 
-    explicit MainFrame(const wxString& title);
+    explicit MainFrame(const wxString& title, bool darkModeEnabled);
 
     // Logging
     void LogMessage(std::string& msg, wxColour colour = *wxBLACK); // log a message to the SQL output with text colour 'colour'
@@ -50,6 +51,8 @@ public:
 private:
     // Initialization
     void DisplayExistingData(); // display already existing data from the db to ui
+
+    inline void UpdateStatusBar(); // update the text in the status bar as well as background colour.
 
     // Panels
     wxBoxSizer* CreateListPanel(
@@ -111,6 +114,7 @@ private:
     void OnImportMatchDataCSV(wxCommandEvent& event);
     void OnPredictMatch(wxCommandEvent& event);
 
+    bool m_darkModeTheme; 
     bool m_isEditModeEnabled;
     int m_selectedTeamRow = -1; // team number of team that is currently selected
     int m_selectedMatchRow = -1; // match number of match that is currently selected
